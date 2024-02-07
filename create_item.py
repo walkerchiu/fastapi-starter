@@ -18,5 +18,11 @@ app = FastAPI()
 # https://fastapi.tiangolo.com/tutorial/body/
 @app.post("/items/")
 async def create_item(item: Item):
-    # Return the item received in the request
-    return item
+    # Convert the Pydantic model to a dictionary
+    item_dict = item.dict()
+    # If tax is provided, calculate price with tax and add it to the dictionary
+    if item.tax:
+        price_with_tax = item.price + item.tax
+        item_dict.update({"price_with_tax": price_with_tax})
+    # Return the item dictionary
+    return item_dict
