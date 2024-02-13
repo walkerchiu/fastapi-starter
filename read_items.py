@@ -10,7 +10,14 @@ app = FastAPI()
 @app.get("/items/")
 async def read_items(
     q: Annotated[
-        str | None, Query(min_length=3, max_length=50, pattern="^fixedquery$")
+        str | None,
+        Query(
+            min_length=3,
+            max_length=50,
+            regex="^fixedquery$",
+            title="Query parameter",
+            description="The query string for searching items. Must be between 3 and 50 characters long and match the pattern 'fixedquery'.",
+        ),
     ] = None,
 ):
     # Initialize results with a list of items
