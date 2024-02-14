@@ -17,6 +17,7 @@ async def read_items(
             regex="^fixedquery$",
             title="Query parameter",
             description="The query string for searching items. Must be between 3 and 50 characters long and match the pattern 'fixedquery'.",
+            alias="item-query",
         ),
     ] = None,
 ):
