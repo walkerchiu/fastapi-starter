@@ -20,11 +20,26 @@ async def read_items(
             alias="item-query",
         ),
     ] = None,
+    hidden_query: Annotated[
+        str | None,
+        Query(
+            min_length=3,
+            max_length=50,
+            regex="^fixedquery$",
+            title="Query parameter(Hidden)",
+            description="The query string for searching items. Must be between 3 and 50 characters long and match the pattern 'fixedquery'.",
+            alias="item-query-hidden",
+            include_in_schema=False,
+        ),
+    ] = None,
 ):
     # Initialize results with a list of items
     results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-    # If a query parameter q is provided, add it to the results dictionary
+
     if q:
         results.update({"q": q})
+    if hidden_query:
+        results.update({"hidden_query": hidden_query})
+
     # Return the results dictionary
     return results
