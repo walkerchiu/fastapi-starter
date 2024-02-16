@@ -18,6 +18,7 @@ async def read_items(
             title="Query parameter",
             description="The query string for searching items. Must be between 3 and 50 characters long and match the pattern 'fixedquery'.",
             alias="item-query",
+            deprecated=True,
         ),
     ] = None,
     hidden_query: Annotated[
