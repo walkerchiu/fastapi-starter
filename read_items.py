@@ -1,14 +1,18 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Path, Query
 
 app = FastAPI()
 
 
 # Define a route to read items with an optional query parameter that is constrained by length and pattern
 # https://fastapi.tiangolo.com/tutorial/query-params-str-validations/#add-regular-expressions.
-@app.get("/items/")
+# https://fastapi.tiangolo.com/tutorial/path-params-numeric-validations/.
+@app.get("/items/{item_id}")
 async def read_items(
+    item_id: int = Path(
+        ..., title="Item ID", description="The ID of the item to retrieve"
+    ),
     q: Annotated[
         str | None,
         Query(
