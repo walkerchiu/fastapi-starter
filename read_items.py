@@ -1,21 +1,26 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Query
 
 app = FastAPI()
 
+# A fake database of items
+fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
-# Define a route to read items with an optional query parameter that is constrained by length and pattern
+
+# Define a route to read items with optional query parameters for pagination
 # https://fastapi.tiangolo.com/tutorial/query-params-str-validations/#add-regular-expressions.
 # https://fastapi.tiangolo.com/tutorial/path-params-numeric-validations/.
-@app.get("/items/{item_id}")
+@app.get("/items/")
 async def read_items(
-    item_id: int = Path(
-        ..., title="Item ID", description="The ID of the item to retrieve"
+    skip: int = Query(..., title="Skip", description="Number of items to skip"),
+    limit: int = Query(
+        ..., title="Limit", description="Maximum number of items to return"
     ),
     q: Annotated[
         str | None,
         Query(
+            ...,
             min_length=3,
             max_length=50,
             regex="^fixedquery$",
@@ -38,13 +43,11 @@ async def read_items(
         ),
     ] = None,
 ):
-    # Initialize results with a list of items
-    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    results = fake_items_db[skip : skip + limit]
 
     if q:
         results.update({"q": q})
     if hidden_query:
         results.update({"hidden_query": hidden_query})
 
-    # Return the results dictionary
     return results
