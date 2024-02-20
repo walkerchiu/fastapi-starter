@@ -13,9 +13,9 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 # https://fastapi.tiangolo.com/tutorial/path-params-numeric-validations/.
 @app.get("/items/")
 async def read_items(
-    skip: int = Query(0, title="Skip", description="Number of items to skip"),
+    skip: int = Query(0, title="Skip", description="Number of items to skip", ge=0),
     limit: int = Query(
-        10, title="Limit", description="Maximum number of items to return"
+        10, title="Limit", description="Maximum number of items to return", ge=1, le=100
     ),
     q: Annotated[
         str | None,
