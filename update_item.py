@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Path
+from fastapi import Body, FastAPI, Path
 
 from pydantic import BaseModel
 
@@ -13,21 +13,29 @@ class Item(BaseModel):
     tax: float | None = None
 
 
+# Define a Pydantic model representing an user
+class User(BaseModel):
+    username: str
+    full_name: str | None = None
+
+
 app = FastAPI()
 
 
 # Define a route to update an item with data from the request body and a query parameter
+# Using Path for item_id validation, Body for importance, and request body for item and user
 # https://fastapi.tiangolo.com/tutorial/body/#request-body-path-query-parameters
 # https://fastapi.tiangolo.com/tutorial/body-multiple-params/#mix-path-query-and-body-parameters
+# https://fastapi.tiangolo.com/tutorial/body-multiple-params/#singular-values-in-body
 @app.put("/items/{item_id}")
 async def update_item(
-    item_id: Annotated[int, Path(title="The ID of the item to get", ge=0, le=1000)],
-    q: str | None = None,
-    item: Item | None = None,
+    item_id: Annotated[int, Path(title="The ID of the item to update", ge=0, le=1000)],
+    item: Item,
+    user: User,
+    importance: Annotated[
+        int, Body(..., gt=0, description="The importance level of the update")
+    ],
 ):
-    results = {"item_id": item_id}
-    if q:
-        results.update({"q": q})
-    if item:
-        results.update({"item": item})
+    # Create a dictionary with the updated item details
+    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
     return results
