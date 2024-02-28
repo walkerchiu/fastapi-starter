@@ -14,11 +14,35 @@ class Item(BaseModel):
     price: float = Field(gt=0, description="The price must be greater than zero")
     tax: float | None = None
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Foo",
+                    "description": "A very nice Item",
+                    "price": 35.4,
+                    "tax": 3.2,
+                }
+            ]
+        }
+    }
+
 
 # Define a Pydantic model representing an user
 class User(BaseModel):
     username: str
     full_name: str | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "username": "john_doe",
+                    "full_name": "John Doe",
+                }
+            ]
+        }
+    }
 
 
 app = FastAPI()
