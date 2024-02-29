@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Body, FastAPI
 
 from pydantic import BaseModel, HttpUrl
 
@@ -33,6 +33,36 @@ class Offer(BaseModel):
 
 # Create a route to handle POST requests to create offers
 # https://fastapi.tiangolo.com/tutorial/body-nested-models/#deeply-nested-models
+# https://fastapi.tiangolo.com/tutorial/schema-extra-example/#body-with-examples
 @app.post("/offers/")
-async def create_offer(offer: Offer):
+async def create_offer(
+    offer: Offer = Body(
+        ...,
+        examples={
+            "example1": {
+                "summary": "An example offer",
+                "description": "A detailed description of an example offer",
+                "value": {
+                    "name": "Offer 1",
+                    "description": "Description of Offer 1",
+                    "price": 100.0,
+                    "items": [
+                        {
+                            "name": "Item 1",
+                            "description": "Description of Item 1",
+                            "price": 50.0,
+                            "tags": ["tag1", "tag2"],
+                            "images": [
+                                {
+                                    "url": "https://example.com/image1.jpg",
+                                    "name": "Image 1",
+                                }
+                            ],
+                        }
+                    ],
+                },
+            }
+        },
+    )
+):
     return offer
