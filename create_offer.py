@@ -34,34 +34,81 @@ class Offer(BaseModel):
 # Create a route to handle POST requests to create offers
 # https://fastapi.tiangolo.com/tutorial/body-nested-models/#deeply-nested-models
 # https://fastapi.tiangolo.com/tutorial/schema-extra-example/#body-with-examples
+# https://fastapi.tiangolo.com/tutorial/schema-extra-example/#using-the-openapi_examples-parameter
 @app.post("/offers/")
 async def create_offer(
     offer: Offer = Body(
         ...,
-        examples={
-            "example1": {
-                "summary": "An example offer",
-                "description": "A detailed description of an example offer",
+        openapi_examples={
+            "normal": {
+                "summary": "A normal example offer",
+                "description": "A normal example offer",
                 "value": {
-                    "name": "Offer 1",
-                    "description": "Description of Offer 1",
-                    "price": 100.0,
+                    "name": "Normal Offer",
+                    "description": "This is a normal offer",
+                    "price": 50.0,
                     "items": [
                         {
-                            "name": "Item 1",
-                            "description": "Description of Item 1",
-                            "price": 50.0,
-                            "tags": ["tag1", "tag2"],
+                            "name": "Normal Item",
+                            "description": "This is a normal item",
+                            "price": 25.0,
+                            "tags": ["normal", "tag"],
                             "images": [
                                 {
-                                    "url": "https://example.com/image1.jpg",
-                                    "name": "Image 1",
+                                    "url": "https://example.com/normal.jpg",
+                                    "name": "Normal Image",
                                 }
                             ],
                         }
                     ],
                 },
-            }
+            },
+            "converted": {
+                "summary": "A converted example offer",
+                "description": "A converted example offer",
+                "value": {
+                    "name": "Converted Offer",
+                    "description": "This is a converted offer",
+                    "price": "75.0",
+                    "items": [
+                        {
+                            "name": "Converted Item",
+                            "description": "This is a converted item",
+                            "price": "37.5",
+                            "tags": ["converted", "tag"],
+                            "images": [
+                                {
+                                    "url": "https://example.com/converted.jpg",
+                                    "name": "Converted Image",
+                                }
+                            ],
+                        }
+                    ],
+                },
+            },
+            "invalid": {
+                "summary": "An invalid example offer",
+                "description": "An invalid example offer",
+                "value": {
+                    "name": "Invalid Offer",
+                    "description": "This is an invalid offer",
+                    "price": "invalid",
+                    "items": [
+                        {
+                            "name": "Invalid Item",
+                            "description": "This is an invalid item",
+                            "price": "invalid",
+                            "tags": ["invalid", "tag"],
+                            "images": [
+                                {
+                                    "url": "https://example.com/invalid.jpg",
+                                    "name": "Invalid Image",
+                                }
+                            ],
+                        }
+                    ],
+                },
+            },
         },
     )
 ):
