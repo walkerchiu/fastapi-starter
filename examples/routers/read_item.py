@@ -1,13 +1,13 @@
-from fastapi import FastAPI, Path
+from fastapi import APIRouter, Path
 
-app = FastAPI()
+router = APIRouter()
 
 # A fake database of items
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
 
 # Define a route to read a single item
-@app.get("/item/{item_id}")
+@router.get("/item/{item_id}")
 async def read_item(
     item_id: int = Path(
         ...,

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 
 from pydantic import BaseModel
 
@@ -24,12 +24,12 @@ class Item(BaseModel):
     }
 
 
-app = FastAPI()
+router = APIRouter()
 
 
 # Define a route to create an item with data from the request body
 # https://fastapi.tiangolo.com/tutorial/body/
-@app.post("/items/")
+@router.post("/items/")
 async def create_item(item: Item):
     # Convert the Pydantic model to a dictionary
     item_dict = item.dict()

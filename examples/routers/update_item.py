@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Body, FastAPI, Path
+from fastapi import APIRouter, Body, Path
 
 from pydantic import BaseModel, Field
 
@@ -45,7 +45,7 @@ class User(BaseModel):
     }
 
 
-app = FastAPI()
+router = APIRouter()
 
 
 # Define a route to update an item with data from the request body and a query parameter
@@ -53,7 +53,7 @@ app = FastAPI()
 # https://fastapi.tiangolo.com/tutorial/body/#request-body-path-query-parameters
 # https://fastapi.tiangolo.com/tutorial/body-multiple-params/#mix-path-query-and-body-parameters
 # https://fastapi.tiangolo.com/tutorial/body-multiple-params/#singular-values-in-body
-@app.put("/items/{item_id}")
+@router.put("/items/{item_id}")
 async def update_item(
     item_id: Annotated[int, Path(title="The ID of the item to update", ge=0, le=1000)],
     item: Item,

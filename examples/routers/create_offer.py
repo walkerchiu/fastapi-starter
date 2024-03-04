@@ -1,8 +1,8 @@
-from fastapi import Body, FastAPI
+from fastapi import APIRouter, Body
 
 from pydantic import BaseModel, HttpUrl
 
-app = FastAPI()
+router = APIRouter()
 
 
 # Define a Pydantic model for Image with a URL and a name
@@ -35,7 +35,7 @@ class Offer(BaseModel):
 # https://fastapi.tiangolo.com/tutorial/body-nested-models/#deeply-nested-models
 # https://fastapi.tiangolo.com/tutorial/schema-extra-example/#body-with-examples
 # https://fastapi.tiangolo.com/tutorial/schema-extra-example/#using-the-openapi_examples-parameter
-@app.post("/offers/")
+@router.post("/offers/")
 async def create_offer(
     offer: Offer = Body(
         ...,
