@@ -53,7 +53,7 @@ router = APIRouter()
 # https://fastapi.tiangolo.com/tutorial/body/#request-body-path-query-parameters
 # https://fastapi.tiangolo.com/tutorial/body-multiple-params/#mix-path-query-and-body-parameters
 # https://fastapi.tiangolo.com/tutorial/body-multiple-params/#singular-values-in-body
-@router.put("/items/{item_id}")
+@router.put("/{item_id}")
 async def update_user_item(
     item_id: Annotated[int, Path(title="The ID of the item to update", ge=0, le=1000)],
     item: Item,

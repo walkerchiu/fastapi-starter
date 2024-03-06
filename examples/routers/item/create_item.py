@@ -29,7 +29,7 @@ router = APIRouter()
 
 # Define a route to create an item with data from the request body
 # https://fastapi.tiangolo.com/tutorial/body/
-@router.post("/items/")
+@router.post("/")
 async def create_item(item: Item):
     # Convert the Pydantic model to a dictionary
     item_dict = item.dict()

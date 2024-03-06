@@ -7,7 +7,7 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 
 
 # Define a route to read a single item
-@router.get("/items/{item_id}")
+@router.get("/{item_id}")
 async def read_item(
     item_id: int = Path(
         ...,

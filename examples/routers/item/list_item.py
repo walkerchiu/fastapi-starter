@@ -11,7 +11,7 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 # Define a route to read items with optional query parameters for pagination
 # https://fastapi.tiangolo.com/tutorial/query-params-str-validations/#add-regular-expressions.
 # https://fastapi.tiangolo.com/tutorial/path-params-numeric-validations/.
-@router.get("/items/")
+@router.get("/")
 async def list_item(
     skip: int = Query(0, title="Skip", description="Number of items to skip", ge=0),
     limit: int = Query(
