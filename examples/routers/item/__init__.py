@@ -5,7 +5,7 @@ from examples.routers.item.list_item import router as list_item
 from examples.routers.item.read_item import router as read_item
 
 
-router = APIRouter(prefix="/item")
+router = APIRouter(prefix="/item", tags=["Item"])
 
 router.include_router(create_item)
 router.include_router(list_item)
