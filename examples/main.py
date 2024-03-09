@@ -7,6 +7,7 @@ from examples.routers import (
     get_model,
     read_file,
 )
+from examples.routers.header import router as header_router
 from examples.routers.item import router as item_router
 from examples.routers.user_item import router as user_item_router
 
@@ -18,6 +19,7 @@ app.include_router(create_multiple_images.router)
 app.include_router(create_offer.router)
 app.include_router(get_model.router)
 app.include_router(read_file.router)
+app.include_router(header_router)
 app.include_router(item_router)
 app.include_router(user_item_router)
 
