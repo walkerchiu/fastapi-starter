@@ -43,25 +43,24 @@ Virtual Environments
 git clone [repository]
 cd [repository]
 
-# Automatically creates and manages a virtualenv for your projects.
-brew install pipenv
-# Create a new project using Python 3.12.
-pipenv --python 3.12
-# Install all dependencies for a project (including dev).
-pipenv install --dev
-# Scan your dependency graph for known security vulnerabilities!
-pipenv check
+# Install Poetry to creating Virtual Environments.
+brew install poetry
+
+# Set up a virtual environment with Python 3.
+poetry env use python3
 ```
 
 ### Run Application
 
 ```sh
-# Generate a set of requirements out of it with the default dependencies.
-pipenv requirements > requirements.txt
+# Export the project dependencies to a requirements.txt file without including hashes
+poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-# To activate this project's virtualenv, run "pipenv shell".
-# Alternatively, run a command inside the virtualenv with "pipenv run".
-pipenv shell
+# Install the project dependencies
+poetry install
+
+# Activate the Poetry virtual environment
+poetry shell
 
 # Run the application
 uvicorn examples.main:app --reload
