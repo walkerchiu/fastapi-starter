@@ -1,0 +1,42 @@
+---
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.3.2
+    hooks:
+      - id: ruff
+        args:
+          - --ignore=E501,E722
+          - --line-length=88
+          - --target-version=py311
+          - --fix
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.18.2
+    hooks:
+      - id: typos
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-ast
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-xml
+      - id: destroyed-symlinks
+      - id: end-of-file-fixer
+      - id: pretty-format-json
+        args: [--autofix, --indent=4, --no-sort-keys]
+      - id: requirements-txt-fixer
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        args: [-lll]
