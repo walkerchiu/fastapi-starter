@@ -6,6 +6,8 @@
 
 - git >= 2.39.3
 - python >= 3.12.1
+- npm >= 10.2.4
+- node >= 21.6.2
 
 ### Setting Up the Environment for Development
 
@@ -61,6 +63,14 @@ pre-commit install
 
 # Run against all the files.
 pre-commit run --all-files
+```
+
+Git Commit Message
+
+```sh
+# commitlint
+npm install
+npx husky init
 ```
 
 ### Run Application
