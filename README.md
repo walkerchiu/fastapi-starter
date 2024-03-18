@@ -73,6 +73,14 @@ npm install
 npx husky init
 ```
 
+### Customize the Settings
+
+```sh
+# Create custom setting of env
+cp .env.example .env
+vi .env
+```
+
 ### Run Application
 
 ```sh
@@ -86,5 +94,26 @@ poetry install
 poetry shell
 
 # Run the application
+uvicorn app.main:app --reload
 uvicorn examples.main:app --reload
 ```
+
+## Docs
+
+### APP
+
+1. Swagger UI
+<http://localhost:8000/api/v1/docs>
+2. Redoc
+<http://localhost:8000/api/v1/redocs>
+3. OpenAPI
+<http://localhost:8000/api/v1/openapi>
+
+### Example
+
+1. Swagger UI
+<http://localhost:8000/docs>
+2. Redoc
+<http://localhost:8000/redocs>
+3. OpenAPI
+<http://localhost:8000/openapi>
