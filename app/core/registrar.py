@@ -71,6 +71,12 @@ def register_middleware(app: FastAPI):
 
         app.add_middleware(GZipMiddleware)
 
+    # Access Log
+    if settings.MIDDLEWARE_ACCESS:
+        from app.middleware.access_middleware import AccessMiddleware
+
+        app.add_middleware(AccessMiddleware)
+
     # CORS: Always at the end
     if settings.MIDDLEWARE_CORS:
         from fastapi.middleware.cors import CORSMiddleware

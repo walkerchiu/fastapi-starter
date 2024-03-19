@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # Static Server
     STATIC_FILES: bool = False
 
+    # Timezone
+    DATETIME_TIMEZONE: str = "Asia/Taipei"
+    DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+
     # Log
     LOG_STDOUT_FILENAME: str = "access.log"
     LOG_STDERR_FILENAME: str = "error.log"
@@ -50,6 +54,7 @@ class Settings(BaseSettings):
         "http://localhost:8080",
     ]
     MIDDLEWARE_GZIP: bool = True
+    MIDDLEWARE_ACCESS: bool = True
 
 
 @lru_cache
