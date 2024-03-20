@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
 
 from app.api.routers import v1
 from app.common.exception.handler import register_exception
@@ -52,6 +53,9 @@ def register_app():
     # Router
     register_router(app)
 
+    # Pagination
+    register_page(app)
+
     # Exception
     register_exception(app)
 
@@ -98,3 +102,13 @@ def register_router(app: FastAPI):
     - app (FastAPI): The FastAPI application instance.
     """
     app.include_router(v1)
+
+
+def register_page(app: FastAPI):
+    """
+    Register pagination for the FastAPI application.
+
+    Args:
+    - app (FastAPI): The FastAPI application instance.
+    """
+    add_pagination(app)
