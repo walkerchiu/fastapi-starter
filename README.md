@@ -73,12 +73,24 @@ npm install
 npx husky init
 ```
 
+### Install Docker
+
+```sh
+# Docker
+brew install docker docker-compose
+open /Applications/Docker.app
+```
+
 ### Customize the Settings
 
 ```sh
 # Create custom setting of env
 cp .env.example .env
 vi .env
+
+# Create custom setting of docker-compose
+cp docker-compose.example.yml docker-compose.local.yml
+vi docker-compose.local.yml
 ```
 
 ### Run Application

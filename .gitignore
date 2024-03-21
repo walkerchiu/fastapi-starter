@@ -103,4 +103,6 @@ __pycache__
 .env.staging
 .env.prod
 
+docker-compose.local.yml
+
 logs/
