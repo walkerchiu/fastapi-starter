@@ -13,6 +13,10 @@ repos:
     rev: v1.18.2
     hooks:
       - id: typos
+  - repo: https://github.com/lyz-code/yamlfix
+    rev: 1.16.0
+    hooks:
+      - id: yamlfix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
