@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from pydantic import BaseModel
@@ -30,10 +30,12 @@ fake_users_db = {
 }
 
 
+# Function to hash a password (simulated for demonstration purposes)
 def fake_hash_password(password: str):
     return "fakehashed" + password
 
 
+# Pydantic model for a user
 class User(BaseModel):
     username: str
     email: str | None = None
@@ -41,11 +43,48 @@ class User(BaseModel):
     disabled: bool | None = None
 
 
+# Pydantic model for a user in the fake database
 class UserInDB(User):
     hashed_password: str
 
 
-# Defining a route for the root endpoint "/token"
+# Function to get a user from the fake database
+def get_user(db, username: str):
+    if username in db:
+        user_dict = db[username]
+        return UserInDB(**user_dict)
+
+
+# Function to decode a token (simulated for demonstration purposes)
+def fake_decode_token(token):
+    # This doesn't provide any security at all
+    # Check the next version
+    user = get_user(fake_users_db, token)
+    return user
+
+
+# Dependency to get the current user from the token
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    user = fake_decode_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
+# Dependency to get the current active user
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+# Route to authenticate and get a token
 # https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
 @router.post("/token")
 async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
@@ -66,3 +105,19 @@ async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
     # Return an access token if the authentication is successful
     return {"access_token": user.username, "token_type": "bearer"}
+
+
+# Simulated function to decode a token
+def fake_decode_token(token):
+    return User(
+        username=token + "fakedecoded", email="john@example.com", full_name="John Doe"
+    )
+
+
+# Route to get the current user based on the token
+# https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/#see-it-in-action
+@router.get("/users/me")
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    return current_user
