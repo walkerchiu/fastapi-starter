@@ -86,6 +86,10 @@ async def get_current_active_user(
 
 # Route to authenticate and get a token
 # https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
+#
+# The OAuth2 spec actually requires a field grant_type with a fixed value of password,
+# but OAuth2PasswordRequestForm doesn't enforce it.
+# If you need to enforce it, use OAuth2PasswordRequestFormStrict instead of OAuth2PasswordRequestForm.
 @router.post("/token")
 async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     # Retrieve user information from fake database based on the provided username
