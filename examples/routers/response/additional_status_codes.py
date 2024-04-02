@@ -3,6 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, Body, status
 from fastapi.responses import JSONResponse
 
+# When you return a Response directly, like in the example above, it will be returned directly.
+# It won't be serialized with a model, etc.
+# Make sure it has the data you want it to have, and that the values are valid JSON (if you are using JSONResponse).
+
+# You could also use from starlette.responses import JSONResponse.
+# FastAPI provides the same starlette.responses as fastapi.responses just as a convenience for you, the developer.
+# But most of the available responses come directly from Starlette. The same with status.
+
 router = APIRouter()
 
 # Create a sample data dictionary
