@@ -63,3 +63,12 @@ def generate_html_response():
 @router.get("/items3/", response_class=HTMLResponse)
 async def read_items3():
     return generate_html_response()
+
+
+# If you want to override the response from inside of the function but at the same time document the "media type" in OpenAPI,
+# you can use the response_class parameter AND return a Response object.
+# The response_class will then be used only to document the OpenAPI path operation, but your Response will be used as is.
+
+# In this example, the function generate_html_response() already generates and returns a Response instead of returning the HTML in a str.
+# By returning the result of calling generate_html_response(), you are already returning a Response that will override the default FastAPI behavior.
+# But as you passed the HTMLResponse in the response_class too, FastAPI will know how to document it in OpenAPI and the interactive docs as HTML with text/html.
