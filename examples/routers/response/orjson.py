@@ -13,7 +13,7 @@ router = APIRouter()
 
 # Define a route that returns a JSON response using ORJSONResponse
 # https://fastapi.tiangolo.com/advanced/custom-response/#use-orjsonresponse.
-@router.get("/items/", response_class=ORJSONResponse)
+@router.get("/items-orjson/", response_class=ORJSONResponse)
 async def read_items():
     # Return a JSON response with an item_id
     return ORJSONResponse([{"item_id": "Foo"}])
