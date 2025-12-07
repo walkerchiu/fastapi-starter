@@ -24,6 +24,12 @@ export function Navbar() {
               <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
             ) : session ? (
               <>
+                <Link
+                  href="/dashboard"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  Dashboard
+                </Link>
                 <span className="text-sm text-gray-700">
                   {session.user?.name || session.user?.email}
                 </span>
