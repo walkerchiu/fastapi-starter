@@ -305,3 +305,91 @@ class TestGraphQLAuthMutations:
         data = response.json()
         assert "errors" in data
         assert "Invalid email or password" in data["errors"][0]["message"]
+
+
+class TestGraphQLMeQuery:
+    """Test GraphQL me query for authentication."""
+
+    async def test_me_authenticated(self, client: AsyncClient):
+        """Test me query returns current user when authenticated."""
+        # First register and login
+        register_mutation = """
+            mutation {
+                register(input: {
+                    email: "metest@example.com",
+                    name: "Me Test User",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": register_mutation})
+
+        login_mutation = """
+            mutation {
+                login(input: {email: "metest@example.com", password: "securepassword123"}) {
+                    accessToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": login_mutation})
+        access_token = response.json()["data"]["login"]["accessToken"]
+
+        # Query me with auth header
+        me_query = """
+            query {
+                me {
+                    id
+                    email
+                    name
+                    isActive
+                }
+            }
+        """
+        response = await client.post(
+            "/graphql",
+            json={"query": me_query},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        user = data["data"]["me"]
+        assert user["email"] == "metest@example.com"
+        assert user["name"] == "Me Test User"
+        assert user["isActive"] is True
+
+    async def test_me_unauthenticated(self, client: AsyncClient):
+        """Test me query returns null when not authenticated."""
+        me_query = """
+            query {
+                me {
+                    id
+                    email
+                    name
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": me_query})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["me"] is None
+
+    async def test_me_invalid_token(self, client: AsyncClient):
+        """Test me query returns null with invalid token."""
+        me_query = """
+            query {
+                me {
+                    id
+                    email
+                }
+            }
+        """
+        response = await client.post(
+            "/graphql",
+            json={"query": me_query},
+            headers={"Authorization": "Bearer invalidtoken"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["me"] is None

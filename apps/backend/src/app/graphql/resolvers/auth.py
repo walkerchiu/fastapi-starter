@@ -24,6 +24,19 @@ from strawberry.types import Info
 
 
 @strawberry.type
+class AuthQuery:
+    """Authentication query resolvers."""
+
+    @strawberry.field
+    async def me(self, info: Info) -> UserType | None:
+        """Get current authenticated user."""
+        user = info.context.get("user")
+        if not user:
+            return None
+        return convert_user_to_type(user)
+
+
+@strawberry.type
 class AuthMutation:
     """Authentication mutation resolvers."""
 

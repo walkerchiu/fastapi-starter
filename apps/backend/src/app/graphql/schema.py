@@ -1,11 +1,11 @@
 """GraphQL schema definition."""
 
 import strawberry
-from src.app.graphql.resolvers import AuthMutation, UserMutation, UserQuery
+from src.app.graphql.resolvers import AuthMutation, AuthQuery, UserMutation, UserQuery
 
 
 @strawberry.type
-class Query(UserQuery):
+class Query(UserQuery, AuthQuery):
     """Root query type."""
 
     @strawberry.field
