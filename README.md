@@ -303,6 +303,16 @@ import { Component } from '../../../components/Component';
 import { Component } from '@/components/Component';
 ```
 
+## Docker
+
+### Build Backend Image
+
+```bash
+cd apps/backend
+docker build -t backend .
+docker run -p 8000:8000 backend
+```
+
 ## Adding Shared Packages
 
 The `packages/` directory is ready for shared code:
