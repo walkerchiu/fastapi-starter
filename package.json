@@ -25,6 +25,7 @@
     "lint:backend:fix": "cd apps/backend && uv run ruff check . --fix",
     "format": "prettier --write . && cd apps/backend && uv run ruff format .",
     "format:check": "prettier --check .",
+    "generate:api": "pnpm --filter @repo/api-client generate",
     "prepare": "husky"
   },
   "lint-staged": {

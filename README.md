@@ -49,6 +49,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [Prettier](https://prettier.io/) 3 - Code formatting
 - [Husky](https://typicode.github.io/husky/) - Git hooks
 - [lint-staged](https://github.com/lint-staged/lint-staged) - Run linters on staged files
+- [@hey-api/openapi-ts](https://heyapi.dev/) - OpenAPI TypeScript client generator
 
 ## Project Structure
 
@@ -86,6 +87,9 @@ fastapi-nextjs-tailwindcss-starter/
 │       └── tsconfig.json
 │
 ├── packages/
+│   ├── api-client/                 # OpenAPI TypeScript client
+│   │   ├── src/generated/          # Auto-generated API types
+│   │   └── openapi-ts.config.ts    # Client generator config
 │   ├── eslint-config/              # Shared ESLint configuration
 │   │   ├── base.mjs                # Base rules for Node.js
 │   │   └── next.mjs                # Next.js specific rules
@@ -165,6 +169,9 @@ The applications will be available at:
 | `pnpm lint:backend`  | Run Ruff linter on backend              |
 | `pnpm format`        | Format code with Prettier and Ruff      |
 | `pnpm format:check`  | Check code formatting without modifying |
+| `pnpm generate:api`  | Generate TypeScript API client          |
+
+> **Note**: `pnpm generate:api` requires the backend server to be running (`pnpm dev:backend`).
 
 ### Backend (apps/backend)
 

@@ -9,6 +9,7 @@ export default [
       '**/.next/',
       '**/out/',
       '**/next-env.d.ts',
+      '**/generated/',
     ],
   },
 ];
