@@ -305,12 +305,33 @@ import { Component } from '@/components/Component';
 
 ## Docker
 
-### Build Backend Image
+### Using Docker Compose
 
 ```bash
+# Start all services
+docker compose up
+
+# Start in detached mode
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# Rebuild images
+docker compose up --build
+```
+
+### Build Individual Images
+
+```bash
+# Backend
 cd apps/backend
 docker build -t backend .
 docker run -p 8000:8000 backend
+
+# Frontend (from root directory)
+docker build -f apps/frontend/Dockerfile -t frontend .
+docker run -p 3000:3000 frontend
 ```
 
 ## Adding Shared Packages
