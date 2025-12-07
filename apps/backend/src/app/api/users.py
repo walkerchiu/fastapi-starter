@@ -3,11 +3,9 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.db import get_db
-from src.app.models import User
 from src.app.schemas import (
     MessageResponse,
     PaginatedResponse,
@@ -16,27 +14,29 @@ from src.app.schemas import (
     UserRead,
     UserUpdate,
 )
+from src.app.schemas.pagination import PaginationMeta
+from src.app.services import UserService
+from src.app.services.user_service import EmailAlreadyExistsError, UserNotFoundError
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+async def get_user_service(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> UserService:
+    """Dependency to get user service."""
+    return UserService(db)
+
+
 @router.get("", response_model=PaginatedResponse[UserRead])
 async def list_users(
-    db: Annotated[AsyncSession, Depends(get_db)],
+    service: Annotated[UserService, Depends(get_user_service)],
     pagination: Annotated[PaginationParams, Depends()],
 ) -> PaginatedResponse[UserRead]:
     """List all users with pagination."""
-    from src.app.schemas.pagination import PaginationMeta
-
-    # Get total count
-    count_result = await db.execute(select(func.count()).select_from(User))
-    total = count_result.scalar() or 0
-
-    # Get paginated items
-    result = await db.execute(
-        select(User).offset(pagination.offset).limit(pagination.limit)
+    users, total = await service.list_users(
+        skip=pagination.offset, limit=pagination.limit
     )
-    users = list(result.scalars().all())
 
     total_pages = ((total + pagination.limit - 1) // pagination.limit) if pagination.limit > 0 else 1
     return PaginatedResponse[UserRead](
@@ -55,98 +55,78 @@ async def list_users(
 @router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: UserCreate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> User:
+    service: Annotated[UserService, Depends(get_user_service)],
+) -> UserRead:
     """Create a new user."""
-    # Check if email already exists
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    if result.scalar_one_or_none():
+    try:
+        user = await service.create(user_in)
+        return UserRead.model_validate(user)
+    except EmailAlreadyExistsError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered",
-        )
-
-    user = User(**user_in.model_dump())
-    db.add(user)
-    try:
-        await db.commit()
-        await db.refresh(user)
+        ) from None
     except SQLAlchemyError:
-        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create user",
         ) from None
-    return user
 
 
 @router.get("/{user_id}", response_model=UserRead)
 async def get_user(
     user_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> User:
+    service: Annotated[UserService, Depends(get_user_service)],
+) -> UserRead:
     """Get a user by ID."""
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
+    try:
+        user = await service.get_by_id(user_id)
+        return UserRead.model_validate(user)
+    except UserNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
-        )
-    return user
+        ) from None
 
 
 @router.patch("/{user_id}", response_model=UserRead)
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> User:
+    service: Annotated[UserService, Depends(get_user_service)],
+) -> UserRead:
     """Update a user."""
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
+    try:
+        user = await service.update(user_id, user_in)
+        return UserRead.model_validate(user)
+    except UserNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
-        )
-
-    update_data = user_in.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(user, field, value)
-
-    try:
-        await db.commit()
-        await db.refresh(user)
+        ) from None
     except SQLAlchemyError:
-        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update user",
         ) from None
-    return user
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> None:
+    service: Annotated[UserService, Depends(get_user_service)],
+) -> MessageResponse:
     """Delete a user."""
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
+    try:
+        await service.delete(user_id)
+    except UserNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
-        )
-
-    try:
-        await db.delete(user)
-        await db.commit()
+        ) from None
     except SQLAlchemyError:
-        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete user",
         ) from None
+    return MessageResponse(message="User deleted successfully")
