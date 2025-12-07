@@ -7,6 +7,7 @@ from src.app.schemas.auth import (
     Token,
     TokenPayload,
 )
+from src.app.schemas.errors import ErrorCode, ErrorDetail, ErrorResponse
 from src.app.schemas.pagination import PaginatedResponse, PaginationParams
 from src.app.schemas.user import (
     MessageResponse,
@@ -17,6 +18,9 @@ from src.app.schemas.user import (
 )
 
 __all__ = [
+    "ErrorCode",
+    "ErrorDetail",
+    "ErrorResponse",
     "LoginRequest",
     "LogoutResponse",
     "MessageResponse",

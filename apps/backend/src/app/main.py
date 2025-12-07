@@ -1,9 +1,11 @@
 """FastAPI application entry point."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from src.app.api import auth_router, users_router
 from src.app.core.config import settings
+from src.app.core.exceptions import APIException
 from src.app.graphql import get_context, schema
 from src.app.middleware import (
     RateLimitConfig,
@@ -17,6 +19,17 @@ app = FastAPI(
     description=settings.app_description,
     version=settings.app_version,
 )
+
+
+@app.exception_handler(APIException)
+async def api_exception_handler(request: Request, exc: APIException) -> JSONResponse:
+    """Handle API exceptions with standardized error response format."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail,
+        headers=exc.headers,
+    )
+
 
 # Add rate limiting middleware (must be added before CORS)
 if settings.rate_limit_enabled:

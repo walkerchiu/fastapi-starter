@@ -46,7 +46,9 @@ async def test_register_duplicate_email(client: AsyncClient):
         },
     )
     assert response.status_code == 409
-    assert response.json()["detail"] == "Email already registered"
+    data = response.json()
+    assert data["detail"] == "Email is already registered."
+    assert data["code"] == "EMAIL_ALREADY_EXISTS"
 
 
 @pytest.mark.asyncio
@@ -146,7 +148,9 @@ async def test_login_invalid_email(client: AsyncClient):
         },
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid email or password"
+    data = response.json()
+    assert data["detail"] == "Invalid email or password."
+    assert data["code"] == "INVALID_CREDENTIALS"
 
 
 @pytest.mark.asyncio
@@ -171,7 +175,9 @@ async def test_login_invalid_password(client: AsyncClient):
         },
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid email or password"
+    data = response.json()
+    assert data["detail"] == "Invalid email or password."
+    assert data["code"] == "INVALID_CREDENTIALS"
 
 
 @pytest.mark.asyncio
@@ -334,7 +340,9 @@ async def test_refresh_token_with_access_token(client: AsyncClient):
         json={"refresh_token": access_token},
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token type"
+    data = response.json()
+    assert data["detail"] == "Invalid token type."
+    assert data["code"] == "INVALID_TOKEN"
 
 
 @pytest.mark.asyncio
@@ -369,7 +377,9 @@ async def test_login_inactive_user(client: AsyncClient):
         },
     )
     assert response.status_code == 403
-    assert response.json()["detail"] == "User account is inactive"
+    data = response.json()
+    assert data["detail"] == "User account is disabled."
+    assert data["code"] == "INACTIVE_USER"
 
 
 @pytest.mark.asyncio
@@ -408,7 +418,9 @@ async def test_refresh_token_inactive_user(client: AsyncClient):
         json={"refresh_token": refresh_token},
     )
     assert response.status_code == 403
-    assert response.json()["detail"] == "User account is inactive"
+    data = response.json()
+    assert data["detail"] == "User account is disabled."
+    assert data["code"] == "INACTIVE_USER"
 
 
 @pytest.mark.asyncio
@@ -447,7 +459,9 @@ async def test_get_me_inactive_user(client: AsyncClient):
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 403
-    assert response.json()["detail"] == "User account is inactive"
+    data = response.json()
+    assert data["detail"] == "User account is disabled."
+    assert data["code"] == "INACTIVE_USER"
 
 
 @pytest.mark.asyncio
@@ -477,4 +491,6 @@ async def test_get_me_with_refresh_token(client: AsyncClient):
         headers={"Authorization": f"Bearer {refresh_token}"},
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid token type"
+    data = response.json()
+    assert data["detail"] == "Invalid token type."
+    assert data["code"] == "INVALID_TOKEN"

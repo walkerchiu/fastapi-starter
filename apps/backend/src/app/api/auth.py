@@ -2,13 +2,22 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core.deps import CurrentUser
+from src.app.core.exceptions import (
+    DatabaseException,
+    EmailAlreadyExistsException,
+    InactiveUserException,
+    InvalidCredentialsException,
+    InvalidTokenException,
+    InvalidTokenTypeException,
+)
 from src.app.db import get_db
 from src.app.models import User
 from src.app.schemas import (
+    ErrorResponse,
     LoginRequest,
     LogoutResponse,
     RefreshTokenRequest,
@@ -36,7 +45,15 @@ async def get_auth_service(
     return AuthService(db)
 
 
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {"model": ErrorResponse, "description": "Email already registered"},
+        500: {"model": ErrorResponse, "description": "Database error"},
+    },
+)
 async def register(
     user_in: UserRegister,
     service: Annotated[AuthService, Depends(get_auth_service)],
@@ -45,18 +62,19 @@ async def register(
     try:
         return await service.register(user_in)
     except EmailAlreadyExistsError:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
-        ) from None
+        raise EmailAlreadyExistsException() from None
     except SQLAlchemyError:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create user",
-        ) from None
+        raise DatabaseException(detail="Failed to create user") from None
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    responses={
+        401: {"model": ErrorResponse, "description": "Invalid credentials"},
+        403: {"model": ErrorResponse, "description": "User account inactive"},
+    },
+)
 async def login(
     credentials: LoginRequest,
     service: Annotated[AuthService, Depends(get_auth_service)],
@@ -65,19 +83,19 @@ async def login(
     try:
         return await service.login(credentials.email, credentials.password)
     except InvalidCredentialsError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from None
+        raise InvalidCredentialsException() from None
     except InactiveUserError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
-        ) from None
+        raise InactiveUserException() from None
 
 
-@router.post("/refresh", response_model=Token)
+@router.post(
+    "/refresh",
+    response_model=Token,
+    responses={
+        401: {"model": ErrorResponse, "description": "Invalid or expired token"},
+        403: {"model": ErrorResponse, "description": "User account inactive"},
+    },
+)
 async def refresh_token(
     request: RefreshTokenRequest,
     service: Annotated[AuthService, Depends(get_auth_service)],
@@ -86,22 +104,11 @@ async def refresh_token(
     try:
         return await service.refresh_token(request.refresh_token)
     except InvalidTokenTypeError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from None
+        raise InvalidTokenTypeException() from None
     except (InvalidTokenError, UserNotFoundError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from None
+        raise InvalidTokenException() from None
     except InactiveUserError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
-        ) from None
+        raise InactiveUserException() from None
 
 
 @router.get("/me", response_model=UserRead)

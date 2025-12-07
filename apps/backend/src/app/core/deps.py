@@ -2,10 +2,16 @@
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.app.core.exceptions import (
+    InactiveUserException,
+    InvalidTokenException,
+    InvalidTokenTypeException,
+    UnauthenticatedException,
+)
 from src.app.core.security import decode_token
 from src.app.db.session import get_db
 from src.app.models import User
@@ -22,42 +28,23 @@ async def get_current_user(
     payload = decode_token(token)
 
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidTokenException()
 
     if payload.get("type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidTokenTypeException()
 
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidTokenException(detail="Invalid token payload")
 
     result = await db.execute(select(User).where(User.id == int(user_id)))
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise UnauthenticatedException(detail="User not found")
 
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
-        )
+        raise InactiveUserException()
 
     return user
 

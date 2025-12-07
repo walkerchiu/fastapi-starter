@@ -32,7 +32,9 @@ async def test_create_user_duplicate_email(client: AsyncClient):
         json={"email": "test@example.com", "name": "Another User"},
     )
     assert response.status_code == 409
-    assert "already registered" in response.json()["detail"]
+    data = response.json()
+    assert data["detail"] == "Email is already registered."
+    assert data["code"] == "EMAIL_ALREADY_EXISTS"
 
 
 @pytest.mark.asyncio
@@ -217,7 +219,11 @@ async def test_update_user_not_found(client: AsyncClient):
         json={"name": "Updated Name"},
     )
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    data = response.json()
+    assert data["detail"] == "User not found."
+    assert data["code"] == "USER_NOT_FOUND"
+    assert data["errors"]["resource"] == "User"
+    assert data["errors"]["id"] == 999
 
 
 @pytest.mark.asyncio
@@ -225,7 +231,11 @@ async def test_delete_user_not_found(client: AsyncClient):
     """Test deleting a non-existent user."""
     response = await client.delete("/api/v1/users/999")
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    data = response.json()
+    assert data["detail"] == "User not found."
+    assert data["code"] == "USER_NOT_FOUND"
+    assert data["errors"]["resource"] == "User"
+    assert data["errors"]["id"] == 999
 
 
 @pytest.mark.asyncio
