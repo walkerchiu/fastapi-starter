@@ -186,3 +186,122 @@ class TestGraphQLUserMutations:
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["deleteUser"] is False
+
+
+class TestGraphQLAuthMutations:
+    """Test GraphQL auth mutations."""
+
+    async def test_register(self, client: AsyncClient):
+        """Test user registration via GraphQL."""
+        mutation = """
+            mutation {
+                register(input: {
+                    email: "graphql@example.com",
+                    name: "GraphQL User",
+                    password: "securepassword123"
+                }) {
+                    id
+                    email
+                    name
+                    isActive
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        user = data["data"]["register"]
+        assert user["email"] == "graphql@example.com"
+        assert user["name"] == "GraphQL User"
+        assert user["isActive"] is True
+
+    async def test_login(self, client: AsyncClient):
+        """Test user login via GraphQL."""
+        # First register a user
+        register_mutation = """
+            mutation {
+                register(input: {
+                    email: "login@example.com",
+                    name: "Login User",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": register_mutation})
+
+        # Then login
+        login_mutation = """
+            mutation {
+                login(input: {email: "login@example.com", password: "securepassword123"}) {
+                    accessToken
+                    refreshToken
+                    tokenType
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": login_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        token = data["data"]["login"]
+        assert token["accessToken"] is not None
+        assert token["refreshToken"] is not None
+        assert token["tokenType"] == "bearer"
+
+    async def test_refresh_token(self, client: AsyncClient):
+        """Test token refresh via GraphQL."""
+        # First register and login
+        register_mutation = """
+            mutation {
+                register(input: {
+                    email: "refresh@example.com",
+                    name: "Refresh User",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": register_mutation})
+
+        login_mutation = """
+            mutation {
+                login(input: {email: "refresh@example.com", password: "securepassword123"}) {
+                    refreshToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": login_mutation})
+        refresh_token = response.json()["data"]["login"]["refreshToken"]
+
+        # Refresh the token
+        refresh_mutation = f"""
+            mutation {{
+                refreshToken(input: {{refreshToken: "{refresh_token}"}}) {{
+                    accessToken
+                    refreshToken
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": refresh_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        new_token = data["data"]["refreshToken"]
+        assert new_token["accessToken"] is not None
+        assert new_token["refreshToken"] is not None
+
+    async def test_login_invalid_credentials(self, client: AsyncClient):
+        """Test login with invalid credentials."""
+        mutation = """
+            mutation {
+                login(input: {email: "nonexistent@example.com", password: "wrongpassword"}) {
+                    accessToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        assert "Invalid email or password" in data["errors"][0]["message"]
