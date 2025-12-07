@@ -1,7 +1,7 @@
 """GraphQL schema definition."""
 
 import strawberry
-from src.app.graphql.resolvers import UserQuery
+from src.app.graphql.resolvers import UserMutation, UserQuery
 
 
 @strawberry.type
@@ -15,7 +15,7 @@ class Query(UserQuery):
 
 
 @strawberry.type
-class Mutation:
+class Mutation(UserMutation):
     """Root mutation type."""
 
     @strawberry.mutation

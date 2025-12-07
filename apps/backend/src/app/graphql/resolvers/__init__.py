@@ -1,5 +1,5 @@
 """GraphQL resolvers."""
 
-from src.app.graphql.resolvers.users import UserQuery
+from src.app.graphql.resolvers.users import UserMutation, UserQuery
 
-__all__ = ["UserQuery"]
+__all__ = ["UserMutation", "UserQuery"]

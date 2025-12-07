@@ -79,3 +79,110 @@ class TestGraphQLUserQueries:
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["user"] is None
+
+
+class TestGraphQLUserMutations:
+    """Test GraphQL user mutations."""
+
+    async def test_create_user(self, client: AsyncClient):
+        """Test creating a user via GraphQL."""
+        mutation = """
+            mutation {
+                createUser(input: {email: "test@example.com", name: "Test User"}) {
+                    id
+                    email
+                    name
+                    isActive
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        user = data["data"]["createUser"]
+        assert user["email"] == "test@example.com"
+        assert user["name"] == "Test User"
+        assert user["isActive"] is True
+        assert user["id"] is not None
+
+    async def test_update_user(self, client: AsyncClient):
+        """Test updating a user via GraphQL."""
+        # First create a user
+        create_mutation = """
+            mutation {
+                createUser(input: {email: "update@example.com", name: "Original"}) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": create_mutation})
+        user_id = response.json()["data"]["createUser"]["id"]
+
+        # Update the user
+        update_mutation = f"""
+            mutation {{
+                updateUser(id: {user_id}, input: {{name: "Updated Name"}}) {{
+                    id
+                    email
+                    name
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": update_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        user = data["data"]["updateUser"]
+        assert user["name"] == "Updated Name"
+        assert user["email"] == "update@example.com"
+
+    async def test_delete_user(self, client: AsyncClient):
+        """Test deleting a user via GraphQL."""
+        # First create a user
+        create_mutation = """
+            mutation {
+                createUser(input: {email: "delete@example.com", name: "To Delete"}) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": create_mutation})
+        user_id = response.json()["data"]["createUser"]["id"]
+
+        # Delete the user
+        delete_mutation = f"""
+            mutation {{
+                deleteUser(id: {user_id}) {{
+                    message
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": delete_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["deleteUser"]["message"] == "User deleted successfully"
+
+        # Verify user is deleted
+        query = f"""
+            query {{
+                user(id: {user_id}) {{
+                    id
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": query})
+        data = response.json()
+        assert data["data"]["user"] is None
+
+    async def test_delete_user_not_found(self, client: AsyncClient):
+        """Test deleting a non-existent user returns false."""
+        mutation = """
+            mutation {
+                deleteUser(id: 9999) {
+                    message
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["deleteUser"] is False

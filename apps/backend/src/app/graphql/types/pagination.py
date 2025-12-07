@@ -1,8 +1,6 @@
 """GraphQL pagination types."""
 
 import strawberry
-from src.app.graphql.types.permission import PermissionType
-from src.app.graphql.types.role import RoleType
 from src.app.graphql.types.user import UserType
 
 
@@ -23,20 +21,4 @@ class PaginatedUsers:
     """Paginated users response."""
 
     data: list[UserType]
-    meta: PaginationMeta
-
-
-@strawberry.type
-class PaginatedPermissions:
-    """Paginated permissions response."""
-
-    data: list[PermissionType]
-    meta: PaginationMeta
-
-
-@strawberry.type
-class PaginatedRoles:
-    """Paginated roles response."""
-
-    data: list[RoleType]
     meta: PaginationMeta
