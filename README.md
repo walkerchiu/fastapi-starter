@@ -444,3 +444,58 @@ The `packages/` directory is ready for shared code:
 1. Create a new package in `packages/your-package`.
 2. Add a `package.json` with `"name": "@repo/your-package"`.
 3. Reference it in apps: `"@repo/your-package": "workspace:*"`.
+
+## Production Deployment
+
+Before deploying to production, review the following checklist:
+
+### Environment Variables
+
+| Variable         | Description                                          | Required |
+| ---------------- | ---------------------------------------------------- | -------- |
+| `JWT_SECRET_KEY` | Strong secret key for JWT signing (min 32 chars)     | Yes      |
+| `DATABASE_URL`   | Production database connection string                | Yes      |
+| `CORS_ORIGINS`   | Allowed origins (e.g., `["https://yourdomain.com"]`) | Yes      |
+| `ENVIRONMENT`    | Set to `production`                                  | Yes      |
+| `DEBUG`          | Set to `false`                                       | Yes      |
+
+### Security Checklist
+
+- [ ] Change `JWT_SECRET_KEY` from default value.
+- [ ] Configure `CORS_ORIGINS` with specific domains (not `*`).
+- [ ] Set `DEBUG=false`.
+- [ ] Set `ENVIRONMENT=production`.
+- [ ] Review and adjust rate limiting settings.
+- [ ] Use HTTPS in production.
+- [ ] Configure proper database credentials.
+
+### OpenAPI Documentation (Optional)
+
+For public APIs, consider adding these settings in `apps/backend/src/app/main.py`:
+
+```python
+app = FastAPI(
+    # ... existing settings ...
+    contact={
+        "name": "API Support",
+        "url": "https://yourdomain.com/support",
+        "email": "support@yourdomain.com",
+    },
+    terms_of_service="https://yourdomain.com/terms",
+    servers=[
+        {"url": "https://api.yourdomain.com", "description": "Production"},
+        {"url": "https://staging-api.yourdomain.com", "description": "Staging"},
+    ],
+)
+```
+
+### Rate Limiting
+
+Default rate limits can be adjusted via environment variables:
+
+| Variable                      | Default | Description               |
+| ----------------------------- | ------- | ------------------------- |
+| `RATE_LIMIT_REQUESTS`         | 100     | Requests per window       |
+| `RATE_LIMIT_WINDOW`           | 60      | Window in seconds         |
+| `RATE_LIMIT_AUTH_REQUESTS`    | 20      | Auth endpoint requests    |
+| `RATE_LIMIT_GRAPHQL_REQUESTS` | 50      | GraphQL endpoint requests |
