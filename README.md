@@ -54,6 +54,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [Prettier](https://prettier.io/) 3 - Code formatting
 - [Husky](https://typicode.github.io/husky/) - Git hooks
 - [lint-staged](https://github.com/lint-staged/lint-staged) - Run linters on staged files
+- [commitlint](https://commitlint.js.org/) - Lint commit messages
 - [@hey-api/openapi-ts](https://heyapi.dev/) - OpenAPI TypeScript client generator
 
 ## Project Structure
@@ -105,12 +106,14 @@ fastapi-nextjs-tailwindcss-starter/
 │       └── nextjs.json             # Next.js specific settings
 │
 ├── .husky/                         # Git hooks
-│   └── pre-commit                  # Runs lint-staged
+│   ├── pre-commit                  # Runs lint-staged
+│   └── commit-msg                  # Runs commitlint
 │
 ├── package.json                    # Root workspace configuration
 ├── pnpm-workspace.yaml             # pnpm workspace definition
 ├── tsconfig.base.json              # Base TypeScript configuration
 ├── eslint.config.mjs               # ESLint flat configuration
+├── commitlint.config.mjs           # Commitlint configuration
 ├── .prettierrc                     # Prettier configuration
 └── .editorconfig                   # Editor configuration
 ```
@@ -222,11 +225,17 @@ This project enforces code quality through automated tooling:
 
 ### Git Hooks
 
-Pre-commit hooks automatically run on staged files:
+Git hooks automatically enforce code quality:
+
+**Pre-commit** (runs on staged files):
 
 1. **ESLint** fixes issues in `.js`, `.mjs`, `.ts`, `.tsx` files
 2. **Prettier** formats all supported files
 3. **Ruff** formats and lints Python files
+
+**Commit-msg** (validates commit message):
+
+- **commitlint** ensures commit messages follow the convention below
 
 ### Commit Convention
 
