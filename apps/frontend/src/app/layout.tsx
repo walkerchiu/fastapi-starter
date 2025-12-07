@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Navbar } from '@/components/nav/navbar';
+import { GraphQLProvider } from '@/components/providers/graphql-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import './globals.css';
 
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProvider>
-          <Navbar />
-          <main>{children}</main>
+          <GraphQLProvider>
+            <Navbar />
+            <main>{children}</main>
+          </GraphQLProvider>
         </SessionProvider>
       </body>
     </html>

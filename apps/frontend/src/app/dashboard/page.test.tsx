@@ -1,5 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
+import { Provider } from 'urql';
+import { fromValue, delay, pipe } from 'wonka';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import DashboardPage from './page';
 
@@ -15,34 +17,79 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('@repo/api-client', () => ({
-  client: {
-    setConfig: vi.fn(),
-  },
-  listUsersApiV1UsersGet: vi.fn().mockResolvedValue({
-    data: {
+const mockUsersData = {
+  data: {
+    users: {
       items: [
         {
           id: 1,
           email: 'user1@example.com',
           name: 'User One',
-          is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
+          isActive: true,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
         },
         {
           id: 2,
           email: 'user2@example.com',
           name: 'User Two',
-          is_active: false,
-          created_at: '2024-01-02T00:00:00Z',
+          isActive: false,
+          createdAt: '2024-01-02T00:00:00Z',
+          updatedAt: '2024-01-02T00:00:00Z',
         },
       ],
       total: 2,
       skip: 0,
       limit: 10,
+      hasMore: false,
     },
-  }),
-}));
+  },
+};
+
+const mockMeData = {
+  data: {
+    me: {
+      id: 1,
+      email: 'test@example.com',
+      name: 'Test User',
+      isActive: true,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+    },
+  },
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createMockClient(mockData: Record<string, any> = {}) {
+  return {
+    executeQuery: ({
+      query,
+    }: {
+      query: { definitions: { name?: { value: string } }[] };
+    }) => {
+      const operationName = query.definitions[0]?.name?.value;
+      if (operationName === 'Users') {
+        return pipe(fromValue(mockData.users ?? mockUsersData), delay(0));
+      }
+      if (operationName === 'Me') {
+        return pipe(fromValue(mockData.me ?? mockMeData), delay(0));
+      }
+      return pipe(fromValue({ data: null }), delay(0));
+    },
+    executeMutation: () => pipe(fromValue({ data: null }), delay(0)),
+    executeSubscription: () => pipe(fromValue({ data: null }), delay(0)),
+  };
+}
+
+function renderWithProvider(
+  ui: React.ReactElement,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockData: Record<string, any> = {},
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = createMockClient(mockData) as any;
+  return render(<Provider value={client}>{ui}</Provider>);
+}
 
 describe('DashboardPage', () => {
   beforeEach(() => {
@@ -55,7 +102,7 @@ describe('DashboardPage', () => {
       status: 'loading',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
@@ -66,7 +113,7 @@ describe('DashboardPage', () => {
       status: 'unauthenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/login?callbackUrl=/dashboard');
@@ -85,7 +132,7 @@ describe('DashboardPage', () => {
       status: 'authenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText(/Welcome back, Test User!/)).toBeInTheDocument();
@@ -102,7 +149,7 @@ describe('DashboardPage', () => {
       status: 'authenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     expect(
       screen.getByText(/Welcome back, test@example.com!/),
@@ -121,7 +168,7 @@ describe('DashboardPage', () => {
       status: 'authenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     await waitFor(() => {
       expect(screen.getByText('User One')).toBeInTheDocument();
@@ -143,7 +190,7 @@ describe('DashboardPage', () => {
       status: 'authenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     await waitFor(() => {
       expect(screen.getByText('Total Users')).toBeInTheDocument();
@@ -162,7 +209,7 @@ describe('DashboardPage', () => {
       status: 'authenticated',
     });
 
-    render(<DashboardPage />);
+    renderWithProvider(<DashboardPage />);
 
     await waitFor(() => {
       const activeBadges = screen.getAllByText('Active');
