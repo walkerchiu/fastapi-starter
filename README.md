@@ -17,6 +17,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Type-Safe API** - Auto-generated TypeScript client from OpenAPI specification
 - **Modern Backend** - FastAPI with async support and automatic API documentation
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
+- **User Management** - Complete CRUD operations for users with pagination
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
@@ -197,6 +198,14 @@ The applications will be available at:
 | `pnpm --filter frontend test`       | Run tests               |
 | `pnpm --filter frontend test:watch` | Run tests in watch mode |
 | `pnpm --filter frontend test:cov`   | Run tests with coverage |
+
+## API Endpoints
+
+Full REST API documentation is available at:
+
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
+- **OpenAPI JSON**: <http://localhost:8000/openapi.json>
 
 ## Development Workflow
 
