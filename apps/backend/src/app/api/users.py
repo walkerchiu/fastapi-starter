@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core.exceptions import (
@@ -37,7 +37,43 @@ async def get_user_service(
     return UserService(db)
 
 
-@router.get("", response_model=PaginatedResponse[UserRead])
+@router.get(
+    "",
+    response_model=PaginatedResponse[UserRead],
+    summary="List users",
+    description="""
+Retrieve a paginated list of users.
+
+**Pagination parameters:**
+- `skip`: Number of items to skip (default: 0)
+- `limit`: Maximum number of items to return (default: 20, max: 100)
+    """,
+    responses={
+        200: {
+            "description": "List of users with pagination info",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "items": [
+                            {
+                                "id": 1,
+                                "email": "user@example.com",
+                                "name": "John Doe",
+                                "is_active": True,
+                                "created_at": "2024-01-01T00:00:00Z",
+                                "updated_at": "2024-01-01T00:00:00Z",
+                            }
+                        ],
+                        "total": 1,
+                        "skip": 0,
+                        "limit": 20,
+                    }
+                }
+            },
+        },
+        422: {"model": ErrorResponse, "description": "Validation error"},
+    },
+)
 async def list_users(
     service: Annotated[UserService, Depends(get_user_service)],
     pagination: Annotated[PaginationParams, Depends()],
@@ -65,8 +101,31 @@ async def list_users(
     "",
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
+    summary="Create user",
+    description="""
+Create a new user with email and name.
+
+**Note:** This endpoint creates a user without a password.
+For user registration with password, use `/auth/register`.
+    """,
     responses={
+        201: {
+            "description": "User successfully created",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "is_active": True,
+                        "created_at": "2024-01-01T00:00:00Z",
+                        "updated_at": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
         400: {"model": ErrorResponse, "description": "Email already registered"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Database error"},
     },
 )
@@ -87,10 +146,30 @@ async def create_user(
 @router.get(
     "/{user_id}",
     response_model=UserRead,
-    responses={404: {"model": ErrorResponse, "description": "User not found"}},
+    summary="Get user",
+    description="Retrieve a specific user by their ID.",
+    responses={
+        200: {
+            "description": "User details",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "is_active": True,
+                        "created_at": "2024-01-01T00:00:00Z",
+                        "updated_at": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
+        404: {"model": ErrorResponse, "description": "User not found"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
+    },
 )
 async def get_user(
-    user_id: int,
+    user_id: Annotated[int, Path(description="The ID of the user to retrieve", ge=1)],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     """Get a user by ID."""
@@ -104,13 +183,38 @@ async def get_user(
 @router.patch(
     "/{user_id}",
     response_model=UserRead,
+    summary="Update user",
+    description="""
+Update a user's information. Only provided fields will be updated.
+
+**Updatable fields:**
+- `email`: User's email address
+- `name`: User's display name
+- `is_active`: Account active status
+    """,
     responses={
+        200: {
+            "description": "User successfully updated",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "email": "updated@example.com",
+                        "name": "Jane Doe",
+                        "is_active": True,
+                        "created_at": "2024-01-01T00:00:00Z",
+                        "updated_at": "2024-01-02T00:00:00Z",
+                    }
+                }
+            },
+        },
         404: {"model": ErrorResponse, "description": "User not found"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Database error"},
     },
 )
 async def update_user(
-    user_id: int,
+    user_id: Annotated[int, Path(description="The ID of the user to update", ge=1)],
     user_in: UserUpdate,
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
@@ -127,13 +231,17 @@ async def update_user(
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete user",
+    description="Permanently delete a user by their ID.",
     responses={
+        204: {"description": "User successfully deleted"},
         404: {"model": ErrorResponse, "description": "User not found"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Database error"},
     },
 )
 async def delete_user(
-    user_id: int,
+    user_id: Annotated[int, Path(description="The ID of the user to delete", ge=1)],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
     """Delete a user."""

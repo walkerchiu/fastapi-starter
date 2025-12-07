@@ -14,10 +14,34 @@ from src.app.middleware import (
 )
 from strawberry.fastapi import GraphQLRouter
 
+# OpenAPI Tags metadata
+tags_metadata = [
+    {
+        "name": "auth",
+        "description": "Authentication operations: register, login, token refresh, and user info.",
+    },
+    {
+        "name": "users",
+        "description": "User management operations: CRUD for user resources.",
+    },
+]
+
 app = FastAPI(
     title=settings.app_name,
     description=settings.app_description,
     version=settings.app_version,
+    openapi_tags=tags_metadata,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    swagger_ui_parameters={
+        "persistAuthorization": True,
+        "filter": True,
+    },
 )
 
 
@@ -49,7 +73,7 @@ if settings.rate_limit_enabled:
                 window=settings.rate_limit_graphql_window,
             ),
         },
-        exclude_paths=["/", "/health", "/docs", "/openapi.json", "/redoc"],
+        exclude_paths=["/", "/health", "/api/docs", "/api/openapi.json", "/api/redoc"],
     )
 
 app.add_middleware(

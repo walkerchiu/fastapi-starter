@@ -19,7 +19,26 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "FastAPI Backend"
-    app_description: str = "FastAPI backend application"
+    app_description: str = """
+FastAPI backend application with REST API and GraphQL support.
+
+## Features
+
+- **Authentication**: JWT-based authentication with access and refresh tokens
+- **User Management**: Full CRUD operations for user resources
+- **GraphQL**: Alternative GraphQL API with subscriptions support
+- **Rate Limiting**: Configurable rate limits per endpoint
+- **Validation**: Input validation with detailed error messages
+
+## Authentication
+
+Most endpoints require authentication. Use the **Authorize** button above to enter your Bearer token.
+
+To get a token:
+1. Register a new user via `POST /api/v1/auth/register`
+2. Login via `POST /api/v1/auth/login` to receive tokens
+3. Use the `access_token` in the Authorization header
+    """
     app_version: str = "0.0.0"
     debug: bool = False
 

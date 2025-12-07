@@ -166,7 +166,7 @@ The applications will be available at:
 
 - **Frontend**: <http://localhost:3000>
 - **Backend**: <http://localhost:8000>
-- **REST API Docs**: <http://localhost:8000/docs>
+- **REST API Docs**: <http://localhost:8000/api/docs>
 - **GraphiQL**: <http://localhost:8000/graphql>
 
 ## Available Scripts

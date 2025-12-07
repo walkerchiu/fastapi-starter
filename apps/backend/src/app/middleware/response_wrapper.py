@@ -10,10 +10,10 @@ from starlette.types import ASGIApp
 
 class ResponseWrapperMiddleware(BaseHTTPMiddleware):
     """Middleware to wrap REST API responses with {success: true, data: ...} format.
-    
+
     This middleware automatically wraps successful responses (status code 2xx)
     with a standardized format: {success: true, data: <original_response>}
-    
+
     Exceptions and special cases:
     - Skips GraphQL endpoints (/graphql)
     - Skips health check endpoints (/health, /api/health)
@@ -29,7 +29,7 @@ class ResponseWrapperMiddleware(BaseHTTPMiddleware):
         skip_paths: list[str] | None = None,
     ):
         """Initialize the response wrapper middleware.
-        
+
         Args:
             app: The ASGI application
             skip_paths: Additional paths to skip wrapping (default: None)
@@ -78,7 +78,7 @@ class ResponseWrapperMiddleware(BaseHTTPMiddleware):
         # Try to parse as JSON
         try:
             data = json.loads(body.decode())
-            
+
             # Skip if already wrapped (contains 'success' field)
             if isinstance(data, dict) and "success" in data:
                 return response
@@ -88,7 +88,7 @@ class ResponseWrapperMiddleware(BaseHTTPMiddleware):
                 "success": True,
                 "data": data,
             }
-            
+
             # Create new response with wrapped data
             return Response(
                 content=json.dumps(wrapped_data),

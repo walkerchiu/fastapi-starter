@@ -49,8 +49,34 @@ async def get_auth_service(
     "/register",
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="""
+Register a new user account with email, name, and password.
+
+**Password requirements:**
+- Minimum 8 characters
+- Maximum 128 characters
+
+Returns the created user information (without password).
+    """,
     responses={
+        201: {
+            "description": "User successfully registered",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "is_active": True,
+                        "created_at": "2024-01-01T00:00:00Z",
+                        "updated_at": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
         400: {"model": ErrorResponse, "description": "Email already registered"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Database error"},
     },
 )
@@ -70,9 +96,32 @@ async def register(
 @router.post(
     "/login",
     response_model=Token,
+    summary="Login and get tokens",
+    description="""
+Authenticate with email and password to receive access and refresh tokens.
+
+**Token types:**
+- `access_token`: Short-lived token for API requests (default: 30 minutes)
+- `refresh_token`: Long-lived token for obtaining new access tokens (default: 7 days)
+
+Use the access token in the `Authorization: Bearer <token>` header.
+    """,
     responses={
-        401: {"model": ErrorResponse, "description": "Invalid credentials"},
-        403: {"model": ErrorResponse, "description": "User account inactive"},
+        200: {
+            "description": "Successfully authenticated",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "token_type": "bearer",
+                    }
+                }
+            },
+        },
+        401: {"model": ErrorResponse, "description": "Invalid email or password"},
+        403: {"model": ErrorResponse, "description": "User account is inactive"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
 async def login(
@@ -91,9 +140,29 @@ async def login(
 @router.post(
     "/refresh",
     response_model=Token,
+    summary="Refresh access token",
+    description="""
+Get a new access token using a valid refresh token.
+
+This endpoint should be called when the access token expires.
+Both a new access token and refresh token will be returned.
+    """,
     responses={
+        200: {
+            "description": "Tokens successfully refreshed",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "token_type": "bearer",
+                    }
+                }
+            },
+        },
         401: {"model": ErrorResponse, "description": "Invalid or expired token"},
-        403: {"model": ErrorResponse, "description": "User account inactive"},
+        403: {"model": ErrorResponse, "description": "User account is inactive"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
 async def refresh_token(
@@ -111,7 +180,31 @@ async def refresh_token(
         raise InactiveUserException() from None
 
 
-@router.get("/me", response_model=UserRead)
+@router.get(
+    "/me",
+    response_model=UserRead,
+    summary="Get current user",
+    description="Get the currently authenticated user's information.",
+    responses={
+        200: {
+            "description": "Current user information",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "is_active": True,
+                        "created_at": "2024-01-01T00:00:00Z",
+                        "updated_at": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        403: {"model": ErrorResponse, "description": "User account is inactive"},
+    },
+)
 async def get_current_user_info(current_user: CurrentUser) -> User:
     """Get current authenticated user information."""
     return current_user
