@@ -1,8 +1,13 @@
+"""GraphQL schema definition."""
+
 import strawberry
+from src.app.graphql.resolvers import UserQuery
 
 
 @strawberry.type
-class Query:
+class Query(UserQuery):
+    """Root query type."""
+
     @strawberry.field
     def hello(self) -> str:
         """Simple hello query for testing."""
@@ -11,6 +16,8 @@ class Query:
 
 @strawberry.type
 class Mutation:
+    """Root mutation type."""
+
     @strawberry.mutation
     def ping(self) -> str:
         """Simple ping mutation for testing."""
