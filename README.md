@@ -21,6 +21,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **User Management** - Complete CRUD operations for users with pagination
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
+- **Input Validation** - GraphQL input validation with typed error codes
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
@@ -225,14 +226,17 @@ The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE
 
 All GraphQL errors include standardized error codes in the `extensions` field:
 
-| Category       | Code                   | Description                 |
-| -------------- | ---------------------- | --------------------------- |
-| Authentication | `UNAUTHENTICATED`      | User not authenticated      |
-| Authentication | `INVALID_CREDENTIALS`  | Wrong email or password     |
-| Authentication | `INVALID_TOKEN`        | Token is invalid or expired |
-| Authentication | `INACTIVE_USER`        | User account is disabled    |
-| Resource       | `USER_NOT_FOUND`       | User does not exist         |
-| Resource       | `EMAIL_ALREADY_EXISTS` | Email is already registered |
+| Category       | Code                   | Description                        |
+| -------------- | ---------------------- | ---------------------------------- |
+| Authentication | `UNAUTHENTICATED`      | User not authenticated             |
+| Authentication | `INVALID_CREDENTIALS`  | Wrong email or password            |
+| Authentication | `INVALID_TOKEN`        | Token is invalid or expired        |
+| Authentication | `INACTIVE_USER`        | User account is disabled           |
+| Validation     | `INVALID_EMAIL`        | Invalid email format               |
+| Validation     | `WEAK_PASSWORD`        | Password doesn't meet requirements |
+| Validation     | `VALIDATION_ERROR`     | General input validation error     |
+| Resource       | `USER_NOT_FOUND`       | User does not exist                |
+| Resource       | `EMAIL_ALREADY_EXISTS` | Email is already registered        |
 
 #### Example Error Response
 
@@ -240,9 +244,10 @@ All GraphQL errors include standardized error codes in the `extensions` field:
 {
   "errors": [
     {
-      "message": "Invalid credentials",
+      "message": "Invalid email format",
       "extensions": {
-        "code": "INVALID_CREDENTIALS"
+        "code": "INVALID_EMAIL",
+        "field": "email"
       }
     }
   ]

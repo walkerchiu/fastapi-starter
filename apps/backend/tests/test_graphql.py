@@ -339,6 +339,111 @@ class TestGraphQLAuthMutations:
         assert error["extensions"]["field"] == "email"
 
 
+class TestGraphQLValidation:
+    """Test GraphQL input validation."""
+
+    async def test_register_invalid_email(self, client: AsyncClient):
+        """Test registration with invalid email format."""
+        mutation = """
+            mutation {
+                register(input: {
+                    email: "invalid-email",
+                    name: "Test User",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "INVALID_EMAIL"
+        assert error["extensions"]["field"] == "email"
+
+    async def test_register_weak_password(self, client: AsyncClient):
+        """Test registration with weak password."""
+        mutation = """
+            mutation {
+                register(input: {
+                    email: "test@example.com",
+                    name: "Test User",
+                    password: "short"
+                }) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "WEAK_PASSWORD"
+        assert error["extensions"]["field"] == "password"
+
+    async def test_register_empty_name(self, client: AsyncClient):
+        """Test registration with empty name."""
+        mutation = """
+            mutation {
+                register(input: {
+                    email: "test@example.com",
+                    name: "   ",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "VALIDATION_ERROR"
+        assert error["extensions"]["field"] == "name"
+
+    async def test_users_invalid_pagination(self, client: AsyncClient):
+        """Test users query with invalid pagination."""
+        query = """
+            query {
+                users(skip: -1) {
+                    items {
+                        id
+                    }
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": query})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "VALIDATION_ERROR"
+        assert error["extensions"]["field"] == "skip"
+
+    async def test_users_limit_too_high(self, client: AsyncClient):
+        """Test users query with limit too high."""
+        query = """
+            query {
+                users(limit: 500) {
+                    items {
+                        id
+                    }
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": query})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "VALIDATION_ERROR"
+        assert error["extensions"]["field"] == "limit"
+
+
 class TestGraphQLMeQuery:
     """Test GraphQL me query for authentication."""
 

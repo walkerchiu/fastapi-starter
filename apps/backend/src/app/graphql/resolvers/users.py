@@ -15,6 +15,11 @@ from src.app.graphql.types import (
     UpdateUserInput,
     UserType,
 )
+from src.app.graphql.validators import (
+    validate_email,
+    validate_name,
+    validate_pagination,
+)
 from src.app.schemas import UserCreate, UserUpdate
 from src.app.services import UserService
 from src.app.services.user_service import EmailAlreadyExistsError, UserNotFoundError
@@ -45,6 +50,9 @@ class UserQuery:
         limit: int = 20,
     ) -> PaginatedUsers:
         """Get paginated list of users."""
+        # Validate pagination
+        page, limit = validate_pagination(page, limit)
+
         db = info.context["db"]
         service = UserService(db)
 
@@ -84,32 +92,36 @@ class UserMutation:
     @strawberry.mutation
     async def create_user(self, info: Info, input: CreateUserInput) -> UserType:
         """Create a new user."""
+        # Validate inputs
+        email = validate_email(input.email)
+        name = validate_name(input.name)
+
         db = info.context["db"]
         service = UserService(db)
 
-        user_data = UserCreate(email=input.email, name=input.name)
+        user_data = UserCreate(email=email, name=name)
         try:
             user = await service.create(user_data)
             return convert_user_to_type(user)
         except EmailAlreadyExistsError:
-            raise GQLEmailAlreadyExistsError(input.email) from None
+            raise GQLEmailAlreadyExistsError(email) from None
 
     @strawberry.mutation
     async def update_user(
         self, info: Info, id: int, input: UpdateUserInput
     ) -> UserType | None:
         """Update a user."""
-        db = info.context["db"]
-        service = UserService(db)
-
-        # Only include fields that were explicitly set
+        # Validate inputs if provided
         update_dict = {}
         if input.email is not None:
-            update_dict["email"] = input.email
+            update_dict["email"] = validate_email(input.email)
         if input.name is not None:
-            update_dict["name"] = input.name
+            update_dict["name"] = validate_name(input.name)
         if input.is_active is not None:
             update_dict["is_active"] = input.is_active
+
+        db = info.context["db"]
+        service = UserService(db)
 
         update_data = UserUpdate(**update_dict)
         try:

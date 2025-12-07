@@ -22,6 +22,7 @@ from src.app.graphql.types import (
     TokenType,
     UserType,
 )
+from src.app.graphql.validators import validate_email, validate_name, validate_password
 from src.app.schemas import UserRegister
 from src.app.services import AuthService
 from src.app.services.auth_service import (
@@ -55,28 +56,36 @@ class AuthMutation:
     @strawberry.mutation
     async def register(self, info: Info, input: RegisterInput) -> UserType:
         """Register a new user."""
+        # Validate inputs
+        email = validate_email(input.email)
+        name = validate_name(input.name)
+        password = validate_password(input.password)
+
         db = info.context["db"]
         service = AuthService(db)
 
         user_data = UserRegister(
-            email=input.email,
-            name=input.name,
-            password=input.password,
+            email=email,
+            name=name,
+            password=password,
         )
         try:
             user = await service.register(user_data)
             return convert_user_to_type(user)
         except EmailAlreadyExistsError:
-            raise GQLEmailAlreadyExistsError(input.email) from None
+            raise GQLEmailAlreadyExistsError(email) from None
 
     @strawberry.mutation
     async def login(self, info: Info, input: LoginInput) -> TokenType:
         """Login and get tokens."""
+        # Validate email format (don't validate password on login)
+        email = validate_email(input.email)
+
         db = info.context["db"]
         service = AuthService(db)
 
         try:
-            token = await service.login(input.email, input.password)
+            token = await service.login(email, input.password)
             return TokenType(
                 access_token=token.access_token,
                 refresh_token=token.refresh_token,
