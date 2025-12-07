@@ -174,3 +174,265 @@ async def test_refresh_token_invalid(client: AsyncClient):
         json={"refresh_token": "invalid-token"},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_get_me(client: AsyncClient):
+    """Test getting current user info."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "meuser@example.com",
+            "name": "Me User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "meuser@example.com",
+            "password": "securepassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+
+    # Get current user
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "meuser@example.com"
+    assert data["name"] == "Me User"
+
+
+@pytest.mark.asyncio
+async def test_get_me_unauthorized(client: AsyncClient):
+    """Test getting current user without token."""
+    response = await client.get("/api/v1/auth/me")
+    # HTTPBearer returns 401 when no token is provided
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_get_me_invalid_token(client: AsyncClient):
+    """Test getting current user with invalid token."""
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_logout(client: AsyncClient):
+    """Test user logout."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "logoutuser@example.com",
+            "name": "Logout User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "logoutuser@example.com",
+            "password": "securepassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+
+    # Logout
+    response = await client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert data["message"] == "Logged out successfully"
+
+
+@pytest.mark.asyncio
+async def test_logout_unauthorized(client: AsyncClient):
+    """Test logout without authentication."""
+    response = await client.post("/api/v1/auth/logout")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_with_access_token(client: AsyncClient):
+    """Test refresh with access token instead of refresh token."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "accesstoken@example.com",
+            "name": "Access Token User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "accesstoken@example.com",
+            "password": "securepassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+
+    # Try to refresh with access token (should fail)
+    response = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": access_token},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token type"
+
+
+@pytest.mark.asyncio
+async def test_login_inactive_user(client: AsyncClient):
+    """Test login with inactive user account."""
+    # Register user
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "inactive@example.com",
+            "name": "Inactive User",
+            "password": "securepassword123",
+        },
+    )
+
+    # Get the user ID and deactivate via users endpoint
+    # First, list users to find our user
+    users_response = await client.get("/api/v1/users")
+    users = users_response.json()["items"]
+    user = next(u for u in users if u["email"] == "inactive@example.com")
+    user_id = user["id"]
+
+    # Deactivate the user
+    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+
+    # Try to login with inactive user
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "inactive@example.com",
+            "password": "securepassword123",
+        },
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User account is inactive"
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_inactive_user(client: AsyncClient):
+    """Test refresh token with inactive user account."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "inactiverefresh@example.com",
+            "name": "Inactive Refresh User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "inactiverefresh@example.com",
+            "password": "securepassword123",
+        },
+    )
+    refresh_token = login_response.json()["refresh_token"]
+
+    # Get the user ID and deactivate
+    users_response = await client.get("/api/v1/users")
+    users = users_response.json()["items"]
+    user = next(u for u in users if u["email"] == "inactiverefresh@example.com")
+    user_id = user["id"]
+
+    # Deactivate the user
+    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+
+    # Try to refresh with inactive user
+    response = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User account is inactive"
+
+
+@pytest.mark.asyncio
+async def test_get_me_inactive_user(client: AsyncClient):
+    """Test getting current user info with inactive account."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "inactiveme@example.com",
+            "name": "Inactive Me User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "inactiveme@example.com",
+            "password": "securepassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+
+    # Get the user ID and deactivate
+    users_response = await client.get("/api/v1/users")
+    users = users_response.json()["items"]
+    user = next(u for u in users if u["email"] == "inactiveme@example.com")
+    user_id = user["id"]
+
+    # Deactivate the user
+    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+
+    # Try to get current user with inactive account
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User account is inactive"
+
+
+@pytest.mark.asyncio
+async def test_get_me_with_refresh_token(client: AsyncClient):
+    """Test getting current user with refresh token instead of access token."""
+    # Register and login
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "refreshme@example.com",
+            "name": "Refresh Me User",
+            "password": "securepassword123",
+        },
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "refreshme@example.com",
+            "password": "securepassword123",
+        },
+    )
+    refresh_token = login_response.json()["refresh_token"]
+
+    # Try to get current user with refresh token (should fail)
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {refresh_token}"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token type"

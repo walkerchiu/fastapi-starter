@@ -14,10 +14,12 @@ from src.app.core import (
     verify_password,
 )
 from src.app.core.config import settings
+from src.app.core.deps import CurrentUser
 from src.app.db import get_db
 from src.app.models import User
 from src.app.schemas import (
     LoginRequest,
+    LogoutResponse,
     RefreshTokenRequest,
     Token,
     UserRead,
@@ -141,3 +143,22 @@ async def refresh_token(
         refresh_token=create_refresh_token(subject=user.id),
         expires_in=settings.jwt_access_token_expire_minutes * 60,
     )
+
+
+@router.get("/me", response_model=UserRead)
+async def get_current_user_info(current_user: CurrentUser) -> User:
+    """Get current authenticated user information."""
+    return current_user
+
+
+@router.post("/logout", response_model=LogoutResponse)
+async def logout(current_user: CurrentUser) -> LogoutResponse:
+    """Logout current user.
+
+    Since JWT is stateless, this endpoint primarily serves to:
+    1. Allow clients to clear locally stored tokens.
+    2. Optionally add the token to a blacklist (if implemented).
+
+    The client should clear all stored tokens after calling this endpoint.
+    """
+    return LogoutResponse()

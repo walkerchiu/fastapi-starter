@@ -36,3 +36,12 @@ class RefreshTokenRequest(BaseModel):
     """Refresh token request schema."""
 
     refresh_token: str = Field(..., min_length=1, description="Refresh token")
+
+
+class LogoutResponse(BaseModel):
+    """Logout response schema."""
+
+    message: str = Field(
+        default="Logged out successfully",
+        description="Response message",
+    )
