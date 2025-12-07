@@ -14,6 +14,7 @@ from src.app.graphql.errors import (
     InvalidTokenError as GQLInvalidTokenError,
 )
 from src.app.graphql.resolvers.users import convert_user_to_type
+from src.app.graphql.subscriptions import publish_user_created, publish_user_logged_out
 from src.app.graphql.types import (
     LoginInput,
     Message,
@@ -71,6 +72,8 @@ class AuthMutation:
         )
         try:
             user = await service.register(user_data)
+            # Publish user created event
+            await publish_user_created(user.id, user.email)
             return convert_user_to_type(user)
         except EmailAlreadyExistsError:
             raise GQLEmailAlreadyExistsError(email) from None
@@ -129,4 +132,5 @@ class AuthMutation:
         user = info.context.get("user")
         if not user:
             raise Exception("Authentication required")
+        await publish_user_logged_out(user.id, user.email)
         return Message(message="Logged out successfully")

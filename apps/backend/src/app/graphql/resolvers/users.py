@@ -7,6 +7,11 @@ from src.app.graphql.errors import (
 from src.app.graphql.errors import (
     UserNotFoundError as GQLUserNotFoundError,
 )
+from src.app.graphql.subscriptions import (
+    publish_user_created,
+    publish_user_deleted,
+    publish_user_updated,
+)
 from src.app.graphql.types import (
     CreateUserInput,
     Message,
@@ -102,6 +107,8 @@ class UserMutation:
         user_data = UserCreate(email=email, name=name)
         try:
             user = await service.create(user_data)
+            # Publish user created event
+            await publish_user_created(user.id, user.email)
             return convert_user_to_type(user)
         except EmailAlreadyExistsError:
             raise GQLEmailAlreadyExistsError(email) from None
@@ -126,6 +133,8 @@ class UserMutation:
         update_data = UserUpdate(**update_dict)
         try:
             user = await service.update(id, update_data)
+            # Publish user updated event
+            await publish_user_updated(user.id, user.email)
             return convert_user_to_type(user)
         except UserNotFoundError:
             return None
@@ -138,6 +147,8 @@ class UserMutation:
 
         try:
             await service.delete(id)
+            # Publish user deleted event
+            await publish_user_deleted(id)
             return Message(message="User deleted successfully")
         except UserNotFoundError:
             raise GQLUserNotFoundError(id) from None

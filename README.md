@@ -16,6 +16,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Type Safety** - Full TypeScript support for frontend, Python type hints for backend
 - **Type-Safe API** - Auto-generated TypeScript client from OpenAPI specification
 - **GraphQL API** - Strawberry GraphQL alongside REST with type-safe urql client
+- **Real-time Subscriptions** - GraphQL subscriptions with WebSocket support for live updates
 - **Modern Backend** - FastAPI with async support and automatic API documentation
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
 - **User Management** - Complete CRUD operations for users with pagination
