@@ -14,6 +14,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 
 - **Monorepo Architecture** - Organized with pnpm workspaces for scalable project structure
 - **Type Safety** - Full TypeScript support for frontend, Python type hints for backend
+- **Type-Safe API** - Auto-generated TypeScript client from OpenAPI specification
 - **Modern Backend** - FastAPI with async support and automatic API documentation
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
@@ -79,6 +80,8 @@ fastapi-nextjs-tailwindcss-starter/
 │       │   │   └── globals.css     # Global styles with Tailwind
 │       │   ├── config/
 │       │   │   └── env.ts          # Environment validation
+│       │   ├── lib/
+│       │   │   └── api.ts          # API client wrapper
 │       │   └── test/
 │       │       └── setup.ts        # Vitest setup
 │       ├── .env.example            # Environment variables template
