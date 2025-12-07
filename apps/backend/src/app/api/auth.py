@@ -25,8 +25,8 @@ from src.app.schemas import (
     UserRead,
     UserRegister,
 )
-from src.app.services import AuthService
-from src.app.services.auth_service import (
+from src.app.services import (
+    AuthService,
     EmailAlreadyExistsError,
     InactiveUserError,
     InvalidCredentialsError,

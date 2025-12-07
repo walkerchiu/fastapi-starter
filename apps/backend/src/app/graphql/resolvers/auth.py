@@ -25,8 +25,8 @@ from src.app.graphql.types import (
 )
 from src.app.graphql.validators import validate_email, validate_name, validate_password
 from src.app.schemas import UserRegister
-from src.app.services import AuthService
-from src.app.services.auth_service import (
+from src.app.services import (
+    AuthService,
     EmailAlreadyExistsError,
     InactiveUserError,
     InvalidCredentialsError,

@@ -6,30 +6,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.models import User
 from src.app.schemas import UserCreate, UserUpdate
-
-
-class UserServiceError(Exception):
-    """Base exception for user service errors."""
-
-    pass
-
-
-class UserNotFoundError(UserServiceError):
-    """Raised when user is not found."""
-
-    pass
-
-
-class EmailAlreadyExistsError(UserServiceError):
-    """Raised when email already exists."""
-
-    pass
-
-
-class HardDeleteNotAllowedError(UserServiceError):
-    """Raised when hard delete is attempted without proper authorization."""
-
-    pass
+from src.app.services.exceptions import (
+    EmailAlreadyExistsError,
+    HardDeleteNotAllowedError,
+    UserNotFoundError,
+)
 
 
 class UserService:

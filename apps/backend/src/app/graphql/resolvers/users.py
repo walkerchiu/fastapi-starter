@@ -26,8 +26,7 @@ from src.app.graphql.validators import (
     validate_pagination,
 )
 from src.app.schemas import UserCreate, UserUpdate
-from src.app.services import UserService
-from src.app.services.user_service import EmailAlreadyExistsError, UserNotFoundError
+from src.app.services import EmailAlreadyExistsError, UserNotFoundError, UserService
 from strawberry.types import Info
 
 

@@ -21,8 +21,11 @@ from src.app.schemas import (
     UserUpdate,
 )
 from src.app.schemas.pagination import PaginationMeta
-from src.app.services import UserService
-from src.app.services.user_service import EmailAlreadyExistsError, UserNotFoundError
+from src.app.services import (
+    EmailAlreadyExistsError,
+    UserNotFoundError,
+    UserService,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 

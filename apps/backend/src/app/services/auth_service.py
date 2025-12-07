@@ -12,48 +12,14 @@ from src.app.core import (
 from src.app.core.config import settings
 from src.app.models import User
 from src.app.schemas import Token, UserRegister
-
-
-class AuthServiceError(Exception):
-    """Base exception for auth service errors."""
-
-    pass
-
-
-class EmailAlreadyExistsError(AuthServiceError):
-    """Raised when email already exists."""
-
-    pass
-
-
-class InvalidCredentialsError(AuthServiceError):
-    """Raised when login credentials are invalid."""
-
-    pass
-
-
-class InactiveUserError(AuthServiceError):
-    """Raised when user account is inactive."""
-
-    pass
-
-
-class InvalidTokenError(AuthServiceError):
-    """Raised when token is invalid or expired."""
-
-    pass
-
-
-class InvalidTokenTypeError(AuthServiceError):
-    """Raised when token type is incorrect."""
-
-    pass
-
-
-class UserNotFoundError(AuthServiceError):
-    """Raised when user is not found."""
-
-    pass
+from src.app.services.exceptions import (
+    EmailAlreadyExistsError,
+    InactiveUserError,
+    InvalidCredentialsError,
+    InvalidTokenError,
+    InvalidTokenTypeError,
+    UserNotFoundError,
+)
 
 
 class AuthService:
