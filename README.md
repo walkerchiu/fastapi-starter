@@ -19,6 +19,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
 - **User Management** - Complete CRUD operations for users with pagination
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
+- **Dashboard Example** - Protected page demonstrating authenticated API calls
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
