@@ -1,6 +1,7 @@
 """GraphQL schema definition."""
 
 import strawberry
+from src.app.graphql.extensions import DepthLimitExtension, QueryComplexityExtension
 from src.app.graphql.resolvers import AuthMutation, AuthQuery, UserMutation, UserQuery
 
 
@@ -24,4 +25,11 @@ class Mutation(UserMutation, AuthMutation):
         return "pong"
 
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(
+    query=Query,
+    mutation=Mutation,
+    extensions=[
+        DepthLimitExtension,
+        QueryComplexityExtension,
+    ],
+)

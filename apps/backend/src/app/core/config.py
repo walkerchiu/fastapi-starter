@@ -74,5 +74,9 @@ class Settings(BaseSettings):
     rate_limit_graphql_requests: int = 50  # GraphQL endpoint
     rate_limit_graphql_window: int = 60
 
+    # GraphQL Security
+    graphql_max_depth: int = 10  # Maximum query depth
+    graphql_max_complexity: int = 100  # Maximum query complexity
+
 
 settings = Settings()

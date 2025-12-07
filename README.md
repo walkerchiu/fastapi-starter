@@ -22,7 +22,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
 - **Input Validation** - GraphQL input validation with typed error codes
-- **API Security** - Rate limiting for API protection
+- **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
@@ -239,6 +239,8 @@ All GraphQL errors include standardized error codes in the `extensions` field:
 | Resource       | `USER_NOT_FOUND`       | User does not exist                |
 | Resource       | `EMAIL_ALREADY_EXISTS` | Email is already registered        |
 | Security       | `RATE_LIMITED`         | Too many requests                  |
+| Security       | `QUERY_TOO_DEEP`       | Query exceeds max depth            |
+| Security       | `QUERY_TOO_COMPLEX`    | Query exceeds max complexity       |
 
 #### Example Error Response
 
@@ -265,6 +267,17 @@ The GraphQL API includes security protection:
 - **Default**: 100 requests per minute per client
 - **Auth endpoints**: 20 requests per minute per client
 - Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+
+#### Query Depth Limiting
+
+- **Max depth**: 10 levels (configurable via `GRAPHQL_MAX_DEPTH`)
+- Prevents deeply nested query attacks
+
+#### Query Complexity Analysis
+
+- **Max complexity**: 100 points (configurable via `GRAPHQL_MAX_COMPLEXITY`)
+- Each field adds 1 point to the complexity score
+- Prevents expensive queries from overloading the server
 
 ### Frontend GraphQL Integration
 

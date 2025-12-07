@@ -41,6 +41,10 @@ class ErrorCode(str, Enum):
     # Rate limiting (6xxx)
     RATE_LIMITED = "RATE_LIMITED"
 
+    # Query complexity (7xxx)
+    QUERY_TOO_DEEP = "QUERY_TOO_DEEP"
+    QUERY_TOO_COMPLEX = "QUERY_TOO_COMPLEX"
+
 
 class GraphQLError(StrawberryGraphQLError):
     """Base GraphQL error with error code."""
@@ -162,6 +166,27 @@ class RateLimitedError(GraphQLError):
         if retry_after:
             details["retry_after"] = retry_after
         super().__init__("Too many requests.", ErrorCode.RATE_LIMITED, details)
+
+
+# Query Complexity Errors
+class QueryDepthError(GraphQLError):
+    """Raised when query depth exceeds the maximum allowed."""
+
+    def __init__(self, depth: int, max_depth: int):
+        details = {"depth": depth, "max_depth": max_depth}
+        super().__init__(
+            "Query exceeds maximum depth.", ErrorCode.QUERY_TOO_DEEP, details
+        )
+
+
+class QueryComplexityError(GraphQLError):
+    """Raised when query complexity exceeds the maximum allowed."""
+
+    def __init__(self, complexity: int, max_complexity: int):
+        details = {"complexity": complexity, "max_complexity": max_complexity}
+        super().__init__(
+            "Query exceeds maximum complexity.", ErrorCode.QUERY_TOO_COMPLEX, details
+        )
 
 
 # Permission Classes
