@@ -15,11 +15,12 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Monorepo Architecture** - Organized with pnpm workspaces for scalable project structure
 - **Type Safety** - Full TypeScript support for frontend, Python type hints for backend
 - **Type-Safe API** - Auto-generated TypeScript client from OpenAPI specification
+- **GraphQL API** - Strawberry GraphQL alongside REST with type-safe urql client
 - **Modern Backend** - FastAPI with async support and automatic API documentation
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
 - **User Management** - Complete CRUD operations for users with pagination
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
-- **Dashboard Example** - Protected page demonstrating authenticated API calls
+- **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
@@ -32,6 +33,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
 - [SQLAlchemy](https://www.sqlalchemy.org/) 2 - Async ORM with SQLite and PostgreSQL support
+- [Strawberry GraphQL](https://strawberry.rocks/) - Python GraphQL library
 - [Uvicorn](https://www.uvicorn.org/) - ASGI server
 - [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager
@@ -43,6 +45,8 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [Next.js](https://nextjs.org/) 16 - React framework with Turbopack
 - [React](https://react.dev/) 19 - UI library
 - [TailwindCSS](https://tailwindcss.com/) 3 - Utility-first CSS framework
+- [urql](https://commerce.nearform.com/open-source/urql/) - GraphQL client
+- [GraphQL Codegen](https://the-guild.dev/graphql/codegen) - TypeScript types from schema
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
 - [Vitest](https://vitest.dev/) 4 - Testing framework
 - [React Testing Library](https://testing-library.com/react) - Component testing
@@ -158,7 +162,8 @@ The applications will be available at:
 
 - **Frontend**: <http://localhost:3000>
 - **Backend**: <http://localhost:8000>
-- **API Docs**: <http://localhost:8000/docs>
+- **REST API Docs**: <http://localhost:8000/docs>
+- **GraphiQL**: <http://localhost:8000/graphql>
 
 ## Available Scripts
 
@@ -211,6 +216,20 @@ Full REST API documentation is available at:
 - **Swagger UI**: <http://localhost:8000/docs>
 - **ReDoc**: <http://localhost:8000/redoc>
 - **OpenAPI JSON**: <http://localhost:8000/openapi.json>
+
+## GraphQL API
+
+The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE.
+
+### Frontend GraphQL Integration
+
+The frontend uses urql with GraphQL Codegen for type-safe queries:
+
+```bash
+# Generate TypeScript types from GraphQL schema
+# Note: Requires the backend server to be running (pnpm dev:backend)
+pnpm --filter frontend codegen
+```
 
 ## Development Workflow
 
