@@ -28,6 +28,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 ### Backend
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [SQLAlchemy](https://www.sqlalchemy.org/) 2 - Async ORM with SQLite and PostgreSQL support
 - [Uvicorn](https://www.uvicorn.org/) - ASGI server
 - [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager

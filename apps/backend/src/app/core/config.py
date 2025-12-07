@@ -27,5 +27,9 @@ class Settings(BaseSettings):
     cors_allow_methods: list[str] = ["*"]
     cors_allow_headers: list[str] = ["*"]
 
+    # Database
+    database_url: str = "sqlite+aiosqlite:///./data/app.db"
+    database_echo: bool = False
+
 
 settings = Settings()
