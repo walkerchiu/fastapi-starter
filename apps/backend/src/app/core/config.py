@@ -65,5 +65,14 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     jwt_refresh_token_expire_days: int = 7
 
+    # Rate Limiting
+    rate_limit_enabled: bool = True
+    rate_limit_requests: int = 100  # Default requests per window
+    rate_limit_window: int = 60  # Default window in seconds
+    rate_limit_auth_requests: int = 20  # Auth endpoints (login, register)
+    rate_limit_auth_window: int = 60
+    rate_limit_graphql_requests: int = 50  # GraphQL endpoint
+    rate_limit_graphql_window: int = 60
+
 
 settings = Settings()

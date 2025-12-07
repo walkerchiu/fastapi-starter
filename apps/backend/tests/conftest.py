@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from src.app.db.base import Base
 from src.app.db.session import get_db
 from src.app.main import app
+from src.app.middleware.rate_limit import RateLimiter
 
 # Use in-memory SQLite for tests
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -27,6 +28,9 @@ async def override_get_db():
 @pytest.fixture(autouse=True)
 async def setup_database():
     """Create tables before each test and drop after."""
+    # Reset rate limiter before each test
+    RateLimiter.get_instance().reset()
+
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
