@@ -1,49 +1,36 @@
-"""GraphQL error types with error codes."""
+"""GraphQL error types with error codes.
 
-from enum import Enum
+This module provides GraphQL-specific error classes.
+ErrorCode is imported from the shared core module.
+"""
+
 from typing import Any
 
+from src.app.core.error_codes import ErrorCode
 from strawberry import BasePermission
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.types import Info
 
-
-class ErrorCode(str, Enum):
-    """GraphQL error codes."""
-
-    # Authentication errors (1xxx)
-    UNAUTHENTICATED = "UNAUTHENTICATED"
-    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
-    INVALID_TOKEN = "INVALID_TOKEN"
-    TOKEN_EXPIRED = "TOKEN_EXPIRED"
-    INACTIVE_USER = "INACTIVE_USER"
-
-    # Authorization errors (2xxx)
-    FORBIDDEN = "FORBIDDEN"
-    INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS"
-
-    # Validation errors (3xxx)
-    VALIDATION_ERROR = "VALIDATION_ERROR"
-    INVALID_INPUT = "INVALID_INPUT"
-    INVALID_EMAIL = "INVALID_EMAIL"
-    WEAK_PASSWORD = "WEAK_PASSWORD"
-
-    # Resource errors (4xxx)
-    NOT_FOUND = "NOT_FOUND"
-    USER_NOT_FOUND = "USER_NOT_FOUND"
-    ALREADY_EXISTS = "ALREADY_EXISTS"
-    EMAIL_ALREADY_EXISTS = "EMAIL_ALREADY_EXISTS"
-
-    # Server errors (5xxx)
-    INTERNAL_ERROR = "INTERNAL_ERROR"
-    DATABASE_ERROR = "DATABASE_ERROR"
-
-    # Rate limiting (6xxx)
-    RATE_LIMITED = "RATE_LIMITED"
-
-    # Query complexity (7xxx)
-    QUERY_TOO_DEEP = "QUERY_TOO_DEEP"
-    QUERY_TOO_COMPLEX = "QUERY_TOO_COMPLEX"
+# Re-export ErrorCode for backwards compatibility
+__all__ = [
+    "ErrorCode",
+    "GraphQLError",
+    "UnauthenticatedError",
+    "InvalidCredentialsError",
+    "InvalidTokenError",
+    "InactiveUserError",
+    "ForbiddenError",
+    "ValidationError",
+    "InvalidEmailError",
+    "WeakPasswordError",
+    "NotFoundError",
+    "UserNotFoundError",
+    "EmailAlreadyExistsError",
+    "RateLimitedError",
+    "QueryDepthError",
+    "QueryComplexityError",
+    "IsAuthenticated",
+]
 
 
 class GraphQLError(StrawberryGraphQLError):

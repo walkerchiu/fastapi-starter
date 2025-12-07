@@ -1,6 +1,7 @@
 """Authentication schemas."""
 
 from pydantic import BaseModel, EmailStr, Field
+from src.app.core.validators import EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH
 
 
 class Token(BaseModel):
@@ -23,9 +24,11 @@ class TokenPayload(BaseModel):
 class LoginRequest(BaseModel):
     """Login request schema."""
 
-    email: EmailStr = Field(..., max_length=254, description="User email address")
+    email: EmailStr = Field(
+        ..., max_length=EMAIL_MAX_LENGTH, description="User email address"
+    )
     password: str = Field(
-        ..., min_length=1, max_length=128, description="User password"
+        ..., min_length=1, max_length=PASSWORD_MAX_LENGTH, description="User password"
     )
 
 

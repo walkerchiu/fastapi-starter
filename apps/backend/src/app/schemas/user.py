@@ -3,14 +3,26 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from src.app.core.validators import (
+    EMAIL_MAX_LENGTH,
+    NAME_MAX_LENGTH,
+    NAME_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+)
 
 
 class UserBase(BaseModel):
     """Base user schema."""
 
-    email: EmailStr = Field(..., max_length=254, description="User email address")
+    email: EmailStr = Field(
+        ..., max_length=EMAIL_MAX_LENGTH, description="User email address"
+    )
     name: str = Field(
-        ..., min_length=1, max_length=100, description="User display name"
+        ...,
+        min_length=NAME_MIN_LENGTH,
+        max_length=NAME_MAX_LENGTH,
+        description="User display name",
     )
 
 
@@ -24,7 +36,10 @@ class UserRegister(UserBase):
     """Schema for user registration with password."""
 
     password: str = Field(
-        ..., min_length=8, max_length=128, description="User password"
+        ...,
+        min_length=PASSWORD_MIN_LENGTH,
+        max_length=PASSWORD_MAX_LENGTH,
+        description="User password",
     )
 
 
@@ -32,10 +47,13 @@ class UserUpdate(BaseModel):
     """Schema for updating a user."""
 
     email: EmailStr | None = Field(
-        default=None, max_length=254, description="User email address"
+        default=None, max_length=EMAIL_MAX_LENGTH, description="User email address"
     )
     name: str | None = Field(
-        default=None, min_length=1, max_length=100, description="User display name"
+        default=None,
+        min_length=NAME_MIN_LENGTH,
+        max_length=NAME_MAX_LENGTH,
+        description="User display name",
     )
     is_active: bool | None = Field(default=None, description="Whether user is active")
 

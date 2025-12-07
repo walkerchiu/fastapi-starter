@@ -3,7 +3,8 @@
 from typing import Any
 
 from fastapi import HTTPException, status
-from src.app.schemas.errors import ErrorCode, ErrorDetail
+from src.app.core.error_codes import ErrorCode
+from src.app.schemas.errors import ErrorDetail
 
 
 class APIException(HTTPException):
@@ -192,5 +193,5 @@ class InternalServerException(APIException):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=detail,
-            code=ErrorCode.INTERNAL_ERROR,
+            code=ErrorCode.INTERNAL_SERVER_ERROR,
         )

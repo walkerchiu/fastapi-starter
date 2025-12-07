@@ -1,15 +1,19 @@
-"""GraphQL input validators."""
+"""GraphQL input validators.
 
-import re
+This module provides GraphQL-specific validation functions that raise
+GraphQL errors. The underlying validation logic is imported from the
+shared core validators module.
+"""
 
+from src.app.core.validators import (
+    normalize_email,
+    normalize_name,
+    validate_email_format,
+    validate_name_format,
+    validate_pagination_params,
+    validate_password_strength,
+)
 from src.app.graphql.errors import InvalidEmailError, ValidationError, WeakPasswordError
-
-# Email regex pattern (simplified RFC 5322)
-EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-
-# Password requirements
-MIN_PASSWORD_LENGTH = 8
-MAX_PASSWORD_LENGTH = 128
 
 
 def validate_email(email: str) -> str:
@@ -24,26 +28,14 @@ def validate_email(email: str) -> str:
     Raises:
         InvalidEmailError: If email format is invalid.
     """
-    email = email.strip().lower()
-
-    if not email:
-        raise InvalidEmailError("Email cannot be empty")
-
-    if len(email) > 254:
-        raise InvalidEmailError("Email is too long (max 254 characters)")
-
-    if not EMAIL_PATTERN.match(email):
-        raise InvalidEmailError("Invalid email format")
-
-    return email
+    result = validate_email_format(email)
+    if not result.is_valid:
+        raise InvalidEmailError(result.error_message or "Invalid email format")
+    return normalize_email(email)
 
 
 def validate_password(password: str) -> str:
     """Validate password strength.
-
-    Requirements:
-    - At least 8 characters
-    - At most 128 characters
 
     Args:
         password: The password to validate.
@@ -54,19 +46,11 @@ def validate_password(password: str) -> str:
     Raises:
         WeakPasswordError: If password doesn't meet requirements.
     """
-    if not password:
-        raise WeakPasswordError("Password cannot be empty")
-
-    if len(password) < MIN_PASSWORD_LENGTH:
+    result = validate_password_strength(password)
+    if not result.is_valid:
         raise WeakPasswordError(
-            f"Password must be at least {MIN_PASSWORD_LENGTH} characters"
+            result.error_message or "Password does not meet requirements"
         )
-
-    if len(password) > MAX_PASSWORD_LENGTH:
-        raise WeakPasswordError(
-            f"Password must be at most {MAX_PASSWORD_LENGTH} characters"
-        )
-
     return password
 
 
@@ -83,17 +67,12 @@ def validate_name(name: str, field_name: str = "name") -> str:
     Raises:
         ValidationError: If name is invalid.
     """
-    name = name.strip()
-
-    if not name:
-        raise ValidationError(f"{field_name.capitalize()} cannot be empty", field_name)
-
-    if len(name) > 100:
+    result = validate_name_format(name, field_name)
+    if not result.is_valid:
         raise ValidationError(
-            f"{field_name.capitalize()} is too long (max 100 characters)", field_name
+            result.error_message or f"Invalid {field_name}", field_name
         )
-
-    return name
+    return normalize_name(name)
 
 
 def validate_pagination(page: int, limit: int) -> tuple[int, int]:
@@ -109,13 +88,10 @@ def validate_pagination(page: int, limit: int) -> tuple[int, int]:
     Raises:
         ValidationError: If pagination parameters are invalid.
     """
-    if page < 1:
-        raise ValidationError("Page must be at least 1", "page")
-
-    if limit < 1:
-        raise ValidationError("Limit must be at least 1", "limit")
-
-    if limit > 100:
-        raise ValidationError("Limit must be at most 100", "limit")
-
+    result = validate_pagination_params(page, limit)
+    if not result.is_valid:
+        # Determine which field caused the error
+        error_msg = result.error_message or "Invalid pagination parameters"
+        field = "page" if "page" in error_msg.lower() else "limit"
+        raise ValidationError(error_msg, field)
     return page, limit
