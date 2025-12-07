@@ -64,6 +64,48 @@ async def test_register_password_too_short(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_register_name_empty(client: AsyncClient):
+    """Test registration with empty name."""
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "emptyname@example.com",
+            "name": "",
+            "password": "securepassword123",
+        },
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_name_too_long(client: AsyncClient):
+    """Test registration with name exceeding max length."""
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "longname@example.com",
+            "name": "A" * 101,  # 101 characters, max is 100
+            "password": "securepassword123",
+        },
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_password_too_long(client: AsyncClient):
+    """Test registration with password exceeding max length."""
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "longpass@example.com",
+            "name": "Long Pass User",
+            "password": "A" * 129,  # 129 characters, max is 128
+        },
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_login(client: AsyncClient):
     """Test user login."""
     # Register user first

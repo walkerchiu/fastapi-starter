@@ -36,6 +36,58 @@ async def test_create_user_duplicate_email(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_create_user_name_empty(client: AsyncClient):
+    """Test creating a user with empty name."""
+    response = await client.post(
+        "/api/v1/users",
+        json={"email": "emptyname@example.com", "name": ""},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_user_name_too_long(client: AsyncClient):
+    """Test creating a user with name exceeding max length."""
+    response = await client.post(
+        "/api/v1/users",
+        json={"email": "longname@example.com", "name": "A" * 101},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_update_user_name_empty(client: AsyncClient):
+    """Test updating a user with empty name."""
+    create_response = await client.post(
+        "/api/v1/users",
+        json={"email": "test@example.com", "name": "Test User"},
+    )
+    user_id = create_response.json()["id"]
+
+    response = await client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"name": ""},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_update_user_name_too_long(client: AsyncClient):
+    """Test updating a user with name exceeding max length."""
+    create_response = await client.post(
+        "/api/v1/users",
+        json={"email": "test@example.com", "name": "Test User"},
+    )
+    user_id = create_response.json()["id"]
+
+    response = await client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"name": "A" * 101},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_list_users(client: AsyncClient):
     """Test listing users with pagination."""
     # Create some users
