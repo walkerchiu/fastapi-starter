@@ -22,7 +22,8 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **User Management** - Complete CRUD operations for users with pagination
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
-- **Input Validation** - GraphQL input validation with typed error codes
+- **Input Validation** - Consistent input validation for both REST and GraphQL APIs
+- **Error Codes** - Standardized error codes across REST and GraphQL endpoints
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
@@ -220,6 +221,22 @@ Full REST API documentation is available at:
 - **ReDoc**: <http://localhost:8000/redoc>
 - **OpenAPI JSON**: <http://localhost:8000/openapi.json>
 
+### Error Responses
+
+All REST API errors return a standardized JSON response:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "USER_NOT_FOUND",
+    "message": "User not found."
+  }
+}
+```
+
+For the complete list of error codes, see [`src/app/core/error_codes.py`](apps/backend/src/app/core/error_codes.py).
+
 ## GraphQL API
 
 The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE.
@@ -228,20 +245,7 @@ The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE
 
 All GraphQL errors include standardized error codes in the `extensions` field:
 
-| Category       | Code                   | Description                        |
-| -------------- | ---------------------- | ---------------------------------- |
-| Authentication | `UNAUTHENTICATED`      | User not authenticated             |
-| Authentication | `INVALID_CREDENTIALS`  | Wrong email or password            |
-| Authentication | `INVALID_TOKEN`        | Token is invalid or expired        |
-| Authentication | `INACTIVE_USER`        | User account is disabled           |
-| Validation     | `INVALID_EMAIL`        | Invalid email format               |
-| Validation     | `WEAK_PASSWORD`        | Password doesn't meet requirements |
-| Validation     | `VALIDATION_ERROR`     | General input validation error     |
-| Resource       | `USER_NOT_FOUND`       | User does not exist                |
-| Resource       | `EMAIL_ALREADY_EXISTS` | Email is already registered        |
-| Security       | `RATE_LIMITED`         | Too many requests                  |
-| Security       | `QUERY_TOO_DEEP`       | Query exceeds max depth            |
-| Security       | `QUERY_TOO_COMPLEX`    | Query exceeds max complexity       |
+For the complete list of error codes, see [`src/app/core/error_codes.py`](apps/backend/src/app/core/error_codes.py).
 
 #### Example Error Response
 
