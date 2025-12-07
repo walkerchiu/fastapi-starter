@@ -3,25 +3,53 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.db import get_db
 from src.app.models import User
-from src.app.schemas import MessageResponse, UserCreate, UserRead, UserUpdate
+from src.app.schemas import (
+    MessageResponse,
+    PaginatedResponse,
+    PaginationParams,
+    UserCreate,
+    UserRead,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("", response_model=list[UserRead])
+@router.get("", response_model=PaginatedResponse[UserRead])
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_db)],
-    skip: int = 0,
-    limit: int = 100,
-) -> list[User]:
-    """List all users."""
-    result = await db.execute(select(User).offset(skip).limit(limit))
-    return list(result.scalars().all())
+    pagination: Annotated[PaginationParams, Depends()],
+) -> PaginatedResponse[UserRead]:
+    """List all users with pagination."""
+    from src.app.schemas.pagination import PaginationMeta
+
+    # Get total count
+    count_result = await db.execute(select(func.count()).select_from(User))
+    total = count_result.scalar() or 0
+
+    # Get paginated items
+    result = await db.execute(
+        select(User).offset(pagination.offset).limit(pagination.limit)
+    )
+    users = list(result.scalars().all())
+
+    total_pages = ((total + pagination.limit - 1) // pagination.limit) if pagination.limit > 0 else 1
+    return PaginatedResponse[UserRead](
+        data=[UserRead.model_validate(user) for user in users],
+        meta=PaginationMeta(
+            page=pagination.page,
+            limit=pagination.limit,
+            total_items=total,
+            total_pages=total_pages,
+            has_next_page=pagination.page < total_pages,
+            has_prev_page=pagination.page > 1,
+        ),
+    )
 
 
 @router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)

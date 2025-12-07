@@ -7,6 +7,7 @@ from src.app.schemas.auth import (
     Token,
     TokenPayload,
 )
+from src.app.schemas.pagination import PaginatedResponse, PaginationParams
 from src.app.schemas.user import (
     MessageResponse,
     UserCreate,
@@ -19,6 +20,8 @@ __all__ = [
     "LoginRequest",
     "LogoutResponse",
     "MessageResponse",
+    "PaginatedResponse",
+    "PaginationParams",
     "RefreshTokenRequest",
     "Token",
     "TokenPayload",

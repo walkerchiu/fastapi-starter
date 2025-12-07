@@ -37,7 +37,7 @@ async def test_create_user_duplicate_email(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_list_users(client: AsyncClient):
-    """Test listing users."""
+    """Test listing users with pagination."""
     # Create some users
     await client.post(
         "/api/v1/users",
@@ -51,7 +51,53 @@ async def test_list_users(client: AsyncClient):
     response = await client.get("/api/v1/users")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 2
+    assert data["meta"]["total_items"] == 2
+    assert len(data["data"]) == 2
+    assert data["meta"]["page"] == 1
+    assert data["meta"]["limit"] == 20
+
+
+@pytest.mark.asyncio
+async def test_list_users_pagination(client: AsyncClient):
+    """Test listing users with custom pagination parameters."""
+    # Create some users
+    for i in range(5):
+        await client.post(
+            "/api/v1/users",
+            json={"email": f"user{i}@example.com", "name": f"User {i}"},
+        )
+
+    # Test with limit
+    response = await client.get("/api/v1/users?limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["meta"]["total_items"] == 5
+    assert len(data["data"]) == 2
+    assert data["meta"]["limit"] == 2
+
+    # Test with page
+    response = await client.get("/api/v1/users?page=2&limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["meta"]["total_items"] == 5
+    assert len(data["data"]) == 2
+    assert data["meta"]["page"] == 2
+
+
+@pytest.mark.asyncio
+async def test_list_users_pagination_validation(client: AsyncClient):
+    """Test pagination parameter validation."""
+    # Test invalid page (zero, page starts from 1)
+    response = await client.get("/api/v1/users?page=0")
+    assert response.status_code == 422
+
+    # Test invalid limit (zero)
+    response = await client.get("/api/v1/users?limit=0")
+    assert response.status_code == 422
+
+    # Test invalid limit (too large)
+    response = await client.get("/api/v1/users?limit=101")
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
@@ -155,4 +201,5 @@ async def test_list_users_empty(client: AsyncClient):
     response = await client.get("/api/v1/users")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 0
+    assert len(data["data"]) == 0
+    assert data["meta"]["total_items"] == 0
