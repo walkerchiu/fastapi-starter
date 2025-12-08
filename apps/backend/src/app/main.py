@@ -3,19 +3,28 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from src.app.api import auth_router, users_router
+from src.app.api import auth_router, health_router, users_router
 from src.app.core.config import settings
 from src.app.core.exceptions import APIException
+from src.app.core.logging import get_logger, setup_logging
 from src.app.graphql import get_context, schema
 from src.app.middleware import (
     RateLimitConfig,
     RateLimitMiddleware,
-    ResponseWrapperMiddleware,
+    RequestIDMiddleware,
 )
 from strawberry.fastapi import GraphQLRouter
 
+# Setup structured logging
+setup_logging()
+logger = get_logger(__name__)
+
 # OpenAPI Tags metadata
 tags_metadata = [
+    {
+        "name": "health",
+        "description": "Health check endpoints for monitoring and orchestration.",
+    },
     {
         "name": "auth",
         "description": "Authentication operations: register, login, token refresh, and user info.",
@@ -84,9 +93,11 @@ app.add_middleware(
     allow_headers=settings.cors_allow_headers,
 )
 
-# Add response wrapper middleware for consistent API response format
-# (wraps successful responses with { success: true, data: ... })
-app.add_middleware(ResponseWrapperMiddleware)
+# Add request ID middleware for request tracing
+app.add_middleware(RequestIDMiddleware)
+
+# Health check routes (no prefix for /health, /health/live, /health/ready)
+app.include_router(health_router)
 
 # REST API routes
 app.include_router(auth_router, prefix="/api/v1")
@@ -96,8 +107,18 @@ app.include_router(users_router, prefix="/api/v1")
 graphql_router = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_router, prefix="/graphql")
 
+# Log startup
+logger.info(
+    "Application started",
+    extra={
+        "app_name": settings.app_name,
+        "version": settings.app_version,
+        "environment": settings.environment,
+    },
+)
+
 
 @app.get("/")
 async def root() -> dict[str, str]:
-    """Health check endpoint."""
+    """Root endpoint."""
     return {"message": "Hello World"}

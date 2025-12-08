@@ -30,6 +30,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
 - **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
 - **Developer Experience** - Hot reload, path aliases, and consistent tooling
+- **Production Ready** - Docker Compose and Nginx configuration included
 
 ## Tech Stack
 
@@ -435,6 +436,36 @@ docker run -p 8000:8000 backend
 # Frontend (from root directory)
 docker build -f apps/frontend/Dockerfile -t frontend .
 docker run -p 3000:3000 frontend
+```
+
+### Production Deployment with Nginx
+
+Before deploying, you need to:
+
+1. **Create environment files** from the examples:
+
+```bash
+cp apps/backend/.env.production.example apps/backend/.env.production
+cp apps/frontend/.env.production.example apps/frontend/.env.production
+```
+
+2. **Configure SSL certificates** in `nginx/ssl/` directory:
+   - `cert.pem` - SSL certificate
+   - `key.pem` - SSL private key
+
+3. **Edit the environment files** with your production values.
+
+Then start the services:
+
+```bash
+# Start with Nginx reverse proxy (HTTPS, rate limiting, WebSocket support)
+docker compose -f docker-compose.prod.yml up -d
+
+# View logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Stop services
+docker compose -f docker-compose.prod.yml down
 ```
 
 ## Adding Shared Packages
