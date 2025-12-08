@@ -530,3 +530,238 @@ class TestGraphQLMeQuery:
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["me"] is None
+
+
+class TestGraphQLAuthEdgeCases:
+    """Test GraphQL auth edge cases for coverage."""
+
+    async def test_login_inactive_user(self, client: AsyncClient, db_session):
+        """Test login with inactive user returns error."""
+        from src.app.core import get_password_hash
+        from src.app.models import User
+
+        # Create an inactive user directly in DB
+        inactive_user = User(
+            email="inactive@example.com",
+            name="Inactive User",
+            hashed_password=get_password_hash("securepassword123"),
+            is_active=False,
+        )
+        db_session.add(inactive_user)
+        await db_session.commit()
+
+        # Try to login
+        mutation = """
+            mutation {
+                login(input: {email: "inactive@example.com", password: "securepassword123"}) {
+                    accessToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["message"] == "User account is disabled."
+        assert error["extensions"]["code"] == "INACTIVE_USER"
+
+    async def test_refresh_token_with_access_token(self, client: AsyncClient):
+        """Test refresh token with access token returns error."""
+        # Register and login to get access token
+        register_mutation = """
+            mutation {
+                register(input: {
+                    email: "accesstest@example.com",
+                    name: "Access Test",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": register_mutation})
+
+        login_mutation = """
+            mutation {
+                login(input: {email: "accesstest@example.com", password: "securepassword123"}) {
+                    accessToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": login_mutation})
+        access_token = response.json()["data"]["login"]["accessToken"]
+
+        # Try to use access token as refresh token
+        refresh_mutation = f"""
+            mutation {{
+                refreshToken(input: {{refreshToken: "{access_token}"}}) {{
+                    accessToken
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": refresh_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "INVALID_TOKEN"
+
+    async def test_refresh_token_invalid(self, client: AsyncClient):
+        """Test refresh token with invalid token returns error."""
+        mutation = """
+            mutation {
+                refreshToken(input: {refreshToken: "invalid.token.here"}) {
+                    accessToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "INVALID_TOKEN"
+
+    async def test_refresh_token_inactive_user(self, client: AsyncClient, db_session):
+        """Test refresh token with inactive user returns error."""
+        from src.app.core import get_password_hash
+        from src.app.models import User
+
+        # Create a user
+        user = User(
+            email="willbeinactive@example.com",
+            name="Will Be Inactive",
+            hashed_password=get_password_hash("securepassword123"),
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Login to get refresh token
+        login_mutation = """
+            mutation {
+                login(input: {
+                    email: "willbeinactive@example.com",
+                    password: "securepassword123"
+                }) {
+                    refreshToken
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": login_mutation})
+        refresh_token = response.json()["data"]["login"]["refreshToken"]
+
+        # Deactivate user
+        user.is_active = False
+        await db_session.commit()
+
+        # Try to refresh token
+        refresh_mutation = f"""
+            mutation {{
+                refreshToken(input: {{refreshToken: "{refresh_token}"}}) {{
+                    accessToken
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": refresh_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "INACTIVE_USER"
+
+
+class TestGraphQLUserEdgeCases:
+    """Test GraphQL user edge cases for coverage."""
+
+    async def test_create_user_duplicate_email(self, client: AsyncClient):
+        """Test creating user with duplicate email returns error."""
+        # Create first user
+        mutation = """
+            mutation {
+                createUser(input: {email: "duplicate2@example.com", name: "First"}) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": mutation})
+
+        # Try to create user with same email
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert error["extensions"]["code"] == "EMAIL_ALREADY_EXISTS"
+
+    async def test_update_user_email(self, client: AsyncClient):
+        """Test updating user email."""
+        # Create user
+        create_mutation = """
+            mutation {
+                createUser(input: {email: "updateemail@example.com", name: "Update Email"}) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": create_mutation})
+        user_id = response.json()["data"]["createUser"]["id"]
+
+        # Update email
+        update_mutation = f"""
+            mutation {{
+                updateUser(id: {user_id}, input: {{email: "newemail@example.com"}}) {{
+                    id
+                    email
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": update_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["updateUser"]["email"] == "newemail@example.com"
+
+    async def test_update_user_is_active(self, client: AsyncClient):
+        """Test updating user is_active status."""
+        # Create user
+        create_mutation = """
+            mutation {
+                createUser(input: {email: "toggleactive@example.com", name: "Toggle"}) {
+                    id
+                    isActive
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": create_mutation})
+        user_id = response.json()["data"]["createUser"]["id"]
+        assert response.json()["data"]["createUser"]["isActive"] is True
+
+        # Deactivate user
+        update_mutation = f"""
+            mutation {{
+                updateUser(id: {user_id}, input: {{isActive: false}}) {{
+                    id
+                    isActive
+                }}
+            }}
+        """
+        response = await client.post("/graphql", json={"query": update_mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["updateUser"]["isActive"] is False
+
+    async def test_update_user_not_found(self, client: AsyncClient):
+        """Test updating non-existent user returns null."""
+        mutation = """
+            mutation {
+                updateUser(id: 99999, input: {name: "New Name"}) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"]["updateUser"] is None

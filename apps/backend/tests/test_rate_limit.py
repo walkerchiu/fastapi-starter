@@ -1,6 +1,92 @@
 """Rate limiting middleware tests."""
 
+import time
+
 from httpx import AsyncClient
+from src.app.middleware.rate_limit import RateLimitConfig, RateLimiter
+
+
+class TestRateLimitConfig:
+    """Test RateLimitConfig class."""
+
+    def test_config_hash(self):
+        """Test RateLimitConfig is hashable."""
+        config1 = RateLimitConfig(requests=100, window=60)
+        config2 = RateLimitConfig(requests=100, window=60)
+        config3 = RateLimitConfig(requests=50, window=30)
+
+        # Same config should have same hash
+        assert hash(config1) == hash(config2)
+        # Different config should have different hash
+        assert hash(config1) != hash(config3)
+
+        # Should be usable in sets
+        config_set = {config1, config2, config3}
+        assert len(config_set) == 2
+
+
+class TestRateLimiterUnit:
+    """Unit tests for RateLimiter class."""
+
+    async def test_cleanup_triggered(self):
+        """Test that cleanup is triggered after interval."""
+        limiter = RateLimiter.get_instance()
+        limiter.reset()
+
+        config = RateLimitConfig(requests=10, window=60)
+
+        # Make initial request
+        await limiter.is_allowed("test_client_1", config)
+
+        # Force cleanup interval to be exceeded
+        limiter._last_cleanup = time.time() - 120  # 2 minutes ago
+
+        # Next request should trigger cleanup
+        await limiter.is_allowed("test_client_2", config)
+
+        # Verify cleanup was triggered
+        assert time.time() - limiter._last_cleanup < 5
+
+    async def test_cleanup_removes_stale_clients(self):
+        """Test that cleanup removes stale client entries."""
+        limiter = RateLimiter.get_instance()
+        limiter.reset()
+
+        config = RateLimitConfig(requests=10, window=60)
+
+        # Add a client
+        await limiter.is_allowed("stale_client", config)
+        assert "stale_client" in limiter._clients
+
+        # Make timestamps stale (older than 10 minutes)
+        limiter._clients["stale_client"].timestamps = [time.time() - 700]
+
+        # Trigger cleanup
+        await limiter._cleanup()
+
+        # Stale client should be removed
+        assert "stale_client" not in limiter._clients
+
+    async def test_retry_after_calculation(self):
+        """Test retry_after is calculated correctly when rate limited."""
+        limiter = RateLimiter.get_instance()
+        limiter.reset()
+
+        config = RateLimitConfig(requests=2, window=60)
+
+        # Exhaust the limit
+        await limiter.is_allowed("retry_client", config)
+        await limiter.is_allowed("retry_client", config)
+
+        # Third request should be denied with retry_after
+        allowed, remaining, retry_after = await limiter.is_allowed(
+            "retry_client", config
+        )
+
+        assert allowed is False
+        assert remaining == 0
+        assert retry_after > 0
+        assert retry_after <= 60  # Should be within the window
 
 
 class TestRateLimiting:
@@ -96,3 +182,29 @@ class TestRateLimitPerRoute:
         assert response.status_code == 200
         limit = int(response.headers.get("X-RateLimit-Limit", 0))
         assert limit == 100  # Default limit
+
+    async def test_x_forwarded_for_header(self, client: AsyncClient):
+        """Test that X-Forwarded-For header is used for client identification."""
+        # Request with X-Forwarded-For header
+        response = await client.get(
+            "/api/v1/users", headers={"X-Forwarded-For": "192.168.1.100, 10.0.0.1"}
+        )
+        assert response.status_code == 200
+        assert "X-RateLimit-Remaining" in response.headers
+
+    async def test_cleanup_empty_timestamps(self):
+        """Test cleanup handles clients with empty timestamps."""
+        limiter = RateLimiter.get_instance()
+        limiter.reset()
+
+        # Add a client with empty timestamps
+        from src.app.middleware.rate_limit import ClientState
+
+        limiter._clients["empty_client"] = ClientState()
+        limiter._clients["empty_client"].timestamps = []
+
+        # Trigger cleanup
+        await limiter._cleanup()
+
+        # Empty client should be removed
+        assert "empty_client" not in limiter._clients

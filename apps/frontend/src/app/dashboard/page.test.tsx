@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import { Provider } from 'urql';
 import { fromValue, delay, pipe } from 'wonka';
@@ -216,6 +216,151 @@ describe('DashboardPage', () => {
       const inactiveBadges = screen.getAllByText('Inactive');
       expect(activeBadges.length).toBeGreaterThan(0);
       expect(inactiveBadges.length).toBe(1);
+    });
+  });
+
+  it('displays error message when API fails', async () => {
+    (useSession as Mock).mockReturnValue({
+      data: {
+        user: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        accessToken: 'test-token',
+      },
+      status: 'authenticated',
+    });
+
+    const errorData = {
+      users: {
+        data: null,
+        error: { message: 'Network error' },
+      },
+      me: mockMeData,
+    };
+
+    renderWithProvider(<DashboardPage />, errorData);
+
+    await waitFor(() => {
+      expect(screen.getByText('Network error')).toBeInTheDocument();
+    });
+  });
+
+  it('displays empty state when no users', async () => {
+    (useSession as Mock).mockReturnValue({
+      data: {
+        user: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        accessToken: 'test-token',
+      },
+      status: 'authenticated',
+    });
+
+    const emptyData = {
+      users: {
+        data: {
+          users: {
+            items: [],
+            total: 0,
+            skip: 0,
+            limit: 10,
+            hasMore: false,
+          },
+        },
+      },
+      me: mockMeData,
+    };
+
+    renderWithProvider(<DashboardPage />, emptyData);
+
+    await waitFor(() => {
+      expect(screen.getByText('No users found')).toBeInTheDocument();
+    });
+  });
+
+  it('displays REST toggle button', async () => {
+    (useSession as Mock).mockReturnValue({
+      data: {
+        user: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        accessToken: 'test-token',
+      },
+      status: 'authenticated',
+    });
+
+    renderWithProvider(<DashboardPage />);
+
+    expect(screen.getByText('GraphQL')).toBeInTheDocument();
+    expect(screen.getByText('REST')).toBeInTheDocument();
+    expect(screen.getByText('Using urql + Strawberry')).toBeInTheDocument();
+  });
+
+  it('switches to REST API when REST button is clicked', async () => {
+    (useSession as Mock).mockReturnValue({
+      data: {
+        user: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        accessToken: 'test-token',
+      },
+      status: 'authenticated',
+    });
+
+    renderWithProvider(<DashboardPage />);
+
+    // Initially shows GraphQL indicator
+    expect(screen.getByText('Using urql + Strawberry')).toBeInTheDocument();
+    expect(screen.getByText('Users (via GraphQL)')).toBeInTheDocument();
+
+    const restButton = screen.getByText('REST');
+    fireEvent.click(restButton);
+
+    // After clicking REST, GraphQL indicators should be hidden
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Using urql + Strawberry'),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Users (via GraphQL)')).not.toBeInTheDocument();
+      expect(screen.getByText('Users')).toBeInTheDocument();
+    });
+  });
+
+  it('switches back to GraphQL API when GraphQL button is clicked', async () => {
+    (useSession as Mock).mockReturnValue({
+      data: {
+        user: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+        accessToken: 'test-token',
+      },
+      status: 'authenticated',
+    });
+
+    renderWithProvider(<DashboardPage />);
+
+    // First switch to REST
+    const restButton = screen.getByText('REST');
+    fireEvent.click(restButton);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Using urql + Strawberry'),
+      ).not.toBeInTheDocument();
+    });
+
+    // Then switch back to GraphQL
+    const graphqlButton = screen.getByText('GraphQL');
+    fireEvent.click(graphqlButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Using urql + Strawberry')).toBeInTheDocument();
+      expect(screen.getByText('Users (via GraphQL)')).toBeInTheDocument();
     });
   });
 });

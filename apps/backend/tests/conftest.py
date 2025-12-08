@@ -47,3 +47,10 @@ async def client():
     ) as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def db_session():
+    """Provide a database session for tests that need direct DB access."""
+    async with test_async_session_maker() as session:
+        yield session
