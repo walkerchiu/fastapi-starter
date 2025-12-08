@@ -195,3 +195,64 @@ class InternalServerException(APIException):
             detail=detail,
             code=ErrorCode.INTERNAL_SERVER_ERROR,
         )
+
+
+# File/Storage Errors
+class FileNotFoundException(APIException):
+    """Raised when file is not found in storage."""
+
+    def __init__(self, file_key: str | None = None):
+        errors = {"resource": "File"}
+        if file_key:
+            errors["key"] = file_key
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found.",
+            code=ErrorCode.FILE_NOT_FOUND,
+            errors=errors,
+        )
+
+
+class FileTooLargeException(APIException):
+    """Raised when uploaded file exceeds size limit."""
+
+    def __init__(self, max_size: int | None = None):
+        errors = {}
+        if max_size:
+            errors["max_size"] = max_size
+        super().__init__(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="File exceeds size limit.",
+            code=ErrorCode.FILE_TOO_LARGE,
+            errors=errors if errors else None,
+        )
+
+
+class InvalidFileTypeException(APIException):
+    """Raised when file type is not allowed."""
+
+    def __init__(
+        self, file_type: str | None = None, allowed_types: list[str] | None = None
+    ):
+        errors = {}
+        if file_type:
+            errors["file_type"] = file_type
+        if allowed_types:
+            errors["allowed_types"] = allowed_types
+        super().__init__(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="File type not permitted.",
+            code=ErrorCode.INVALID_FILE_TYPE,
+            errors=errors if errors else None,
+        )
+
+
+class StorageException(APIException):
+    """Raised when storage operation fails."""
+
+    def __init__(self, detail: str = "Storage operation failed."):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=detail,
+            code=ErrorCode.STORAGE_ERROR,
+        )

@@ -3,8 +3,13 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from src.app.api import auth_router, health_router, users_router
+from sqlalchemy.exc import SQLAlchemyError
+from src.app.api import auth_router, files_router, health_router, users_router
 from src.app.core.config import settings
+from src.app.core.exception_handlers import (
+    service_exception_handler,
+    sqlalchemy_exception_handler,
+)
 from src.app.core.exceptions import APIException
 from src.app.core.logging import get_logger, setup_logging
 from src.app.graphql import get_context, schema
@@ -13,6 +18,7 @@ from src.app.middleware import (
     RateLimitMiddleware,
     RequestIDMiddleware,
 )
+from src.app.services.exceptions import ServiceError
 from strawberry.fastapi import GraphQLRouter
 
 # Setup structured logging
@@ -32,6 +38,10 @@ tags_metadata = [
     {
         "name": "users",
         "description": "User management operations: CRUD for user resources.",
+    },
+    {
+        "name": "files",
+        "description": "File storage operations: upload, download, list, and delete files.",
     },
 ]
 
@@ -62,6 +72,11 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
         content=exc.detail,
         headers=exc.headers,
     )
+
+
+# Register service exception handlers for automatic conversion
+app.add_exception_handler(ServiceError, service_exception_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
 
 
 # Add rate limiting middleware (must be added before CORS)
@@ -101,6 +116,7 @@ app.include_router(health_router)
 
 # REST API routes
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(files_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 
 # GraphQL route

@@ -15,7 +15,9 @@ class ServiceError(Exception):
 class UserNotFoundError(ServiceError):
     """Raised when user is not found."""
 
-    pass
+    def __init__(self, message: str = "User not found", user_id: int | None = None):
+        super().__init__(message)
+        self.user_id = user_id
 
 
 class EmailAlreadyExistsError(ServiceError):
@@ -51,5 +53,36 @@ class InvalidTokenError(ServiceError):
 
 class InvalidTokenTypeError(ServiceError):
     """Raised when token type is incorrect."""
+
+    pass
+
+
+# Storage-related errors
+class StorageError(ServiceError):
+    """Base exception for storage operations."""
+
+    pass
+
+
+class FileNotFoundError(StorageError):
+    """Raised when file is not found in storage."""
+
+    pass
+
+
+class FileTooLargeError(StorageError):
+    """Raised when file exceeds maximum allowed size."""
+
+    pass
+
+
+class InvalidFileTypeError(StorageError):
+    """Raised when file type is not allowed."""
+
+    pass
+
+
+class StorageConnectionError(StorageError):
+    """Raised when unable to connect to storage service."""
 
     pass

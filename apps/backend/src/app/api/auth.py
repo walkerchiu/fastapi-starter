@@ -3,17 +3,8 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core.deps import CurrentUser
-from src.app.core.exceptions import (
-    DatabaseException,
-    EmailAlreadyExistsException,
-    InactiveUserException,
-    InvalidCredentialsException,
-    InvalidTokenException,
-    InvalidTokenTypeException,
-)
 from src.app.db import get_db
 from src.app.models import User
 from src.app.schemas import (
@@ -25,15 +16,7 @@ from src.app.schemas import (
     UserRead,
     UserRegister,
 )
-from src.app.services import (
-    AuthService,
-    EmailAlreadyExistsError,
-    InactiveUserError,
-    InvalidCredentialsError,
-    InvalidTokenError,
-    InvalidTokenTypeError,
-    UserNotFoundError,
-)
+from src.app.services import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -85,12 +68,7 @@ async def register(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> User:
     """Register a new user."""
-    try:
-        return await service.register(user_in)
-    except EmailAlreadyExistsError:
-        raise EmailAlreadyExistsException() from None
-    except SQLAlchemyError:
-        raise DatabaseException(detail="Failed to create user") from None
+    return await service.register(user_in)
 
 
 @router.post(
@@ -129,12 +107,7 @@ async def login(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Token:
     """Authenticate user and return tokens."""
-    try:
-        return await service.login(credentials.email, credentials.password)
-    except InvalidCredentialsError:
-        raise InvalidCredentialsException() from None
-    except InactiveUserError:
-        raise InactiveUserException() from None
+    return await service.login(credentials.email, credentials.password)
 
 
 @router.post(
@@ -170,14 +143,7 @@ async def refresh_token(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Token:
     """Refresh access token using refresh token."""
-    try:
-        return await service.refresh_token(request.refresh_token)
-    except InvalidTokenTypeError:
-        raise InvalidTokenTypeException() from None
-    except (InvalidTokenError, UserNotFoundError):
-        raise InvalidTokenException() from None
-    except InactiveUserError:
-        raise InactiveUserException() from None
+    return await service.refresh_token(request.refresh_token)
 
 
 @router.get(

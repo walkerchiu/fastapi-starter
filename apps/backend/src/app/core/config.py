@@ -97,5 +97,25 @@ To get a token:
     graphql_max_depth: int = 10  # Maximum query depth
     graphql_max_complexity: int = 100  # Maximum query complexity
 
+    # S3 Storage
+    s3_endpoint_url: str | None = None  # None uses AWS S3; set URL for S3-compatible
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_bucket_name: str = "uploads"
+    s3_region: str = "us-east-1"
+    s3_use_ssl: bool = True
+    s3_max_file_size: int = 10 * 1024 * 1024  # 10MB default
+    s3_allowed_extensions: list[str] = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+    ]
+
 
 settings = Settings()

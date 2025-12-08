@@ -1,12 +1,8 @@
 """User GraphQL resolvers."""
 
 import strawberry
-from src.app.graphql.errors import (
-    EmailAlreadyExistsError as GQLEmailAlreadyExistsError,
-)
-from src.app.graphql.errors import (
-    UserNotFoundError as GQLUserNotFoundError,
-)
+from src.app.graphql.errors import UserNotFoundError as GQLUserNotFoundError
+from src.app.graphql.exception_mapper import map_service_exception_to_graphql
 from src.app.graphql.subscriptions import (
     publish_user_created,
     publish_user_deleted,
@@ -26,7 +22,8 @@ from src.app.graphql.validators import (
     validate_pagination,
 )
 from src.app.schemas import UserCreate, UserUpdate
-from src.app.services import EmailAlreadyExistsError, UserNotFoundError, UserService
+from src.app.services import UserService
+from src.app.services.exceptions import ServiceError, UserNotFoundError
 from strawberry.types import Info
 
 
@@ -109,8 +106,8 @@ class UserMutation:
             # Publish user created event
             await publish_user_created(user.id, user.email)
             return convert_user_to_type(user)
-        except EmailAlreadyExistsError:
-            raise GQLEmailAlreadyExistsError(email) from None
+        except ServiceError as e:
+            raise map_service_exception_to_graphql(e) from None
 
     @strawberry.mutation
     async def update_user(

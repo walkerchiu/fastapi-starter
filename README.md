@@ -24,6 +24,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
 - **Input Validation** - Consistent input validation for both REST and GraphQL APIs
 - **Error Codes** - Standardized error codes across REST and GraphQL endpoints
+- **File Upload** - S3-compatible storage integration for file management
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured

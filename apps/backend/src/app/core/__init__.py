@@ -2,6 +2,10 @@
 
 from src.app.core.config import settings
 from src.app.core.error_codes import ErrorCode
+from src.app.core.exception_handlers import (
+    service_exception_handler,
+    sqlalchemy_exception_handler,
+)
 from src.app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -32,6 +36,9 @@ __all__ = [
     "ErrorCode",
     # Config
     "settings",
+    # Exception handlers
+    "service_exception_handler",
+    "sqlalchemy_exception_handler",
     # Security
     "create_access_token",
     "create_refresh_token",

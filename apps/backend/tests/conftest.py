@@ -54,3 +54,27 @@ async def db_session():
     """Provide a database session for tests that need direct DB access."""
     async with test_async_session_maker() as session:
         yield session
+
+
+@pytest.fixture
+async def auth_headers(client: AsyncClient) -> dict[str, str]:
+    """Create a test user and return authentication headers."""
+    # Register test user
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "testuser@example.com",
+            "name": "Test User",
+            "password": "testpassword123",
+        },
+    )
+    # Login to get access token
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "testuser@example.com",
+            "password": "testpassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {access_token}"}

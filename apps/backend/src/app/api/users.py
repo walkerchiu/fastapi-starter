@@ -3,13 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, status
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.app.core.exceptions import (
-    DatabaseException,
-    EmailAlreadyExistsException,
-    UserNotFoundException,
-)
 from src.app.db import get_db
 from src.app.schemas import (
     ErrorResponse,
@@ -21,11 +15,7 @@ from src.app.schemas import (
     UserUpdate,
 )
 from src.app.schemas.pagination import PaginationMeta
-from src.app.services import (
-    EmailAlreadyExistsError,
-    UserNotFoundError,
-    UserService,
-)
+from src.app.services import UserService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -134,13 +124,8 @@ async def create_user(
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     """Create a new user."""
-    try:
-        user = await service.create(user_in)
-        return UserRead.model_validate(user)
-    except EmailAlreadyExistsError:
-        raise EmailAlreadyExistsException() from None
-    except SQLAlchemyError:
-        raise DatabaseException(detail="Failed to create user") from None
+    user = await service.create(user_in)
+    return UserRead.model_validate(user)
 
 
 @router.get(
@@ -173,11 +158,8 @@ async def get_user(
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     """Get a user by ID."""
-    try:
-        user = await service.get_by_id(user_id)
-        return UserRead.model_validate(user)
-    except UserNotFoundError:
-        raise UserNotFoundException(user_id=user_id) from None
+    user = await service.get_by_id(user_id)
+    return UserRead.model_validate(user)
 
 
 @router.patch(
@@ -219,13 +201,8 @@ async def update_user(
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     """Update a user."""
-    try:
-        user = await service.update(user_id, user_in)
-        return UserRead.model_validate(user)
-    except UserNotFoundError:
-        raise UserNotFoundException(user_id=user_id) from None
-    except SQLAlchemyError:
-        raise DatabaseException(detail="Failed to update user") from None
+    user = await service.update(user_id, user_in)
+    return UserRead.model_validate(user)
 
 
 @router.delete(
@@ -245,10 +222,5 @@ async def delete_user(
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
     """Delete a user."""
-    try:
-        await service.delete(user_id)
-    except UserNotFoundError:
-        raise UserNotFoundException(user_id=user_id) from None
-    except SQLAlchemyError:
-        raise DatabaseException(detail="Failed to delete user") from None
+    await service.delete(user_id)
     return MessageResponse(message="User deleted successfully")

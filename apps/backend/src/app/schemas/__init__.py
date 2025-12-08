@@ -8,6 +8,18 @@ from src.app.schemas.auth import (
     TokenPayload,
 )
 from src.app.schemas.errors import ErrorCode, ErrorDetail, ErrorResponse
+from src.app.schemas.file import (
+    BatchDeleteRequest,
+    BatchDeleteResponse,
+    BatchFileUploadResponse,
+    BatchFileUploadResult,
+    FileInfo,
+    FileListResponse,
+    FileRead,
+    FileUpdate,
+    FileUploadResponse,
+    PresignedUrlResponse,
+)
 from src.app.schemas.pagination import PaginatedResponse, PaginationParams
 from src.app.schemas.user import (
     MessageResponse,
@@ -18,14 +30,24 @@ from src.app.schemas.user import (
 )
 
 __all__ = [
+    "BatchDeleteRequest",
+    "BatchDeleteResponse",
+    "BatchFileUploadResponse",
+    "BatchFileUploadResult",
     "ErrorCode",
     "ErrorDetail",
     "ErrorResponse",
+    "FileInfo",
+    "FileListResponse",
+    "FileRead",
+    "FileUpdate",
+    "FileUploadResponse",
     "LoginRequest",
     "LogoutResponse",
     "MessageResponse",
     "PaginatedResponse",
     "PaginationParams",
+    "PresignedUrlResponse",
     "RefreshTokenRequest",
     "Token",
     "TokenPayload",

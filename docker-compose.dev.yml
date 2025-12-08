@@ -9,8 +9,16 @@ services:
       - APP_NAME=FastAPI Backend (Dev)
       - DEBUG=true
       - CORS_ORIGINS=["http://localhost:3000"]
+      - S3_ENDPOINT_URL=http://seaweedfs:8333
+      - S3_ACCESS_KEY_ID=admin
+      - S3_SECRET_ACCESS_KEY=admin
+      - S3_BUCKET_NAME=uploads
+      - S3_REGION=us-east-1
     volumes:
       - ./apps/backend/src:/app/src:ro
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -23,3 +31,34 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    ports:
+      - '9333:9333'
+      - '8080:8080'
+      - '8333:8333'
+      - '18080:18080'
+    command: 'server -s3 -dir=/data -master.dir=/data/master -volume.dir.idx=/data/volume -filer.dir.idx=/data/filer'
+    environment:
+      - S3_ACCESS_KEY=admin
+      - S3_SECRET_KEY=admin
+    volumes:
+      - seaweedfs-data:/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--spider',
+          '-q',
+          'http://localhost:9333/cluster/status',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  seaweedfs-data:

@@ -6,6 +6,17 @@ from src.app.graphql.types.auth import (
     RegisterInput,
     TokenType,
 )
+from src.app.graphql.types.file import (
+    BatchDeleteFilesInput,
+    BatchDeleteFilesResponse,
+    BatchFileUploadResponseType,
+    BatchFileUploadResultType,
+    FileType,
+    FileUploadType,
+    PaginatedFiles,
+    PresignedUrlType,
+    UpdateFileInput,
+)
 from src.app.graphql.types.health import (
     ComponentHealthEntry,
     ComponentHealthType,
@@ -19,20 +30,29 @@ from src.app.graphql.types.pagination import PaginatedUsers, PaginationMeta
 from src.app.graphql.types.user import Message, UserType
 
 __all__ = [
+    "BatchDeleteFilesInput",
+    "BatchDeleteFilesResponse",
+    "BatchFileUploadResponseType",
+    "BatchFileUploadResultType",
     "ComponentHealthEntry",
     "ComponentHealthType",
     "CreateUserInput",
+    "FileType",
+    "FileUploadType",
     "HealthStatus",
     "HealthType",
     "LivenessType",
     "LoginInput",
     "Message",
+    "PaginatedFiles",
     "PaginatedUsers",
     "PaginationMeta",
+    "PresignedUrlType",
     "ReadinessType",
     "RefreshTokenInput",
     "RegisterInput",
     "TokenType",
+    "UpdateFileInput",
     "UpdateUserInput",
     "UserType",
 ]

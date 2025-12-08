@@ -1,18 +1,7 @@
 """Authentication GraphQL resolvers."""
 
 import strawberry
-from src.app.graphql.errors import (
-    EmailAlreadyExistsError as GQLEmailAlreadyExistsError,
-)
-from src.app.graphql.errors import (
-    InactiveUserError as GQLInactiveUserError,
-)
-from src.app.graphql.errors import (
-    InvalidCredentialsError as GQLInvalidCredentialsError,
-)
-from src.app.graphql.errors import (
-    InvalidTokenError as GQLInvalidTokenError,
-)
+from src.app.graphql.exception_mapper import map_service_exception_to_graphql
 from src.app.graphql.resolvers.users import convert_user_to_type
 from src.app.graphql.subscriptions import publish_user_created, publish_user_logged_out
 from src.app.graphql.types import (
@@ -25,15 +14,8 @@ from src.app.graphql.types import (
 )
 from src.app.graphql.validators import validate_email, validate_name, validate_password
 from src.app.schemas import UserRegister
-from src.app.services import (
-    AuthService,
-    EmailAlreadyExistsError,
-    InactiveUserError,
-    InvalidCredentialsError,
-    InvalidTokenError,
-    InvalidTokenTypeError,
-    UserNotFoundError,
-)
+from src.app.services import AuthService
+from src.app.services.exceptions import ServiceError
 from strawberry.types import Info
 
 
@@ -75,8 +57,8 @@ class AuthMutation:
             # Publish user created event
             await publish_user_created(user.id, user.email)
             return convert_user_to_type(user)
-        except EmailAlreadyExistsError:
-            raise GQLEmailAlreadyExistsError(email) from None
+        except ServiceError as e:
+            raise map_service_exception_to_graphql(e) from None
 
     @strawberry.mutation
     async def login(self, info: Info, input: LoginInput) -> TokenType:
@@ -94,10 +76,8 @@ class AuthMutation:
                 refresh_token=token.refresh_token,
                 token_type=token.token_type,
             )
-        except InvalidCredentialsError:
-            raise GQLInvalidCredentialsError() from None
-        except InactiveUserError:
-            raise GQLInactiveUserError() from None
+        except ServiceError as e:
+            raise map_service_exception_to_graphql(e) from None
 
     @strawberry.mutation
     async def refresh_token(self, info: Info, input: RefreshTokenInput) -> TokenType:
@@ -112,12 +92,8 @@ class AuthMutation:
                 refresh_token=token.refresh_token,
                 token_type=token.token_type,
             )
-        except InvalidTokenTypeError:
-            raise GQLInvalidTokenError("Invalid token type") from None
-        except (InvalidTokenError, UserNotFoundError):
-            raise GQLInvalidTokenError() from None
-        except InactiveUserError:
-            raise GQLInactiveUserError() from None
+        except ServiceError as e:
+            raise map_service_exception_to_graphql(e) from None
 
     @strawberry.mutation
     async def logout(self, info: Info) -> Message:
@@ -131,6 +107,8 @@ class AuthMutation:
         """
         user = info.context.get("user")
         if not user:
-            raise Exception("Authentication required")
+            raise map_service_exception_to_graphql(
+                ServiceError("Authentication required")
+            )
         await publish_user_logged_out(user.id, user.email)
         return Message(message="Logged out successfully")

@@ -1,10 +1,14 @@
 """User model."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.app.db.base import Base
+
+if TYPE_CHECKING:
+    from src.app.models.file import File
 
 
 class User(Base):
@@ -26,3 +30,6 @@ class User(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+    # Relationships
+    files: Mapped[list["File"]] = relationship("File", back_populates="user")

@@ -32,7 +32,9 @@ class UserService:
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
         if not user:
-            raise UserNotFoundError(f"User with id {user_id} not found")
+            raise UserNotFoundError(
+                f"User with id {user_id} not found", user_id=user_id
+            )
         return user
 
     async def get_by_email(

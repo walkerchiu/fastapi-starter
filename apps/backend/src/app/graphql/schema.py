@@ -5,6 +5,8 @@ from src.app.graphql.extensions import DepthLimitExtension, QueryComplexityExten
 from src.app.graphql.resolvers import (
     AuthMutation,
     AuthQuery,
+    FileMutation,
+    FileQuery,
     HealthQuery,
     UserMutation,
     UserQuery,
@@ -13,7 +15,7 @@ from src.app.graphql.subscriptions import Subscription
 
 
 @strawberry.type
-class Query(UserQuery, AuthQuery, HealthQuery):
+class Query(UserQuery, AuthQuery, FileQuery, HealthQuery):
     """Root query type."""
 
     @strawberry.field
@@ -23,7 +25,7 @@ class Query(UserQuery, AuthQuery, HealthQuery):
 
 
 @strawberry.type
-class Mutation(UserMutation, AuthMutation):
+class Mutation(UserMutation, AuthMutation, FileMutation):
     """Root mutation type."""
 
     @strawberry.mutation
