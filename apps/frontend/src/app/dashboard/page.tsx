@@ -4,6 +4,15 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQuery } from 'urql';
+
+import {
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  Spinner,
+  StatCard,
+} from '@/components/ui';
 import {
   MeDocument,
   UsersDocument,
@@ -35,7 +44,7 @@ export default function DashboardPage() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        <Spinner />
       </div>
     );
   }
@@ -86,41 +95,34 @@ export default function DashboardPage() {
           </button>
         </div>
         {apiType === 'graphql' && (
-          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-            Using urql + Strawberry
-          </span>
+          <Badge variant="success">Using urql + Strawberry</Badge>
         )}
       </div>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
-          <p className="mt-2 text-3xl font-bold text-indigo-600">{total}</p>
-        </div>
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="text-sm font-medium text-gray-500">Your Email</h3>
-          <p className="mt-2 truncate text-lg font-medium text-gray-900">
-            {meResult.data?.me?.email ?? session?.user?.email}
-          </p>
-        </div>
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="text-sm font-medium text-gray-500">Status</h3>
-          <p className="mt-2 text-lg font-medium text-green-600">
-            {meResult.data?.me?.isActive ? 'Active' : 'Inactive'}
-          </p>
-        </div>
+        <StatCard title="Total Users" value={total} />
+        <StatCard
+          title="Your Email"
+          value={meResult.data?.me?.email ?? session?.user?.email}
+          valueClassName="truncate text-lg font-medium text-gray-900"
+        />
+        <StatCard
+          title="Status"
+          value={meResult.data?.me?.isActive ? 'Active' : 'Inactive'}
+          valueClassName="text-lg font-medium text-green-600"
+        />
       </div>
 
-      <div className="rounded-lg bg-white shadow">
-        <div className="border-b border-gray-200 px-6 py-4">
+      <Card>
+        <CardHeader>
           <h2 className="text-lg font-medium text-gray-900">
             Users {apiType === 'graphql' && '(via GraphQL)'}
           </h2>
-        </div>
-        <div className="p-6">
+        </CardHeader>
+        <CardBody>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              <Spinner />
             </div>
           ) : error ? (
             <p className="py-8 text-center text-red-500">{error}</p>
@@ -158,15 +160,9 @@ export default function DashboardPage() {
                         {user.email}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                            user.isActive
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
+                        <Badge variant={user.isActive ? 'success' : 'error'}>
                           {user.isActive ? 'Active' : 'Inactive'}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}
@@ -174,8 +170,8 @@ export default function DashboardPage() {
               </table>
             </div>
           )}
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }

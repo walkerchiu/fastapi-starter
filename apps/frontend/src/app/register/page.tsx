@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { Alert, Button } from '@/components/ui';
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -88,11 +90,7 @@ export default function RegisterPage() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
           <div className="space-y-4 rounded-md shadow-sm">
             <div>
               <label htmlFor="name" className="sr-only">
@@ -160,15 +158,9 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
-            >
-              {isLoading ? 'Creating account...' : 'Create account'}
-            </button>
-          </div>
+          <Button type="submit" isLoading={isLoading} fullWidth>
+            {isLoading ? 'Creating account...' : 'Create account'}
+          </Button>
         </form>
       </div>
     </div>
