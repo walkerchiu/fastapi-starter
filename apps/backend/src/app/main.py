@@ -4,7 +4,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
-from src.app.api import auth_router, files_router, health_router, users_router
+from src.app.api import (
+    admin_router,
+    auth_router,
+    files_router,
+    health_router,
+    permissions_router,
+    roles_router,
+    users_router,
+)
 from src.app.core.config import settings
 from src.app.core.exception_handlers import (
     service_exception_handler,
@@ -40,8 +48,20 @@ tags_metadata = [
         "description": "User management operations: CRUD for user resources.",
     },
     {
+        "name": "permissions",
+        "description": "Permission management operations: CRUD for permission resources.",
+    },
+    {
+        "name": "roles",
+        "description": "Role management operations: CRUD for role resources with permission assignment.",
+    },
+    {
         "name": "files",
         "description": "File storage operations: upload, download, list, and delete files.",
+    },
+    {
+        "name": "Admin",
+        "description": "Admin dashboard statistics and management.",
     },
 ]
 
@@ -117,7 +137,10 @@ app.include_router(health_router)
 # REST API routes
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(files_router, prefix="/api/v1")
+app.include_router(permissions_router, prefix="/api/v1")
+app.include_router(roles_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 
 # GraphQL route
 graphql_router = GraphQLRouter(schema, context_getter=get_context)

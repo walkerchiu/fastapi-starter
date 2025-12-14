@@ -5,13 +5,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Path, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core.config import settings
-from src.app.core.deps import CurrentUser
+from src.app.core.deps import CurrentUser, require_permissions
 from src.app.core.exceptions import (
     FileNotFoundException,
     ForbiddenException,
     StorageException,
 )
 from src.app.db.session import get_db
+from src.app.models import User
 from src.app.schemas import (
     BatchDeleteRequest,
     BatchDeleteResponse,
@@ -424,6 +425,79 @@ async def delete_file_by_id(
     await file_service.delete(file_record.id)
 
 
+@router.delete(
+    "/{file_id}/hard",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Hard delete file",
+    description="""
+Permanently delete a file from storage and database.
+
+**Super Admin only.** Requires `files:hard_delete` permission.
+
+This operation bypasses soft delete and permanently removes the file.
+The file cannot be recovered after hard deletion.
+    """,
+    responses={
+        200: {"description": "File permanently deleted"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        403: {"model": ErrorResponse, "description": "Insufficient permissions"},
+        404: {"model": ErrorResponse, "description": "File not found"},
+        500: {"model": ErrorResponse, "description": "Storage error"},
+    },
+)
+async def hard_delete_file(
+    file_id: Annotated[int, Path(description="The ID of the file to delete", ge=1)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
+) -> MessageResponse:
+    """Permanently delete a file (Super Admin only)."""
+    file_service = FileService(db)
+
+    try:
+        file_record = await file_service.get_by_id(file_id, include_deleted=True)
+    except FileNotFoundError:
+        raise FileNotFoundException(file_key=str(file_id)) from None
+
+    # Try to delete from storage (ignore errors if file doesn't exist in storage)
+    try:
+        await storage_service.delete_file(file_record.key)
+    except StorageError:
+        pass
+
+    # Hard delete from database
+    await file_service.hard_delete(file_id, is_super_admin=True)
+    return MessageResponse(message="File permanently deleted")
+
+
+@router.post(
+    "/{file_id}/restore",
+    response_model=FileRead,
+    summary="Restore soft-deleted file",
+    description="""
+Restore a previously soft-deleted file.
+
+**Super Admin only.** Requires `files:hard_delete` permission.
+    """,
+    responses={
+        200: {"description": "File restored"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        403: {"model": ErrorResponse, "description": "Insufficient permissions"},
+        404: {"model": ErrorResponse, "description": "File not found"},
+        500: {"model": ErrorResponse, "description": "Database error"},
+    },
+)
+async def restore_file(
+    file_id: Annotated[int, Path(description="The ID of the file to restore", ge=1)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
+) -> FileRead:
+    """Restore a soft-deleted file."""
+    file_service = FileService(db)
+    file_record = await file_service.restore(file_id)
+    return FileRead.model_validate(file_record)
+
+
 @router.patch(
     "/{file_id}",
     response_model=FileRead,
@@ -549,6 +623,38 @@ async def get_file_by_key(
 
 
 @router.delete(
+    "/key/{file_key:path}/hard",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Permanently delete file by key",
+    description="""
+Permanently delete a file from storage using the file key.
+
+This operation cannot be undone. The file will be permanently removed from both
+the database and storage.
+
+**Super Admin only.** Requires `files:hard_delete` permission.
+    """,
+    responses={
+        200: {"description": "File permanently deleted"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        403: {"model": ErrorResponse, "description": "Insufficient permissions"},
+        404: {"model": ErrorResponse, "description": "File not found"},
+        500: {"model": ErrorResponse, "description": "Storage error"},
+    },
+)
+async def hard_delete_file_by_key(
+    file_key: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
+) -> MessageResponse:
+    """Permanently delete a file by key."""
+    file_service = FileService(db)
+    await file_service.hard_delete_by_key(file_key, is_super_admin=True)
+    return MessageResponse(message="File permanently deleted")
+
+
+@router.delete(
     "/key/{file_key:path}",
     
     status_code=status.HTTP_204_NO_CONTENT,
@@ -589,3 +695,35 @@ async def delete_file(
 
     # Delete from database
     await file_service.delete(file_record.id)
+<<<<<<< HEAD
+=======
+    return MessageResponse(message="File deleted successfully")
+
+
+@router.post(
+    "/key/restore/{file_key:path}",
+    response_model=FileRead,
+    summary="Restore soft-deleted file by key",
+    description="""
+Restore a previously soft-deleted file using the file key.
+
+**Super Admin only.** Requires `files:hard_delete` permission.
+    """,
+    responses={
+        200: {"description": "File restored"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        403: {"model": ErrorResponse, "description": "Insufficient permissions"},
+        404: {"model": ErrorResponse, "description": "File not found"},
+        500: {"model": ErrorResponse, "description": "Database error"},
+    },
+)
+async def restore_file_by_key(
+    file_key: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
+) -> FileRead:
+    """Restore a soft-deleted file by key."""
+    file_service = FileService(db)
+    file_record = await file_service.restore_by_key(file_key)
+    return FileRead.model_validate(file_record)
+>>>>>>> 41ea1315c (Feat(Module): Add role-based access control (RBAC) system)

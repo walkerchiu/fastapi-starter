@@ -26,6 +26,13 @@
     "format": "prettier --write . && cd apps/backend && uv run ruff format .",
     "format:check": "prettier --check .",
     "generate:api": "pnpm --filter @repo/api-client generate",
+    "db:upgrade": "cd apps/backend && uv run alembic upgrade head",
+    "db:downgrade": "cd apps/backend && uv run alembic downgrade -1",
+    "db:revision": "cd apps/backend && uv run alembic revision --autogenerate",
+    "db:history": "cd apps/backend && uv run alembic history",
+    "db:current": "cd apps/backend && uv run alembic current",
+    "db:seed": "cd apps/backend && uv run python scripts/seed_rbac.py",
+    "db:status": "cd apps/backend && uv run python scripts/db_status.py",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -46,6 +53,7 @@
     "@commitlint/config-conventional": "20.3.1",
     "@repo/eslint-config": "workspace:*",
     "concurrently": "^9.2.1",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "eslint": "9.39.1",
     "husky": "9.1.7",
     "lint-staged": "16.2.7",

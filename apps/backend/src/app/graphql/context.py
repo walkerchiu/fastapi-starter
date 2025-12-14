@@ -15,7 +15,10 @@ DbDep = Annotated[AsyncSession, Depends(get_db)]
 async def get_current_user_from_request(
     request: Request, db: AsyncSession
 ) -> User | None:
-    """Extract current user from Authorization header if present."""
+    """Extract current user from Authorization header if present.
+
+    Loads user with roles and permissions for RBAC checks.
+    """
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
@@ -33,6 +36,7 @@ async def get_current_user_from_request(
     if not user_id:
         return None
 
+    # Load user - roles and permissions use lazy="selectin" in models
     result = await db.execute(select(User).where(User.id == int(user_id)))
     user = result.scalar_one_or_none()
 

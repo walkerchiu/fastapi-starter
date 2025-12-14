@@ -39,32 +39,55 @@ class TestGraphQLEndpoint:
 class TestGraphQLUserQueries:
     """Test GraphQL user queries."""
 
-    async def test_users_query_empty(self, client: AsyncClient):
-        """Test users query returns empty list when no users."""
+    async def test_users_query_with_auth(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
+        """Test users query returns users when authenticated."""
         query = """
             query {
                 users {
-                    items {
+                    data {
                         id
                         email
                         name
                         isActive
                     }
-                    total
-                    skip
-                    limit
-                    hasMore
+                    meta {
+                        totalItems
+                        hasNextPage
+                    }
+                }
+            }
+        """
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
+        assert response.status_code == 200
+        data = response.json()
+        # At least the superadmin user exists
+        assert data["data"]["users"]["meta"]["totalItems"] >= 1
+        assert "data" in data["data"]["users"]
+
+    async def test_users_query_unauthenticated(self, client: AsyncClient):
+        """Test users query returns error when unauthenticated."""
+        query = """
+            query {
+                users {
+                    data {
+                        id
+                    }
                 }
             }
         """
         response = await client.post("/graphql", json={"query": query})
         assert response.status_code == 200
         data = response.json()
-        assert data["data"]["users"]["items"] == []
-        assert data["data"]["users"]["total"] == 0
-        assert data["data"]["users"]["hasMore"] is False
+        assert "errors" in data
+        assert data["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED"
 
-    async def test_user_query_not_found(self, client: AsyncClient):
+    async def test_user_query_not_found(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test user query returns null for non-existent user."""
         query = """
             query {
@@ -75,7 +98,9 @@ class TestGraphQLUserQueries:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": query})
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["user"] is None
@@ -84,7 +109,7 @@ class TestGraphQLUserQueries:
 class TestGraphQLUserMutations:
     """Test GraphQL user mutations."""
 
-    async def test_create_user(self, client: AsyncClient):
+    async def test_create_user(self, client: AsyncClient, superadmin_headers: dict):
         """Test creating a user via GraphQL."""
         mutation = """
             mutation {
@@ -96,7 +121,9 @@ class TestGraphQLUserMutations:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": mutation})
+        response = await client.post(
+            "/graphql", json={"query": mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         user = data["data"]["createUser"]
@@ -105,7 +132,22 @@ class TestGraphQLUserMutations:
         assert user["isActive"] is True
         assert user["id"] is not None
 
-    async def test_update_user(self, client: AsyncClient):
+    async def test_create_user_unauthenticated(self, client: AsyncClient):
+        """Test creating a user without authentication returns error."""
+        mutation = """
+            mutation {
+                createUser(input: {email: "test@example.com", name: "Test User"}) {
+                    id
+                }
+            }
+        """
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        assert data["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED"
+
+    async def test_update_user(self, client: AsyncClient, superadmin_headers: dict):
         """Test updating a user via GraphQL."""
         # First create a user
         create_mutation = """
@@ -115,7 +157,9 @@ class TestGraphQLUserMutations:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": create_mutation})
+        response = await client.post(
+            "/graphql", json={"query": create_mutation}, headers=superadmin_headers
+        )
         user_id = response.json()["data"]["createUser"]["id"]
 
         # Update the user
@@ -128,14 +172,16 @@ class TestGraphQLUserMutations:
                 }}
             }}
         """
-        response = await client.post("/graphql", json={"query": update_mutation})
+        response = await client.post(
+            "/graphql", json={"query": update_mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         user = data["data"]["updateUser"]
         assert user["name"] == "Updated Name"
         assert user["email"] == "update@example.com"
 
-    async def test_delete_user(self, client: AsyncClient):
+    async def test_delete_user(self, client: AsyncClient, superadmin_headers: dict):
         """Test deleting a user via GraphQL."""
         # First create a user
         create_mutation = """
@@ -145,7 +191,9 @@ class TestGraphQLUserMutations:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": create_mutation})
+        response = await client.post(
+            "/graphql", json={"query": create_mutation}, headers=superadmin_headers
+        )
         user_id = response.json()["data"]["createUser"]["id"]
 
         # Delete the user
@@ -156,7 +204,9 @@ class TestGraphQLUserMutations:
                 }}
             }}
         """
-        response = await client.post("/graphql", json={"query": delete_mutation})
+        response = await client.post(
+            "/graphql", json={"query": delete_mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["deleteUser"]["message"] == "User deleted successfully"
@@ -169,11 +219,15 @@ class TestGraphQLUserMutations:
                 }}
             }}
         """
-        response = await client.post("/graphql", json={"query": query})
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
         data = response.json()
         assert data["data"]["user"] is None
 
-    async def test_delete_user_not_found(self, client: AsyncClient):
+    async def test_delete_user_not_found(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test deleting a non-existent user raises error with code."""
         mutation = """
             mutation {
@@ -182,7 +236,9 @@ class TestGraphQLUserMutations:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": mutation})
+        response = await client.post(
+            "/graphql", json={"query": mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert "errors" in data
@@ -251,7 +307,7 @@ class TestGraphQLAuthMutations:
         token = data["data"]["login"]
         assert token["accessToken"] is not None
         assert token["refreshToken"] is not None
-        assert token["tokenType"] == "bearer"
+        assert token["tokenType"] == "Bearer"
 
     async def test_refresh_token(self, client: AsyncClient):
         """Test token refresh via GraphQL."""
@@ -405,37 +461,45 @@ class TestGraphQLValidation:
         assert error["extensions"]["code"] == "VALIDATION_ERROR"
         assert error["extensions"]["field"] == "name"
 
-    async def test_users_invalid_pagination(self, client: AsyncClient):
+    async def test_users_invalid_pagination(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test users query with invalid pagination."""
         query = """
             query {
-                users(skip: -1) {
-                    items {
+                users(page: 0) {
+                    data {
                         id
                     }
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": query})
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert "errors" in data
         error = data["errors"][0]
         assert error["extensions"]["code"] == "VALIDATION_ERROR"
-        assert error["extensions"]["field"] == "skip"
+        assert error["extensions"]["field"] == "page"
 
-    async def test_users_limit_too_high(self, client: AsyncClient):
+    async def test_users_limit_too_high(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test users query with limit too high."""
         query = """
             query {
                 users(limit: 500) {
-                    items {
+                    data {
                         id
                     }
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": query})
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert "errors" in data
@@ -447,33 +511,11 @@ class TestGraphQLValidation:
 class TestGraphQLMeQuery:
     """Test GraphQL me query for authentication."""
 
-    async def test_me_authenticated(self, client: AsyncClient):
+    async def test_me_authenticated(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test me query returns current user when authenticated."""
-        # First register and login
-        register_mutation = """
-            mutation {
-                register(input: {
-                    email: "metest@example.com",
-                    name: "Me Test User",
-                    password: "securepassword123"
-                }) {
-                    id
-                }
-            }
-        """
-        await client.post("/graphql", json={"query": register_mutation})
-
-        login_mutation = """
-            mutation {
-                login(input: {email: "metest@example.com", password: "securepassword123"}) {
-                    accessToken
-                }
-            }
-        """
-        response = await client.post("/graphql", json={"query": login_mutation})
-        access_token = response.json()["data"]["login"]["accessToken"]
-
-        # Query me with auth header
+        # Query me with auth header (superadmin user)
         me_query = """
             query {
                 me {
@@ -487,13 +529,13 @@ class TestGraphQLMeQuery:
         response = await client.post(
             "/graphql",
             json={"query": me_query},
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers=superadmin_headers,
         )
         assert response.status_code == 200
         data = response.json()
         user = data["data"]["me"]
-        assert user["email"] == "metest@example.com"
-        assert user["name"] == "Me Test User"
+        assert user["email"] == "superadmin@example.com"
+        assert user["name"] == "Super Admin"
         assert user["isActive"] is True
 
     async def test_me_unauthenticated(self, client: AsyncClient):
@@ -676,7 +718,9 @@ class TestGraphQLAuthEdgeCases:
 class TestGraphQLUserEdgeCases:
     """Test GraphQL user edge cases for coverage."""
 
-    async def test_create_user_duplicate_email(self, client: AsyncClient):
+    async def test_create_user_duplicate_email(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test creating user with duplicate email returns error."""
         # Create first user
         mutation = """
@@ -686,17 +730,23 @@ class TestGraphQLUserEdgeCases:
                 }
             }
         """
-        await client.post("/graphql", json={"query": mutation})
+        await client.post(
+            "/graphql", json={"query": mutation}, headers=superadmin_headers
+        )
 
         # Try to create user with same email
-        response = await client.post("/graphql", json={"query": mutation})
+        response = await client.post(
+            "/graphql", json={"query": mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert "errors" in data
         error = data["errors"][0]
         assert error["extensions"]["code"] == "EMAIL_ALREADY_EXISTS"
 
-    async def test_update_user_email(self, client: AsyncClient):
+    async def test_update_user_email(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test updating user email."""
         # Create user
         create_mutation = """
@@ -706,7 +756,9 @@ class TestGraphQLUserEdgeCases:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": create_mutation})
+        response = await client.post(
+            "/graphql", json={"query": create_mutation}, headers=superadmin_headers
+        )
         user_id = response.json()["data"]["createUser"]["id"]
 
         # Update email
@@ -718,12 +770,16 @@ class TestGraphQLUserEdgeCases:
                 }}
             }}
         """
-        response = await client.post("/graphql", json={"query": update_mutation})
+        response = await client.post(
+            "/graphql", json={"query": update_mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["updateUser"]["email"] == "newemail@example.com"
 
-    async def test_update_user_is_active(self, client: AsyncClient):
+    async def test_update_user_is_active(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test updating user is_active status."""
         # Create user
         create_mutation = """
@@ -734,7 +790,9 @@ class TestGraphQLUserEdgeCases:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": create_mutation})
+        response = await client.post(
+            "/graphql", json={"query": create_mutation}, headers=superadmin_headers
+        )
         user_id = response.json()["data"]["createUser"]["id"]
         assert response.json()["data"]["createUser"]["isActive"] is True
 
@@ -747,12 +805,16 @@ class TestGraphQLUserEdgeCases:
                 }}
             }}
         """
-        response = await client.post("/graphql", json={"query": update_mutation})
+        response = await client.post(
+            "/graphql", json={"query": update_mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["updateUser"]["isActive"] is False
 
-    async def test_update_user_not_found(self, client: AsyncClient):
+    async def test_update_user_not_found(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test updating non-existent user returns null."""
         mutation = """
             mutation {
@@ -761,7 +823,9 @@ class TestGraphQLUserEdgeCases:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": mutation})
+        response = await client.post(
+            "/graphql", json={"query": mutation}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["updateUser"] is None

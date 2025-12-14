@@ -9,6 +9,7 @@ from src.app.db.base import Base
 
 if TYPE_CHECKING:
     from src.app.models.file import File
+    from src.app.models.role import Role
 
 
 class User(Base):
@@ -33,3 +34,9 @@ class User(Base):
 
     # Relationships
     files: Mapped[list["File"]] = relationship("File", back_populates="user")
+    roles: Mapped[list["Role"]] = relationship(
+        "Role",
+        secondary="user_roles",
+        back_populates="users",
+        lazy="selectin",
+    )

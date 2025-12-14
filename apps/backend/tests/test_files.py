@@ -603,3 +603,65 @@ async def test_batch_upload_all_failed(
         assert data["successful"] == 0
         assert data["failed"] == 2
         assert all(not r["success"] for r in data["results"])
+
+
+# Hard delete tests
+
+
+@pytest.mark.asyncio
+async def test_hard_delete_file_by_key_success(
+    client: AsyncClient, superadmin_headers: dict[str, str]
+):
+    """Test permanently deleting a file by key (super admin only)."""
+    with patch(
+        "src.app.api.files.FileService.hard_delete_by_key",
+        new_callable=AsyncMock,
+    ):
+        response = await client.delete(
+            "/api/v1/files/key/2024/01/01/test.txt/hard",
+            headers=superadmin_headers,
+        )
+
+        assert response.status_code == 200
+        assert response.json()["message"] == "File permanently deleted"
+
+
+@pytest.mark.asyncio
+async def test_hard_delete_file_by_key_unauthorized(client: AsyncClient):
+    """Test hard delete file without authentication."""
+    response = await client.delete("/api/v1/files/key/2024/01/01/test.txt/hard")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_hard_delete_file_by_key_forbidden(
+    client: AsyncClient, auth_headers: dict[str, str]
+):
+    """Test hard delete file without permission."""
+    response = await client.delete(
+        "/api/v1/files/key/2024/01/01/test.txt/hard",
+        headers=auth_headers,
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_hard_delete_file_by_key_not_found(
+    client: AsyncClient, superadmin_headers: dict[str, str]
+):
+    """Test hard delete non-existent file by key."""
+    from src.app.services.exceptions import FileNotFoundError
+
+    with patch(
+        "src.app.api.files.FileService.hard_delete_by_key",
+        new_callable=AsyncMock,
+        side_effect=FileNotFoundError("File not found"),
+    ):
+        response = await client.delete(
+            "/api/v1/files/key/nonexistent/file.txt/hard",
+            headers=superadmin_headers,
+        )
+
+        assert response.status_code == 404
+        data = response.json()
+        assert data["code"] == "FILE_NOT_FOUND"

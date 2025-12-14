@@ -9,14 +9,30 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.app.core.config import settings
 from src.app.db.base import Base
-from src.app.models import File, User  # noqa: F401
+
+# Import all models for autogenerate support
+# All models must be imported for Alembic to detect schema changes
+from src.app.models import (  # noqa: F401
+    File,
+    PasswordResetToken,
+    Permission,
+    Role,
+    User,
+    role_permissions,
+    user_roles,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override sqlalchemy.url with our settings
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Use sqlalchemy.url from config if already set (e.g., from tests),
+# otherwise use settings.database_url
+if (
+    not config.get_main_option("sqlalchemy.url")
+    or config.get_main_option("sqlalchemy.url") == "driver://user:pass@localhost/dbname"
+):
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

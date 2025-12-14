@@ -92,9 +92,11 @@ class TestRateLimiterUnit:
 class TestRateLimiting:
     """Test rate limiting functionality."""
 
-    async def test_rate_limit_headers_present(self, client: AsyncClient):
+    async def test_rate_limit_headers_present(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test that rate limit headers are present in response."""
-        response = await client.get("/api/v1/users")
+        response = await client.get("/api/v1/users", headers=superadmin_headers)
         assert response.status_code == 200
         assert "X-RateLimit-Limit" in response.headers
         assert "X-RateLimit-Remaining" in response.headers
@@ -106,14 +108,16 @@ class TestRateLimiting:
         assert response.status_code == 200
         assert "X-RateLimit-Limit" not in response.headers
 
-    async def test_rate_limit_remaining_decreases(self, client: AsyncClient):
+    async def test_rate_limit_remaining_decreases(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test that remaining count decreases with each request."""
         # First request
-        response1 = await client.get("/api/v1/users")
+        response1 = await client.get("/api/v1/users", headers=superadmin_headers)
         remaining1 = int(response1.headers.get("X-RateLimit-Remaining", 0))
 
         # Second request
-        response2 = await client.get("/api/v1/users")
+        response2 = await client.get("/api/v1/users", headers=superadmin_headers)
         remaining2 = int(response2.headers.get("X-RateLimit-Remaining", 0))
 
         assert remaining2 < remaining1
@@ -176,19 +180,22 @@ class TestRateLimitPerRoute:
         limit = int(response.headers.get("X-RateLimit-Limit", 0))
         assert limit == 50  # GraphQL limit
 
-    async def test_users_endpoint_has_default_limit(self, client: AsyncClient):
+    async def test_users_endpoint_has_default_limit(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test that users endpoint uses default rate limit."""
-        response = await client.get("/api/v1/users")
+        response = await client.get("/api/v1/users", headers=superadmin_headers)
         assert response.status_code == 200
         limit = int(response.headers.get("X-RateLimit-Limit", 0))
         assert limit == 100  # Default limit
 
-    async def test_x_forwarded_for_header(self, client: AsyncClient):
+    async def test_x_forwarded_for_header(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test that X-Forwarded-For header is used for client identification."""
         # Request with X-Forwarded-For header
-        response = await client.get(
-            "/api/v1/users", headers={"X-Forwarded-For": "192.168.1.100, 10.0.0.1"}
-        )
+        headers = {**superadmin_headers, "X-Forwarded-For": "192.168.1.100, 10.0.0.1"}
+        response = await client.get("/api/v1/users", headers=headers)
         assert response.status_code == 200
         assert "X-RateLimit-Remaining" in response.headers
 

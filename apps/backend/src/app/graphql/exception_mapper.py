@@ -5,6 +5,9 @@ to GraphQL errors, reducing boilerplate in resolvers.
 """
 
 from src.app.graphql.errors import (
+    CannotModifySystemRoleError as GQLCannotModifySystemRoleError,
+)
+from src.app.graphql.errors import (
     EmailAlreadyExistsError as GQLEmailAlreadyExistsError,
 )
 from src.app.graphql.errors import (
@@ -17,6 +20,12 @@ from src.app.graphql.errors import (
     InvalidTokenError as GQLInvalidTokenError,
 )
 from src.app.graphql.errors import (
+    PermissionNotFoundError as GQLPermissionNotFoundError,
+)
+from src.app.graphql.errors import (
+    RoleNotFoundError as GQLRoleNotFoundError,
+)
+from src.app.graphql.errors import (
     UserNotFoundError as GQLUserNotFoundError,
 )
 from src.app.services.exceptions import (
@@ -25,6 +34,9 @@ from src.app.services.exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
     InvalidTokenTypeError,
+    PermissionNotFoundError,
+    RoleNotFoundError,
+    SystemRoleModificationError,
     UserNotFoundError,
 )
 
@@ -58,6 +70,16 @@ def map_service_exception_to_graphql(exc: Exception) -> Exception:
 
     if isinstance(exc, EmailAlreadyExistsError):
         return GQLEmailAlreadyExistsError()
+
+    # RBAC errors
+    if isinstance(exc, PermissionNotFoundError):
+        return GQLPermissionNotFoundError(exc.permission_id)
+
+    if isinstance(exc, RoleNotFoundError):
+        return GQLRoleNotFoundError(exc.role_id)
+
+    if isinstance(exc, SystemRoleModificationError):
+        return GQLCannotModifySystemRoleError()
 
     # No mapping found, re-raise original
     return exc

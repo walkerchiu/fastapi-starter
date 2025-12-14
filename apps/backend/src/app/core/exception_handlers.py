@@ -54,8 +54,13 @@ async def service_exception_handler(
         InvalidFileTypeError,
         InvalidTokenError,
         InvalidTokenTypeError,
+        PermissionCodeAlreadyExistsError,
+        PermissionNotFoundError,
+        RoleCodeAlreadyExistsError,
+        RoleNotFoundError,
         StorageConnectionError,
         StorageError,
+        SystemRoleModificationError,
         UserNotFoundError,
     )
 
@@ -109,6 +114,53 @@ async def service_exception_handler(
             detail="Email is already registered.",
             code=ErrorCode.EMAIL_ALREADY_EXISTS,
             errors={"field": "email"},
+        )
+
+    # Permission errors
+    if isinstance(exc, PermissionNotFoundError):
+        errors: dict[str, Any] = {"resource": "Permission"}
+        if exc.permission_id is not None:
+            errors["id"] = exc.permission_id
+        return _create_error_response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Permission not found.",
+            code=ErrorCode.PERMISSION_NOT_FOUND,
+            errors=errors,
+        )
+
+    if isinstance(exc, PermissionCodeAlreadyExistsError):
+        return _create_error_response(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Permission code already exists.",
+            code=ErrorCode.PERMISSION_CODE_ALREADY_EXISTS,
+            errors={"field": "code"},
+        )
+
+    # Role errors
+    if isinstance(exc, RoleNotFoundError):
+        errors = {"resource": "Role"}
+        if exc.role_id is not None:
+            errors["id"] = exc.role_id
+        return _create_error_response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Role not found.",
+            code=ErrorCode.ROLE_NOT_FOUND,
+            errors=errors,
+        )
+
+    if isinstance(exc, RoleCodeAlreadyExistsError):
+        return _create_error_response(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Role code already exists.",
+            code=ErrorCode.ROLE_CODE_ALREADY_EXISTS,
+            errors={"field": "code"},
+        )
+
+    if isinstance(exc, SystemRoleModificationError):
+        return _create_error_response(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot modify system roles.",
+            code=ErrorCode.SYSTEM_ROLE_MODIFICATION,
         )
 
     # File/Storage errors

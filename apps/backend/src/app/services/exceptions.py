@@ -86,3 +86,41 @@ class StorageConnectionError(StorageError):
     """Raised when unable to connect to storage service."""
 
     pass
+
+
+# Permission-related errors
+class PermissionNotFoundError(ServiceError):
+    """Raised when permission is not found."""
+
+    def __init__(
+        self, message: str = "Permission not found", permission_id: int | None = None
+    ):
+        super().__init__(message)
+        self.permission_id = permission_id
+
+
+class PermissionCodeAlreadyExistsError(ServiceError):
+    """Raised when permission code already exists."""
+
+    pass
+
+
+# Role-related errors
+class RoleNotFoundError(ServiceError):
+    """Raised when role is not found."""
+
+    def __init__(self, message: str = "Role not found", role_id: int | None = None):
+        super().__init__(message)
+        self.role_id = role_id
+
+
+class RoleCodeAlreadyExistsError(ServiceError):
+    """Raised when role code already exists."""
+
+    pass
+
+
+class SystemRoleModificationError(ServiceError):
+    """Raised when trying to modify a system role."""
+
+    pass

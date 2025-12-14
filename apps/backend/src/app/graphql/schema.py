@@ -8,6 +8,10 @@ from src.app.graphql.resolvers import (
     FileMutation,
     FileQuery,
     HealthQuery,
+    PermissionMutation,
+    PermissionQuery,
+    RoleMutation,
+    RoleQuery,
     UserMutation,
     UserQuery,
 )
@@ -15,7 +19,7 @@ from src.app.graphql.subscriptions import Subscription
 
 
 @strawberry.type
-class Query(UserQuery, AuthQuery, FileQuery, HealthQuery):
+class Query(UserQuery, AuthQuery, FileQuery, PermissionQuery, RoleQuery, HealthQuery):
     """Root query type."""
 
     @strawberry.field
@@ -25,7 +29,9 @@ class Query(UserQuery, AuthQuery, FileQuery, HealthQuery):
 
 
 @strawberry.type
-class Mutation(UserMutation, AuthMutation, FileMutation):
+class Mutation(
+    UserMutation, AuthMutation, FileMutation, PermissionMutation, RoleMutation
+):
     """Root mutation type."""
 
     @strawberry.mutation

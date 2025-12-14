@@ -346,7 +346,7 @@ async def test_refresh_token_with_access_token(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_login_inactive_user(client: AsyncClient):
+async def test_login_inactive_user(client: AsyncClient, superadmin_headers: dict):
     """Test login with inactive user account."""
     # Register user
     await client.post(
@@ -360,13 +360,17 @@ async def test_login_inactive_user(client: AsyncClient):
 
     # Get the user ID and deactivate via users endpoint
     # First, list users to find our user
-    users_response = await client.get("/api/v1/users")
-    users = users_response.json()["items"]
+    users_response = await client.get("/api/v1/users", headers=superadmin_headers)
+    users = users_response.json()["data"]
     user = next(u for u in users if u["email"] == "inactive@example.com")
     user_id = user["id"]
 
     # Deactivate the user
-    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+    await client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"is_active": False},
+        headers=superadmin_headers,
+    )
 
     # Try to login with inactive user
     response = await client.post(
@@ -383,7 +387,9 @@ async def test_login_inactive_user(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_refresh_token_inactive_user(client: AsyncClient):
+async def test_refresh_token_inactive_user(
+    client: AsyncClient, superadmin_headers: dict
+):
     """Test refresh token with inactive user account."""
     # Register and login
     await client.post(
@@ -404,13 +410,17 @@ async def test_refresh_token_inactive_user(client: AsyncClient):
     refresh_token = login_response.json()["refresh_token"]
 
     # Get the user ID and deactivate
-    users_response = await client.get("/api/v1/users")
-    users = users_response.json()["items"]
+    users_response = await client.get("/api/v1/users", headers=superadmin_headers)
+    users = users_response.json()["data"]
     user = next(u for u in users if u["email"] == "inactiverefresh@example.com")
     user_id = user["id"]
 
     # Deactivate the user
-    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+    await client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"is_active": False},
+        headers=superadmin_headers,
+    )
 
     # Try to refresh with inactive user
     response = await client.post(
@@ -424,7 +434,7 @@ async def test_refresh_token_inactive_user(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_get_me_inactive_user(client: AsyncClient):
+async def test_get_me_inactive_user(client: AsyncClient, superadmin_headers: dict):
     """Test getting current user info with inactive account."""
     # Register and login
     await client.post(
@@ -445,13 +455,17 @@ async def test_get_me_inactive_user(client: AsyncClient):
     access_token = login_response.json()["access_token"]
 
     # Get the user ID and deactivate
-    users_response = await client.get("/api/v1/users")
-    users = users_response.json()["items"]
+    users_response = await client.get("/api/v1/users", headers=superadmin_headers)
+    users = users_response.json()["data"]
     user = next(u for u in users if u["email"] == "inactiveme@example.com")
     user_id = user["id"]
 
     # Deactivate the user
-    await client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
+    await client.patch(
+        f"/api/v1/users/{user_id}",
+        json={"is_active": False},
+        headers=superadmin_headers,
+    )
 
     # Try to get current user with inactive account
     response = await client.get(

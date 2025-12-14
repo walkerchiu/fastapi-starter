@@ -6,7 +6,9 @@ from httpx import AsyncClient
 class TestGraphQLDepthLimit:
     """Test GraphQL query depth limiting."""
 
-    async def test_shallow_query_succeeds(self, client: AsyncClient):
+    async def test_shallow_query_succeeds(
+        self, client: AsyncClient, superadmin_headers: dict
+    ):
         """Test that shallow queries work normally."""
         query = """
             query {
@@ -18,7 +20,9 @@ class TestGraphQLDepthLimit:
                 }
             }
         """
-        response = await client.post("/graphql", json={"query": query})
+        response = await client.post(
+            "/graphql", json={"query": query}, headers=superadmin_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert "errors" not in data or data.get("errors") is None

@@ -121,6 +121,28 @@ class ForbiddenException(APIException):
         )
 
 
+class InsufficientPermissionsException(APIException):
+    """Raised when user lacks required permissions."""
+
+    def __init__(
+        self,
+        detail: str = "User lacks required permissions.",
+        required_permissions: list[str] | None = None,
+        required_roles: list[str] | None = None,
+    ):
+        errors: dict[str, Any] = {}
+        if required_permissions:
+            errors["required_permissions"] = required_permissions
+        if required_roles:
+            errors["required_roles"] = required_roles
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=detail,
+            code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+            errors=errors if errors else None,
+        )
+
+
 # Resource Errors
 class NotFoundException(APIException):
     """Raised when resource is not found."""

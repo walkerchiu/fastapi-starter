@@ -130,6 +130,16 @@ class FileService:
         await self.db.refresh(file)
         return file
 
+    async def restore_by_key(self, key: str) -> File:
+        """Restore a soft-deleted file by storage key."""
+        file = await self.get_by_key(key, include_deleted=True)
+        if not file:
+            raise FileNotFoundError(f"File with key {key} not found")
+        file.deleted_at = None
+        await self.db.commit()
+        await self.db.refresh(file)
+        return file
+
     async def hard_delete(self, file_id: int, is_super_admin: bool = False) -> None:
         """Permanently delete a file record. Only allowed for super admins.
 

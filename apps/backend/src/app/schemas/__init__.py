@@ -21,15 +21,31 @@ from src.app.schemas.file import (
     PresignedUrlResponse,
 )
 from src.app.schemas.pagination import PaginatedResponse, PaginationParams
+from src.app.schemas.permission import (
+    PermissionCreate,
+    PermissionRead,
+    PermissionUpdate,
+)
+from src.app.schemas.role import (
+    AssignPermissionsRequest,
+    AssignRolesRequest,
+    RoleCreate,
+    RoleRead,
+    RoleReadWithPermissions,
+    RoleUpdate,
+)
 from src.app.schemas.user import (
     MessageResponse,
     UserCreate,
     UserRead,
+    UserReadWithRoles,
     UserRegister,
     UserUpdate,
 )
 
 __all__ = [
+    "AssignPermissionsRequest",
+    "AssignRolesRequest",
     "BatchDeleteRequest",
     "BatchDeleteResponse",
     "BatchFileUploadResponse",
@@ -47,12 +63,20 @@ __all__ = [
     "MessageResponse",
     "PaginatedResponse",
     "PaginationParams",
+    "PermissionCreate",
+    "PermissionRead",
+    "PermissionUpdate",
     "PresignedUrlResponse",
     "RefreshTokenRequest",
+    "RoleCreate",
+    "RoleRead",
+    "RoleReadWithPermissions",
+    "RoleUpdate",
     "Token",
     "TokenPayload",
     "UserCreate",
     "UserRead",
+    "UserReadWithRoles",
     "UserRegister",
     "UserUpdate",
 ]

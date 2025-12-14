@@ -10,6 +10,7 @@ from src.app.core.validators import (
     PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
 )
+from src.app.schemas.role import RoleRead
 
 
 class UserBase(BaseModel):
@@ -29,7 +30,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """Schema for creating a user."""
 
-    pass
+    role_ids: list[int] = Field(default_factory=list, description="List of role IDs")
 
 
 class UserRegister(UserBase):
@@ -56,17 +57,27 @@ class UserUpdate(BaseModel):
         description="User display name",
     )
     is_active: bool | None = Field(default=None, description="Whether user is active")
+    role_ids: list[int] | None = Field(default=None, description="List of role IDs")
 
 
 class UserRead(UserBase):
     """Schema for reading a user."""
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
     id: int
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None
+
+
+class UserReadWithRoles(UserRead):
+    """Schema for reading a user with roles."""
+
+    roles: list[RoleRead] = Field(default_factory=list)
 
 
 class MessageResponse(BaseModel):

@@ -20,16 +20,24 @@ __all__ = [
     "InvalidTokenError",
     "InactiveUserError",
     "ForbiddenError",
+    "InsufficientPermissionsError",
     "ValidationError",
     "InvalidEmailError",
     "WeakPasswordError",
     "NotFoundError",
     "UserNotFoundError",
+    "PermissionNotFoundError",
+    "RoleNotFoundError",
+    "CannotModifySystemRoleError",
     "EmailAlreadyExistsError",
     "RateLimitedError",
     "QueryDepthError",
     "QueryComplexityError",
     "IsAuthenticated",
+    "RequirePermissions",
+    "RequireSuperadmin",
+    "require_permissions",
+    "require_superadmin",
 ]
 
 
@@ -85,6 +93,23 @@ class ForbiddenError(GraphQLError):
         super().__init__(message, ErrorCode.FORBIDDEN)
 
 
+class InsufficientPermissionsError(GraphQLError):
+    """Raised when user lacks required permissions."""
+
+    def __init__(
+        self,
+        message: str = "User lacks required permissions.",
+        required_permissions: list[str] | None = None,
+        required_roles: list[str] | None = None,
+    ):
+        details: dict[str, Any] = {}
+        if required_permissions:
+            details["required_permissions"] = required_permissions
+        if required_roles:
+            details["required_roles"] = required_roles
+        super().__init__(message, ErrorCode.INSUFFICIENT_PERMISSIONS, details)
+
+
 # Validation Errors
 class ValidationError(GraphQLError):
     """Raised when input validation fails."""
@@ -130,6 +155,40 @@ class UserNotFoundError(GraphQLError):
         if user_id is not None:
             details["id"] = user_id
         super().__init__("User not found.", ErrorCode.USER_NOT_FOUND, details)
+
+
+class PermissionNotFoundError(GraphQLError):
+    """Raised when permission is not found."""
+
+    def __init__(self, permission_id: int | None = None):
+        details = {"resource": "Permission"}
+        if permission_id is not None:
+            details["id"] = permission_id
+        super().__init__(
+            "Permission not found.", ErrorCode.PERMISSION_NOT_FOUND, details
+        )
+
+
+class RoleNotFoundError(GraphQLError):
+    """Raised when role is not found."""
+
+    def __init__(self, role_id: int | None = None):
+        details = {"resource": "Role"}
+        if role_id is not None:
+            details["id"] = role_id
+        super().__init__("Role not found.", ErrorCode.ROLE_NOT_FOUND, details)
+
+
+class CannotModifySystemRoleError(GraphQLError):
+    """Raised when attempting to modify a system role."""
+
+    def __init__(self, role_id: int | None = None):
+        details = {"resource": "Role"}
+        if role_id is not None:
+            details["id"] = role_id
+        super().__init__(
+            "Cannot modify system roles.", ErrorCode.SYSTEM_ROLE_MODIFICATION, details
+        )
 
 
 class EmailAlreadyExistsError(GraphQLError):
@@ -187,3 +246,65 @@ class IsAuthenticated(BasePermission):
         if not user:
             raise UnauthenticatedError()
         return True
+
+
+class RequirePermissions(BasePermission):
+    """Permission class to check if user has required permissions."""
+
+    message = "User lacks required permissions."
+
+    def __init__(self, permissions: list[str]):
+        self.permissions = permissions
+
+    def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        user = info.context.get("user")
+        if not user:
+            raise UnauthenticatedError()
+
+        # Get all permission codes from user's roles
+        user_permissions: set[str] = set()
+        for role in user.roles:
+            for perm in role.permissions:
+                user_permissions.add(perm.code)
+
+        # Check if user has all required permissions
+        missing = [p for p in self.permissions if p not in user_permissions]
+        if missing:
+            raise InsufficientPermissionsError(required_permissions=self.permissions)
+
+        return True
+
+
+class RequireSuperadmin(BasePermission):
+    """Permission class to check if user is a superadmin."""
+
+    message = "Superadmin role required"
+
+    def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        user = info.context.get("user")
+        if not user:
+            raise UnauthenticatedError()
+
+        # Check if user has superadmin role
+        for role in user.roles:
+            if role.code == "super_admin":
+                return True
+
+        raise InsufficientPermissionsError(
+            message="Superadmin role required", required_roles=["super_admin"]
+        )
+
+
+def require_permissions(*permissions: str) -> type[RequirePermissions]:
+    """Factory function to create permission class with required permissions."""
+
+    class PermissionCheck(RequirePermissions):
+        def __init__(self):
+            super().__init__(list(permissions))
+
+    return PermissionCheck
+
+
+def require_superadmin() -> type[RequireSuperadmin]:
+    """Factory function to create superadmin permission class."""
+    return RequireSuperadmin

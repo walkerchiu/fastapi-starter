@@ -20,6 +20,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Modern Backend** - FastAPI with async support and automatic API documentation
 - **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
 - **User Management** - Complete CRUD operations for users with pagination
+- **Role-Based Access Control** - Flexible RBAC with users, roles, and permissions
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
 - **Input Validation** - Consistent input validation for both REST and GraphQL APIs
@@ -175,22 +176,28 @@ The applications will be available at:
 
 ### Root Level
 
-| Command              | Description                             |
-| -------------------- | --------------------------------------- |
-| `pnpm dev`           | Start frontend in development mode      |
-| `pnpm dev:backend`   | Start backend in development mode       |
-| `pnpm dev:frontend`  | Start frontend in development mode      |
-| `pnpm build`         | Build frontend for production           |
-| `pnpm test`          | Run tests in all apps                   |
-| `pnpm test:backend`  | Run backend tests                       |
-| `pnpm test:frontend` | Run frontend tests                      |
-| `pnpm test:cov`      | Run tests with coverage in all apps     |
-| `pnpm lint`          | Run ESLint across the workspace         |
-| `pnpm lint:fix`      | Fix ESLint issues automatically         |
-| `pnpm lint:backend`  | Run Ruff linter on backend              |
-| `pnpm format`        | Format code with Prettier and Ruff      |
-| `pnpm format:check`  | Check code formatting without modifying |
-| `pnpm generate:api`  | Generate TypeScript API client          |
+| Command                | Description                             |
+| ---------------------- | --------------------------------------- |
+| `pnpm dev`             | Start frontend in development mode      |
+| `pnpm dev:backend`     | Start backend in development mode       |
+| `pnpm dev:frontend`    | Start frontend in development mode      |
+| `pnpm build`           | Build frontend for production           |
+| `pnpm test`            | Run tests in all apps                   |
+| `pnpm test:backend`    | Run backend tests                       |
+| `pnpm test:frontend`   | Run frontend tests                      |
+| `pnpm test:cov`        | Run tests with coverage in all apps     |
+| `pnpm lint`            | Run ESLint across the workspace         |
+| `pnpm lint:fix`        | Fix ESLint issues automatically         |
+| `pnpm lint:backend`    | Run Ruff linter on backend              |
+| `pnpm format`          | Format code with Prettier and Ruff      |
+| `pnpm format:check`    | Check code formatting without modifying |
+| `pnpm generate:api`    | Generate TypeScript API client          |
+| `pnpm db:upgrade`      | Run database migrations                 |
+| `pnpm db:downgrade`    | Revert last migration                   |
+| `pnpm db:revision`     | Generate a new migration                |
+| `pnpm db:history`      | Show migration history                  |
+| `pnpm db:current`      | Show current migration status           |
+| `pnpm db:seed`         | Seed default data (roles, permissions)  |
 
 > **Note**: `pnpm generate:api` requires the backend server to be running (`pnpm dev:backend`).
 
@@ -296,6 +303,255 @@ The frontend uses urql with GraphQL Codegen for type-safe queries:
 pnpm --filter frontend codegen
 ```
 
+### Frontend Authentication
+
+The frontend provides a `useAuth` hook for convenient authentication management:
+
+```typescript
+import { useAuth } from '@/hooks';
+
+function MyComponent() {
+  const {
+    user,            // Current user { id, email, name } or null
+    isAuthenticated, // Boolean - whether user is logged in
+    isLoading,       // Boolean - session loading state
+    accessToken,     // String - for custom API calls
+    hasRefreshError, // Boolean - token refresh failed
+    login,           // (email, password) => Promise<boolean>
+    logout,          // (callbackUrl?) => Promise<void>
+  } = useAuth();
+
+  if (isLoading) return <Spinner />;
+  if (!isAuthenticated) return <LoginPrompt />;
+
+  return <div>Welcome, {user.name}!</div>;
+}
+```
+
+The hook automatically handles:
+
+- Session state management via NextAuth
+- Token refresh errors (auto-redirects to login)
+- Type-safe user data access
+
+### Frontend Role-Based Access Control
+
+The frontend provides components and hooks for role-based UI control:
+
+#### useRole Hook
+
+```typescript
+import { useRole } from '@/hooks';
+
+function MyComponent() {
+  const {
+    roles,              // User's roles array
+    hasRole,            // (roleCode: string) => boolean
+    hasAnyRole,         // (roleCodes: string[]) => boolean
+    hasAllRoles,        // (roleCodes: string[]) => boolean
+    isAdmin,            // Boolean - has 'ADMIN' or 'SUPER_ADMIN' role
+    isSuperAdmin,       // Boolean - has 'SUPER_ADMIN' role
+    hasPermission,      // (permissionCode: string) => boolean
+    hasResourcePermission, // (resource, action) => boolean
+    permissions,        // All permissions from all roles
+  } = useRole();
+
+  if (!isAdmin) return <AccessDenied />;
+  return <AdminPanel />;
+}
+```
+
+#### RequireRole Components
+
+```tsx
+import { RequireRole, RequireAdmin, RequirePermission } from '@/components/auth';
+
+// Render content only for users with specific roles
+<RequireRole roles={['admin', 'moderator']}>
+  <AdminActions />
+</RequireRole>
+
+// Require all specified roles (AND logic)
+<RequireRole roles={['admin', 'auditor']} requireAll>
+  <AuditPanel />
+</RequireRole>
+
+// Shortcut for admin-only content
+<RequireAdmin>
+  <AdminDashboard />
+</RequireAdmin>
+
+// Permission-based rendering
+<RequirePermission permission="users:delete">
+  <DeleteUserButton />
+</RequirePermission>
+
+// With fallback content
+<RequireAdmin fallback={<UpgradePrompt />}>
+  <PremiumFeature />
+</RequireAdmin>
+```
+
+#### Role-Protected Routes
+
+Routes can be protected by roles in the middleware:
+
+```typescript
+// In proxy.ts
+const roleProtectedRoutes = [
+  { path: '/admin', roles: ['admin', 'SUPER_ADMIN'] },
+  { path: '/super-admin', roles: ['SUPER_ADMIN'] },
+];
+```
+
+Unauthorized users are redirected to `/unauthorized` with the attempted path.
+
+### Frontend (apps/frontend)
+
+| Command                             | Description             |
+| ----------------------------------- | ----------------------- |
+| `pnpm --filter frontend dev`        | Start with Turbopack    |
+| `pnpm --filter frontend build`      | Build for production    |
+| `pnpm --filter frontend start`      | Run production build    |
+| `pnpm --filter frontend test`       | Run tests               |
+| `pnpm --filter frontend test:watch` | Run tests in watch mode |
+| `pnpm --filter frontend test:cov`   | Run tests with coverage |
+
+## Role-Based Access Control (RBAC)
+
+The application implements a flexible RBAC system with three core entities: Users, Roles, and Permissions.
+
+### RBAC Model
+
+```
+User ←→ Role ←→ Permission
+      (many-to-many)
+```
+
+- **Users** can have multiple roles
+- **Roles** can have multiple permissions
+- **Permissions** are the atomic units of access control (e.g., `users:read`, `users:create`)
+
+### Permission Format
+
+Permissions follow the format `resource:action`:
+
+| Resource      | Actions                              |
+| ------------- | ------------------------------------ |
+| `users`       | `read`, `create`, `update`, `delete` |
+| `roles`       | `read`, `create`, `update`, `delete` |
+| `permissions` | `read`, `create`, `update`, `delete` |
+| `files`       | `read`, `create`, `delete`           |
+
+### Default Roles
+
+| Role          | Description                                      |
+| ------------- | ------------------------------------------------ |
+| `super_admin` | Full system access, can manage roles/permissions |
+| `admin`       | User management and file operations              |
+| `user`        | Basic read access and file upload                |
+
+### Default Permissions
+
+| Role        | Permissions | Description                              |
+| ----------- | :---------: | ---------------------------------------- |
+| super_admin |     20      | Full system access including hard_delete |
+| admin       |     10      | User management, file operations         |
+| user        |      3      | Basic read and file upload               |
+
+For the complete permission matrix, see the seed data in [`src/app/db/seed.py`](apps/backend/src/app/db/seed.py).
+
+### Endpoint Permission Requirements
+
+#### REST API
+
+| Endpoint                    | Required Permission / Role |
+| --------------------------- | -------------------------- |
+| `GET /api/v1/users`         | `users:read`               |
+| `POST /api/v1/users`        | `users:create`             |
+| `GET /api/v1/users/{id}`    | `users:read`               |
+| `PATCH /api/v1/users/{id}`  | `users:update`             |
+| `DELETE /api/v1/users/{id}` | `users:delete`             |
+| `GET /api/v1/roles`         | `roles:read`               |
+| `POST /api/v1/roles`        | Superadmin only            |
+| `PATCH /api/v1/roles/{id}`  | Superadmin only            |
+| `DELETE /api/v1/roles/{id}` | Superadmin only            |
+| `GET /api/v1/permissions`   | `permissions:read`         |
+| `POST /api/v1/permissions`  | Superadmin only            |
+
+#### GraphQL
+
+| Operation          | Required Permission / Role |
+| ------------------ | -------------------------- |
+| `users` query      | `users:read`               |
+| `createUser`       | `users:create`             |
+| `updateUser`       | `users:update`             |
+| `deleteUser`       | `users:delete`             |
+| `roles` query      | `roles:read`               |
+| `createRole`       | Superadmin only            |
+| `updateRole`       | Superadmin only            |
+| `deleteRole`       | Superadmin only            |
+| `permissions`      | `permissions:read`         |
+| `createPermission` | Superadmin only            |
+
+### System Roles
+
+System roles are protected and cannot be modified or deleted:
+
+| Role          | Description                  |
+| ------------- | ---------------------------- |
+| `super_admin` | Full access to all resources |
+| `admin`       | Administrative access        |
+| `user`        | Basic user access            |
+
+### Seeding Default Data
+
+```bash
+# Populate default roles and permissions
+pnpm db:seed
+```
+
+This will create:
+
+- 20 default permissions (users, roles, permissions, files CRUD + hard_delete)
+- 3 default roles (super_admin, admin, user) with appropriate permissions
+
+### Permission-Based Protection (Backend)
+
+Use the `require_permission` dependency for fine-grained access control:
+
+```python
+from app.core.deps import require_permission
+
+@router.get("/reports")
+async def get_reports(
+    _: None = Depends(require_permission("reports:read")),
+):
+    # Requires 'reports:read' permission
+    return reports
+
+@router.post("/reports")
+async def create_report(
+    _: None = Depends(require_permission("reports:create")),
+):
+    # Requires 'reports:create' permission
+    return report
+```
+
+For GraphQL resolvers:
+
+```python
+from app.graphql.context import require_permission
+
+@strawberry.type
+class Query:
+    @strawberry.field
+    async def reports(self, info: Info) -> list[Report]:
+        require_permission(info, "reports:read")
+        # Requires 'reports:read' permission
+        return reports
+```
+
 ## Development Workflow
 
 ### Code Quality
@@ -364,6 +620,50 @@ uv run pytest --cov
 
 # Run with verbose output
 uv run pytest -v
+```
+
+### RBAC Test Fixtures
+
+The backend includes test fixtures for comprehensive RBAC testing in `tests/conftest.py`:
+
+```python
+import pytest
+
+@pytest.fixture
+async def super_admin_headers(client, db_session):
+    """Create a super_admin user with all 20 permissions."""
+    # Returns auth headers for super_admin user
+    # Has: users/roles/permissions/files CRUD + hard_delete
+
+@pytest.fixture
+async def admin_headers(client, db_session):
+    """Create an admin user with 10 permissions."""
+    # Returns auth headers for admin user
+    # Has: users CRUD, roles:read, permissions:read, files CRUD
+
+@pytest.fixture
+async def auth_headers(client):
+    """Create a regular user with 3 permissions."""
+    # Returns auth headers for regular user
+    # Has: users:read, files:read, files:create
+```
+
+Usage in tests:
+
+```python
+async def test_super_admin_can_delete_user(client, super_admin_headers):
+    response = await client.delete(
+        "/api/v1/users/1",
+        headers=super_admin_headers
+    )
+    assert response.status_code == 200
+
+async def test_regular_user_cannot_delete_user(client, auth_headers):
+    response = await client.delete(
+        "/api/v1/users/1",
+        headers=auth_headers
+    )
+    assert response.status_code == 403
 ```
 
 ### Frontend (Vitest)
