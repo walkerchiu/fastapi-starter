@@ -1,17 +1,30 @@
 # Dependencies
 node_modules/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+.uv/
+uv.lock
+
 # Build outputs
 dist/
 build/
 .next/
 out/
 next-env.d.ts
+*.egg-info/
 
 # Cache
 .cache/
 *.tsbuildinfo
 .eslintcache
+.ruff_cache/
+.pytest_cache/
 
 # Environment
 .env
@@ -40,6 +53,8 @@ pnpm-debug.log*
 
 # Test coverage
 coverage/
+htmlcov/
+.coverage
 
 # Temporary
 tmp/

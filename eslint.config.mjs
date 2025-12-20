@@ -38,6 +38,8 @@ export default tseslint.config(
       'out/',
       'coverage/',
       '**/next-env.d.ts',
+      '**/.venv/',
+      '**/__pycache__/',
     ],
   },
 );
