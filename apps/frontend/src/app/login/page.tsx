@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
 import { Alert, Button, Spinner } from '@/components/ui';
+import { env } from '@/config/env';
 
 function LoginForm() {
   const router = useRouter();
@@ -22,6 +23,34 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
+      // First, check with backend if 2FA is required
+      const loginResponse = await fetch(
+        `${env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        },
+      );
+
+      if (!loginResponse.ok) {
+        const data = await loginResponse.json();
+        setError(data.detail || 'Invalid email or password');
+        return;
+      }
+
+      const loginData = await loginResponse.json();
+
+      // Check if 2FA is required
+      if (loginData.requires_two_factor) {
+        // Redirect to 2FA verification page
+        router.push(
+          `/2fa/verify?user_id=${loginData.user_id}&callbackUrl=${encodeURIComponent(callbackUrl)}`,
+        );
+        return;
+      }
+
+      // No 2FA required, proceed with NextAuth signIn
       const result = await signIn('credentials', {
         email,
         password,
@@ -93,6 +122,15 @@ function LoginForm() {
                 placeholder="Password"
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Forgot your password?
+            </Link>
           </div>
 
           <Button type="submit" isLoading={isLoading} fullWidth>

@@ -2,6 +2,22 @@ import type { DefaultSession } from 'next-auth';
 import 'next-auth';
 import 'next-auth/jwt';
 
+export interface Permission {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+}
+
+export interface Role {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  isSystem: boolean;
+  permissions: Permission[];
+}
+
 declare module 'next-auth' {
   interface User {
     id: string;
@@ -10,14 +26,16 @@ declare module 'next-auth' {
     accessToken: string;
     refreshToken: string;
     accessTokenExpires: number;
+    roles?: Role[];
   }
 
   interface Session extends DefaultSession {
     user: DefaultSession['user'] & {
       id: string;
+      roles?: Role[];
     };
     accessToken: string;
-    error?: 'RefreshTokenError';
+    error?: string;
   }
 }
 
@@ -27,6 +45,7 @@ declare module 'next-auth/jwt' {
     accessToken: string;
     refreshToken: string;
     accessTokenExpires: number;
-    error?: 'RefreshTokenError';
+    roles?: Role[];
+    error?: string;
   }
 }

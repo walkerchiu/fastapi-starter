@@ -96,6 +96,16 @@ fastapi-nextjs-tailwindcss-starter/
 │   └── frontend/                   # Next.js frontend application
 │       ├── src/
 │       │   ├── app/
+│       │   │   ├── 2fa/
+│       │   │   │   ├── setup/      # 2FA setup wizard
+│       │   │   │   └── verify/     # 2FA verification
+│       │   │   ├── 2fa-callback/   # 2FA sign-in completion
+│       │   │   ├── forgot-password/ # Password reset request
+│       │   │   ├── login/          # User login
+│       │   │   ├── profile/        # User profile management
+│       │   │   ├── register/       # User registration
+│       │   │   ├── reset-password/ # Password reset
+│       │   │   ├── verify-email/   # Email verification
 │       │   │   ├── layout.tsx      # Root layout
 │       │   │   ├── page.tsx        # Home page
 │       │   │   ├── page.test.tsx   # Page tests
@@ -103,7 +113,8 @@ fastapi-nextjs-tailwindcss-starter/
 │       │   ├── config/
 │       │   │   └── env.ts          # Environment validation
 │       │   ├── lib/
-│       │   │   └── api.ts          # API client wrapper
+│       │   │   ├── api.ts          # API client wrapper
+│       │   │   └── auth.ts         # NextAuth configuration
 │       │   └── test/
 │       │       └── setup.ts        # Vitest setup
 │       ├── .env.example            # Environment variables template
@@ -717,6 +728,36 @@ The application supports TOTP-based two-factor authentication:
 - Authy
 - 1Password
 - Any TOTP-compatible app
+
+## Frontend Pages
+
+The frontend includes the following authentication-related pages:
+
+| Route              | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| `/`                | Landing page                                   |
+| `/login`           | User login with email/password                 |
+| `/register`        | New user registration                          |
+| `/forgot-password` | Request password reset email                   |
+| `/reset-password`  | Reset password with token from email           |
+| `/verify-email`    | Email verification with token from email       |
+| `/profile`         | User profile with password and 2FA management  |
+| `/2fa/setup`       | 2FA setup wizard with QR code and backup codes |
+| `/2fa/verify`      | 2FA verification during login                  |
+| `/2fa-callback`    | Completes sign-in after 2FA verification       |
+| `/unauthorized`    | Access denied page for role-protected routes   |
+| `/dashboard`       | Example protected page with GraphQL data       |
+
+### 2FA Login Flow
+
+When a user with 2FA enabled logs in:
+
+1. User enters email and password on `/login`
+2. Backend returns `requires_two_factor: true` with `user_id`
+3. User is redirected to `/2fa/verify?user_id=X&callbackUrl=Y`
+4. User enters TOTP code from authenticator app (or backup code)
+5. On success, tokens are stored and user is redirected to `/2fa-callback`
+6. Callback page completes the NextAuth sign-in and redirects to the original URL
 
 ## Docker
 

@@ -10,6 +10,8 @@ vi.mock('next-auth/react', () => ({
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -24,13 +26,14 @@ vi.mock('next/navigation', () => ({
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFetch.mockReset();
   });
 
-  it('renders login form', () => {
+  it('renders login form', async () => {
     render(<LoginPage />);
 
     expect(
-      screen.getByRole('heading', { name: /sign in to your account/i }),
+      await screen.findByRole('heading', { name: /sign in to your account/i }),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
@@ -39,10 +42,10 @@ describe('LoginPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders link to registration page', () => {
+  it('renders link to registration page', async () => {
     render(<LoginPage />);
 
-    const registerLink = screen.getByRole('link', {
+    const registerLink = await screen.findByRole('link', {
       name: /create a new account/i,
     });
     expect(registerLink).toBeInTheDocument();
@@ -53,7 +56,7 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const emailInput = await screen.findByPlaceholderText(/email address/i);
     const passwordInput = screen.getByPlaceholderText(/password/i);
 
     await user.type(emailInput, 'test@example.com');
@@ -64,13 +67,13 @@ describe('LoginPage', () => {
   });
 
   it('shows loading state when submitting', async () => {
-    (signIn as Mock).mockImplementation(
+    mockFetch.mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
     render(<LoginPage />);
 
-    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const emailInput = await screen.findByPlaceholderText(/email address/i);
     const passwordInput = screen.getByPlaceholderText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
 
@@ -82,11 +85,14 @@ describe('LoginPage', () => {
   });
 
   it('shows error message on failed login', async () => {
-    (signIn as Mock).mockResolvedValue({ error: 'CredentialsSignin' });
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ detail: 'Invalid email or password' }),
+    });
 
     render(<LoginPage />);
 
-    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const emailInput = await screen.findByPlaceholderText(/email address/i);
     const passwordInput = screen.getByPlaceholderText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
 
@@ -102,11 +108,15 @@ describe('LoginPage', () => {
   });
 
   it('redirects to home on successful login', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ requires_two_factor: false }),
+    });
     (signIn as Mock).mockResolvedValue({ error: null });
 
     render(<LoginPage />);
 
-    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const emailInput = await screen.findByPlaceholderText(/email address/i);
     const passwordInput = screen.getByPlaceholderText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
 
