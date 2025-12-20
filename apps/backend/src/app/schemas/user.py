@@ -69,6 +69,8 @@ class UserRead(UserBase):
 
     id: int
     is_active: bool
+    is_email_verified: bool
+    is_two_factor_enabled: bool
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None

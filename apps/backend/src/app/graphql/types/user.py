@@ -21,6 +21,8 @@ class UserType:
     email: str
     name: str
     is_active: bool = strawberry.field(name="isActive")
+    is_email_verified: bool = strawberry.field(name="isEmailVerified")
+    is_two_factor_enabled: bool = strawberry.field(name="isTwoFactorEnabled")
     created_at: datetime = strawberry.field(name="createdAt")
     updated_at: datetime = strawberry.field(name="updatedAt")
     roles: list[Annotated["RoleType", strawberry.lazy("src.app.graphql.types.role")]]
@@ -34,6 +36,8 @@ class UserTypeWithRoles:
     email: str
     name: str
     is_active: bool = strawberry.field(name="isActive")
+    is_email_verified: bool = strawberry.field(name="isEmailVerified")
+    is_two_factor_enabled: bool = strawberry.field(name="isTwoFactorEnabled")
     created_at: datetime = strawberry.field(name="createdAt")
     updated_at: datetime = strawberry.field(name="updatedAt")
     roles: list[Annotated["RoleType", strawberry.lazy("src.app.graphql.types.role")]]

@@ -57,6 +57,51 @@ class InvalidTokenTypeError(ServiceError):
     pass
 
 
+# Password reset errors
+class InvalidResetTokenError(ServiceError):
+    """Raised when password reset token is invalid."""
+
+    pass
+
+
+class ExpiredResetTokenError(ServiceError):
+    """Raised when password reset token has expired."""
+
+    pass
+
+
+class ResetTokenAlreadyUsedError(ServiceError):
+    """Raised when password reset token has already been used."""
+
+    pass
+
+
+# Email verification errors
+class InvalidVerificationTokenError(ServiceError):
+    """Raised when email verification token is invalid."""
+
+    pass
+
+
+class ExpiredVerificationTokenError(ServiceError):
+    """Raised when email verification token has expired."""
+
+    pass
+
+
+class EmailAlreadyVerifiedError(ServiceError):
+    """Raised when email is already verified."""
+
+    pass
+
+
+# Profile errors
+class SamePasswordError(ServiceError):
+    """Raised when new password is the same as current password."""
+
+    pass
+
+
 # Storage-related errors
 class StorageError(ServiceError):
     """Base exception for storage operations."""
@@ -124,3 +169,59 @@ class SystemRoleModificationError(ServiceError):
     """Raised when trying to modify a system role."""
 
     pass
+
+
+# Email-related errors
+class EmailError(ServiceError):
+    """Base exception for email operations."""
+
+    pass
+
+
+class EmailSendError(EmailError):
+    """Raised when email sending fails."""
+
+    pass
+
+
+class EmailConnectionError(EmailError):
+    """Raised when unable to connect to SMTP server."""
+
+    pass
+
+
+# 2FA errors
+class TwoFactorAlreadyEnabledError(ServiceError):
+    """Raised when 2FA is already enabled."""
+
+    pass
+
+
+class TwoFactorNotEnabledError(ServiceError):
+    """Raised when 2FA is not enabled."""
+
+    pass
+
+
+class TwoFactorNotSetupError(ServiceError):
+    """Raised when 2FA setup is not initiated."""
+
+    pass
+
+
+class Invalid2FACodeError(ServiceError):
+    """Raised when 2FA code is invalid."""
+
+    pass
+
+
+class TwoFactorRequiredError(ServiceError):
+    """Raised when 2FA verification is required."""
+
+    def __init__(
+        self,
+        message: str = "2FA required",
+        user_id: int | None = None,
+    ):
+        super().__init__(message)
+        self.user_id = user_id

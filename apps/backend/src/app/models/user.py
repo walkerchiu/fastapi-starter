@@ -9,6 +9,7 @@ from src.app.db.base import Base
 
 if TYPE_CHECKING:
     from src.app.models.file import File
+    from src.app.models.password_reset_token import PasswordResetToken
     from src.app.models.role import Role
 
 
@@ -22,6 +23,18 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100))
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
+    is_email_verified: Mapped[bool] = mapped_column(default=False)
+    email_verification_token: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    is_two_factor_enabled: Mapped[bool] = mapped_column(default=False)
+    two_factor_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    two_factor_backup_codes: Mapped[str | None] = mapped_column(
+        String(1024), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -39,4 +52,9 @@ class User(Base):
         secondary="user_roles",
         back_populates="users",
         lazy="selectin",
+    )
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

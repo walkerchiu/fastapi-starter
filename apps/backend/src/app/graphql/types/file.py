@@ -116,3 +116,10 @@ class BatchDeleteFilesResponse:
     successful: int
     failed: int
     errors: list[str]
+
+
+@strawberry.type
+class Message:
+    """Message response type."""
+
+    message: str

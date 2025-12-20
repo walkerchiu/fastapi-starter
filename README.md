@@ -23,6 +23,11 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Role-Based Access Control** - Flexible RBAC with users, roles, and permissions
 - **Authentication** - JWT-based auth with user registration, login, and refresh tokens
 - **Dashboard Example** - Protected page demonstrating authenticated GraphQL calls
+- **Two-Factor Authentication** - TOTP-based 2FA with QR code setup and backup codes
+- **Email Service** - Async SMTP email service with templates for password reset and verification
+- **Password Reset** - Secure password reset flow with email verification
+- **Email Verification** - Email verification for new user registrations
+- **Profile Management** - Self-service profile updates and password changes
 - **Input Validation** - Consistent input validation for both REST and GraphQL APIs
 - **Error Codes** - Standardized error codes across REST and GraphQL endpoints
 - **File Upload** - S3-compatible storage integration for file management
@@ -661,6 +666,57 @@ import { Component } from '../../../components/Component';
 // Use
 import { Component } from '@/components/Component';
 ```
+
+## Email Service
+
+The application includes an async email service for transactional emails:
+
+### Configuration
+
+| Variable                          | Default                 | Description                   |
+| --------------------------------- | ----------------------- | ----------------------------- |
+| `SMTP_HOST`                       | `localhost`             | SMTP server host              |
+| `SMTP_PORT`                       | `587`                   | SMTP server port              |
+| `SMTP_USER`                       | -                       | SMTP username                 |
+| `SMTP_PASSWORD`                   | -                       | SMTP password                 |
+| `SMTP_USE_TLS`                    | `true`                  | Use TLS encryption            |
+| `EMAIL_FROM_ADDRESS`              | -                       | Sender email address          |
+| `EMAIL_FROM_NAME`                 | `FastAPI App`           | Sender display name           |
+| `FRONTEND_URL`                    | `http://localhost:3000` | URL for email links           |
+| `PASSWORD_RESET_EXPIRE_MINUTES`   | `60`                    | Password reset token validity |
+| `EMAIL_VERIFICATION_EXPIRE_HOURS` | `24`                    | Email verification validity   |
+
+### Development Mode
+
+In development (`DEBUG=true`), emails are logged to the console instead of being sent via SMTP.
+
+## Two-Factor Authentication (2FA)
+
+The application supports TOTP-based two-factor authentication:
+
+### Configuration
+
+| Variable                        | Default       | Description                         |
+| ------------------------------- | ------------- | ----------------------------------- |
+| `TWO_FACTOR_ISSUER_NAME`        | `FastAPI App` | Issuer name shown in auth apps      |
+| `TWO_FACTOR_TOTP_WINDOW`        | `1`           | TOTP window tolerance (30s windows) |
+| `TWO_FACTOR_BACKUP_CODES_COUNT` | `10`          | Number of backup codes to generate  |
+
+### 2FA Flow
+
+1. **Setup**: User calls `/auth/2fa/setup` to get a QR code and secret
+2. **Enable**: User scans QR code with an authenticator app and calls `/auth/2fa/enable` with the TOTP code
+3. **Login**: When 2FA is enabled, login returns `requires_two_factor: true` and a `user_id`
+4. **Verify**: User calls `/auth/2fa/verify` with the TOTP code to complete login
+5. **Backup Codes**: Users receive 10 one-time backup codes that can be used if they lose access to their authenticator app
+
+### Supported Authenticator Apps
+
+- Google Authenticator
+- Microsoft Authenticator
+- Authy
+- 1Password
+- Any TOTP-compatible app
 
 ## Docker
 

@@ -128,9 +128,13 @@ class TestGraphQLSecurityHeaders:
                     name: "Security Test",
                     password: "securepassword123"
                 }) {
-                    id
-                    email
-                    name
+                    accessToken
+                    refreshToken
+                    tokenType
+                    user {
+                        email
+                        name
+                    }
                 }
             }
         """
@@ -138,7 +142,7 @@ class TestGraphQLSecurityHeaders:
         assert response.status_code == 200
         data = response.json()
         assert "errors" not in data or data.get("errors") is None
-        assert data["data"]["register"]["email"] == "security@example.com"
+        assert data["data"]["register"]["user"]["email"] == "security@example.com"
 
 
 class TestGraphQLFragments:

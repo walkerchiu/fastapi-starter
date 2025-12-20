@@ -1,6 +1,15 @@
 """Authentication service layer for business logic."""
 
-from sqlalchemy import select
+import base64
+import hashlib
+import io
+import json
+import secrets
+from datetime import UTC, datetime, timedelta
+
+import pyotp
+import qrcode
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core import (
     create_access_token,
@@ -10,14 +19,27 @@ from src.app.core import (
     verify_password,
 )
 from src.app.core.config import settings
-from src.app.models import User
+from src.app.models import PasswordResetToken, User
 from src.app.schemas import Token, UserRegister
+from src.app.services.email_service import email_service
 from src.app.services.exceptions import (
     EmailAlreadyExistsError,
+    EmailAlreadyVerifiedError,
+    ExpiredResetTokenError,
+    ExpiredVerificationTokenError,
     InactiveUserError,
+    Invalid2FACodeError,
     InvalidCredentialsError,
+    InvalidResetTokenError,
     InvalidTokenError,
     InvalidTokenTypeError,
+    InvalidVerificationTokenError,
+    ResetTokenAlreadyUsedError,
+    SamePasswordError,
+    TwoFactorAlreadyEnabledError,
+    TwoFactorNotEnabledError,
+    TwoFactorNotSetupError,
+    TwoFactorRequiredError,
     UserNotFoundError,
 )
 
@@ -56,8 +78,25 @@ class AuthService:
         await self.db.refresh(user)
         return user
 
-    async def login(self, email: str, password: str) -> Token:
-        """Authenticate user and return tokens."""
+    async def login(
+        self, email: str, password: str, skip_2fa_check: bool = False
+    ) -> Token:
+        """
+        Authenticate user and return tokens.
+
+        Args:
+            email: User email
+            password: User password
+            skip_2fa_check: Skip 2FA check (used after 2FA verification)
+
+        Returns:
+            Token object with access and refresh tokens
+
+        Raises:
+            InvalidCredentialsError: If credentials are invalid
+            InactiveUserError: If user account is inactive
+            TwoFactorRequiredError: If 2FA is enabled and not verified
+        """
         user = await self.get_user_by_email(email)
 
         if not user or not user.hashed_password:
@@ -68,6 +107,10 @@ class AuthService:
 
         if not user.is_active:
             raise InactiveUserError("User account is disabled.")
+
+        # Check if 2FA is enabled
+        if user.is_two_factor_enabled and not skip_2fa_check:
+            raise TwoFactorRequiredError("2FA required", user_id=user.id)
 
         return Token(
             access_token=create_access_token(subject=user.id),

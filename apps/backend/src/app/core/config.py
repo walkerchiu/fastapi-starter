@@ -117,5 +117,26 @@ To get a token:
         ".txt",
     ]
 
+    # Email (SMTP)
+    smtp_host: str = "localhost"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    email_from_address: str = "noreply@example.com"
+    email_from_name: str = "FastAPI App"
+
+    # Frontend URL for email links
+    frontend_url: str = "http://localhost:3000"
+
+    # Token expiration
+    password_reset_expire_minutes: int = 60
+    email_verification_expire_hours: int = 24
+
+    # 2FA
+    two_factor_issuer_name: str = "FastAPI App"
+    two_factor_totp_window: int = 1  # Number of 30-second windows for clock skew
+    two_factor_backup_codes_count: int = 10  # Number of backup codes to generate
+
 
 settings = Settings()

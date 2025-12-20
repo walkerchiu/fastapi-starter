@@ -260,17 +260,26 @@ class TestGraphQLAuthMutations:
                     name: "GraphQL User",
                     password: "securepassword123"
                 }) {
-                    id
-                    email
-                    name
-                    isActive
+                    accessToken
+                    refreshToken
+                    tokenType
+                    user {
+                        id
+                        email
+                        name
+                        isActive
+                    }
                 }
             }
         """
         response = await client.post("/graphql", json={"query": mutation})
         assert response.status_code == 200
         data = response.json()
-        user = data["data"]["register"]
+        result = data["data"]["register"]
+        assert result["accessToken"] is not None
+        assert result["refreshToken"] is not None
+        assert result["tokenType"] == "Bearer"
+        user = result["user"]
         assert user["email"] == "graphql@example.com"
         assert user["name"] == "GraphQL User"
         assert user["isActive"] is True
@@ -285,7 +294,7 @@ class TestGraphQLAuthMutations:
                     name: "Login User",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -295,9 +304,11 @@ class TestGraphQLAuthMutations:
         login_mutation = """
             mutation {
                 login(input: {email: "login@example.com", password: "securepassword123"}) {
-                    accessToken
-                    refreshToken
-                    tokenType
+                    ... on AuthPayload {
+                        accessToken
+                        refreshToken
+                        tokenType
+                    }
                 }
             }
         """
@@ -319,7 +330,7 @@ class TestGraphQLAuthMutations:
                     name: "Refresh User",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -328,7 +339,9 @@ class TestGraphQLAuthMutations:
         login_mutation = """
             mutation {
                 login(input: {email: "refresh@example.com", password: "securepassword123"}) {
-                    refreshToken
+                    ... on AuthPayload {
+                        refreshToken
+                    }
                 }
             }
         """
@@ -356,7 +369,9 @@ class TestGraphQLAuthMutations:
         mutation = """
             mutation {
                 login(input: {email: "nonexistent@example.com", password: "wrongpassword"}) {
-                    accessToken
+                    ... on AuthPayload {
+                        accessToken
+                    }
                 }
             }
         """
@@ -378,7 +393,7 @@ class TestGraphQLAuthMutations:
                     name: "First User",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -407,7 +422,7 @@ class TestGraphQLValidation:
                     name: "Test User",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -428,7 +443,7 @@ class TestGraphQLValidation:
                     name: "Test User",
                     password: "short"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -449,7 +464,7 @@ class TestGraphQLValidation:
                     name: "   ",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -596,7 +611,9 @@ class TestGraphQLAuthEdgeCases:
         mutation = """
             mutation {
                 login(input: {email: "inactive@example.com", password: "securepassword123"}) {
-                    accessToken
+                    ... on AuthPayload {
+                        accessToken
+                    }
                 }
             }
         """
@@ -618,7 +635,7 @@ class TestGraphQLAuthEdgeCases:
                     name: "Access Test",
                     password: "securepassword123"
                 }) {
-                    id
+                    accessToken
                 }
             }
         """
@@ -627,7 +644,9 @@ class TestGraphQLAuthEdgeCases:
         login_mutation = """
             mutation {
                 login(input: {email: "accesstest@example.com", password: "securepassword123"}) {
-                    accessToken
+                    ... on AuthPayload {
+                        accessToken
+                    }
                 }
             }
         """
@@ -688,7 +707,9 @@ class TestGraphQLAuthEdgeCases:
                     email: "willbeinactive@example.com",
                     password: "securepassword123"
                 }) {
-                    refreshToken
+                    ... on AuthPayload {
+                        refreshToken
+                    }
                 }
             }
         """

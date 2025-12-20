@@ -190,3 +190,82 @@ mutation RegenerateBackupCodes($input: RegenerateBackupCodesInput!) {
     backupCodes
   }
 }
+
+# Profile Mutations
+mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    id
+    email
+    name
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+mutation ChangePassword($input: ChangePasswordInput!) {
+  changePassword(input: $input) {
+    message
+  }
+}
+
+# Password Reset Mutations
+mutation ForgotPassword($input: ForgotPasswordInput!) {
+  forgotPassword(input: $input) {
+    message
+  }
+}
+
+mutation ResetPassword($input: ResetPasswordInput!) {
+  resetPassword(input: $input) {
+    message
+  }
+}
+
+# Email Verification Mutations
+mutation VerifyEmail($input: VerifyEmailInput!) {
+  verifyEmail(input: $input) {
+    message
+  }
+}
+
+mutation ResendVerificationEmail($input: ResendVerificationInput!) {
+  resendVerificationEmail(input: $input) {
+    message
+  }
+}
+
+# 2FA Mutations
+mutation Setup2FA {
+  setup2FA {
+    secret
+    qrCodeUrl
+    qrCodeDataUrl
+  }
+}
+
+mutation Enable2FA($input: Enable2FAInput!) {
+  enable2FA(input: $input) {
+    backupCodes
+  }
+}
+
+mutation Disable2FA($input: Disable2FAInput!) {
+  disable2FA(input: $input) {
+    message
+  }
+}
+
+mutation Verify2FA($input: Verify2FAInput!) {
+  verify2FA(input: $input) {
+    accessToken
+    refreshToken
+    tokenType
+  }
+}
+
+mutation RegenerateBackupCodes {
+  regenerateBackupCodes {
+    backupCodes
+  }
+}

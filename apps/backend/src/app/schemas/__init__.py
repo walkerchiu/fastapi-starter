@@ -7,6 +7,12 @@ from src.app.schemas.auth import (
     Token,
     TokenPayload,
 )
+from src.app.schemas.email_verification import (
+    ResendVerificationRequest,
+    ResendVerificationResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
+)
 from src.app.schemas.errors import ErrorCode, ErrorDetail, ErrorResponse
 from src.app.schemas.file import (
     BatchDeleteRequest,
@@ -21,10 +27,22 @@ from src.app.schemas.file import (
     PresignedUrlResponse,
 )
 from src.app.schemas.pagination import PaginatedResponse, PaginationParams
+from src.app.schemas.password_reset import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
+)
 from src.app.schemas.permission import (
     PermissionCreate,
     PermissionRead,
     PermissionUpdate,
+)
+from src.app.schemas.profile import (
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    UpdateProfileRequest,
+    UpdateProfileResponse,
 )
 from src.app.schemas.role import (
     AssignPermissionsRequest,
@@ -33,6 +51,16 @@ from src.app.schemas.role import (
     RoleRead,
     RoleReadWithPermissions,
     RoleUpdate,
+)
+from src.app.schemas.two_factor import (
+    BackupCodesResponse,
+    Disable2FARequest,
+    Disable2FAResponse,
+    Enable2FARequest,
+    Enable2FAResponse,
+    Setup2FAResponse,
+    TwoFactorLoginResponse,
+    Verify2FARequest,
 )
 from src.app.schemas.user import (
     MessageResponse,
@@ -46,10 +74,17 @@ from src.app.schemas.user import (
 __all__ = [
     "AssignPermissionsRequest",
     "AssignRolesRequest",
+    "BackupCodesResponse",
     "BatchDeleteRequest",
     "BatchDeleteResponse",
     "BatchFileUploadResponse",
     "BatchFileUploadResult",
+    "ChangePasswordRequest",
+    "ChangePasswordResponse",
+    "Disable2FARequest",
+    "Disable2FAResponse",
+    "Enable2FARequest",
+    "Enable2FAResponse",
     "ErrorCode",
     "ErrorDetail",
     "ErrorResponse",
@@ -58,6 +93,8 @@ __all__ = [
     "FileRead",
     "FileUpdate",
     "FileUploadResponse",
+    "ForgotPasswordRequest",
+    "ForgotPasswordResponse",
     "LoginRequest",
     "LogoutResponse",
     "MessageResponse",
@@ -68,15 +105,26 @@ __all__ = [
     "PermissionUpdate",
     "PresignedUrlResponse",
     "RefreshTokenRequest",
+    "ResendVerificationRequest",
+    "ResendVerificationResponse",
+    "ResetPasswordRequest",
+    "ResetPasswordResponse",
     "RoleCreate",
     "RoleRead",
     "RoleReadWithPermissions",
     "RoleUpdate",
+    "Setup2FAResponse",
     "Token",
     "TokenPayload",
+    "TwoFactorLoginResponse",
+    "UpdateProfileRequest",
+    "UpdateProfileResponse",
     "UserCreate",
     "UserRead",
     "UserReadWithRoles",
     "UserRegister",
     "UserUpdate",
+    "Verify2FARequest",
+    "VerifyEmailRequest",
+    "VerifyEmailResponse",
 ]
