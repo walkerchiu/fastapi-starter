@@ -21,6 +21,10 @@
     ],
     "*.{json,yaml,yml,md}": [
       "prettier --write"
+    ],
+    "apps/backend/**/*.py": [
+      "uv run --directory apps/backend ruff format",
+      "uv run --directory apps/backend ruff check --fix"
     ]
   },
   "devDependencies": {
