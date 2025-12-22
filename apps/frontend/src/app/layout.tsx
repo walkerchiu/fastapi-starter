@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Navbar } from '@/components/nav/navbar';
 import { GraphQLProvider } from '@/components/providers/graphql-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
+import { ThemeProvider, ThemeScript } from '@/components/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,14 +16,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body>
-        <SessionProvider>
-          <GraphQLProvider>
-            <Navbar />
-            <main>{children}</main>
-          </GraphQLProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <GraphQLProvider>
+              <Navbar />
+              <main>{children}</main>
+            </GraphQLProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

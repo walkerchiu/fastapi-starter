@@ -14,7 +14,7 @@ const sizeStyles: Record<SpinnerSize, string> = {
 export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
   return (
     <div
-      className={`animate-spin rounded-full border-indigo-600 border-t-transparent ${sizeStyles[size]} ${className}`.trim()}
+      className={`animate-spin rounded-full border-indigo-600 border-t-transparent dark:border-indigo-500 dark:border-t-transparent ${sizeStyles[size]} ${className}`.trim()}
       role="status"
       aria-label="Loading"
     >

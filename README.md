@@ -33,6 +33,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **File Upload** - S3-compatible storage integration for file management
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
+- **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
 - **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
@@ -819,6 +820,72 @@ When a user with 2FA enabled logs in:
 4. User enters TOTP code from authenticator app (or backup code)
 5. On success, tokens are stored and user is redirected to `/2fa-callback`
 6. Callback page completes the NextAuth sign-in and redirects to the original URL
+
+## Dark Mode
+
+The frontend includes a complete dark mode implementation with three theme options:
+
+### Theme Options
+
+| Theme    | Description                         |
+| -------- | ----------------------------------- |
+| `light`  | Light theme with white backgrounds  |
+| `dark`   | Dark theme with dark backgrounds    |
+| `system` | Follows operating system preference |
+
+### Components
+
+#### ThemeProvider
+
+Wrap your application with `ThemeProvider` to enable theme support:
+
+```tsx
+import { ThemeProvider } from '@/components/theme';
+
+export default function RootLayout({ children }) {
+  return <ThemeProvider>{children}</ThemeProvider>;
+}
+```
+
+#### ThemeToggle
+
+A button component that cycles through themes (light → dark → system):
+
+```tsx
+import { ThemeToggle } from '@/components/ui';
+
+<ThemeToggle />;
+```
+
+### How It Works
+
+1. **ThemeScript** - Injects a script in `<head>` to prevent flash of unstyled content (FOUC)
+2. **ThemeProvider** - React context that manages theme state and persistence
+3. **localStorage** - Theme preference is persisted in `localStorage` under the key `theme`
+4. **CSS class** - Theme is applied via `dark` class on `<html>` element (Tailwind's class-based dark mode)
+
+### Tailwind Configuration
+
+Dark mode is configured in `tailwind.config.ts`:
+
+```typescript
+export default {
+  darkMode: 'class',
+  // ...
+};
+```
+
+### Styling for Dark Mode
+
+Use Tailwind's `dark:` variant to style components for dark mode:
+
+```tsx
+<div className="bg-white dark:bg-gray-900">
+  <p className="text-gray-900 dark:text-gray-100">
+    This text adapts to the theme
+  </p>
+</div>
+```
 
 ## Docker
 

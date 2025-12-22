@@ -35,6 +35,12 @@ describe('Button', () => {
     expect(button).toHaveClass('hover:bg-gray-100');
   });
 
+  it('applies danger variant', () => {
+    render(<Button variant="danger">Danger</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('bg-red-600');
+  });
+
   it('applies size classes correctly', () => {
     const { rerender } = render(<Button size="sm">Small</Button>);
     expect(screen.getByRole('button')).toHaveClass('text-xs');

@@ -27,7 +27,7 @@ function TwoFactorVerifyContent() {
 
   if (!userId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8 text-center">
           <Alert variant="error">
             Invalid request. Please try logging in again.
@@ -93,14 +93,14 @@ function TwoFactorVerifyContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900">
                 <svg
-                  className="h-6 w-6 text-indigo-600"
+                  className="h-6 w-6 text-indigo-600 dark:text-indigo-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
@@ -113,10 +113,10 @@ function TwoFactorVerifyContent() {
                   />
                 </svg>
               </div>
-              <h2 className="mt-4 text-xl font-bold text-gray-900">
+              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
                 Two-Factor Authentication
               </h2>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {isBackupCode
                   ? 'Enter one of your backup codes'
                   : 'Enter the code from your authenticator app'}
@@ -130,7 +130,7 @@ function TwoFactorVerifyContent() {
               <div>
                 <label
                   htmlFor="code"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   {isBackupCode ? 'Backup Code' : 'Verification Code'}
                 </label>
@@ -146,7 +146,7 @@ function TwoFactorVerifyContent() {
                     }
                   }}
                   placeholder={isBackupCode ? 'Enter backup code' : '000000'}
-                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:focus:ring-indigo-500"
                   maxLength={isBackupCode ? 20 : 6}
                   required
                   autoFocus
@@ -171,7 +171,7 @@ function TwoFactorVerifyContent() {
                     setCode('');
                     setError('');
                   }}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
                   {isBackupCode
                     ? 'Use authenticator app instead'
@@ -179,10 +179,10 @@ function TwoFactorVerifyContent() {
                 </button>
               </div>
 
-              <div className="border-t pt-4 text-center">
+              <div className="border-t pt-4 text-center dark:border-gray-700">
                 <Link
                   href="/login"
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   Cancel and return to login
                 </Link>

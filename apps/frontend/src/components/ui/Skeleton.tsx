@@ -18,7 +18,7 @@ const variantStyles: Record<SkeletonVariant, string> = {
 
 const animationStyles: Record<'pulse' | 'wave' | 'none', string> = {
   pulse: 'animate-pulse',
-  wave: 'animate-shimmer bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%]',
+  wave: 'animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 bg-[length:200%_100%]',
   none: '',
 };
 
@@ -39,7 +39,7 @@ export function Skeleton({
 
   return (
     <div
-      className={`bg-gray-200 ${variantStyles[variant]} ${animationStyles[animation]} ${className}`}
+      className={`bg-gray-200 dark:bg-gray-700 ${variantStyles[variant]} ${animationStyles[animation]} ${className}`}
       style={{
         ...style,
         width: style.width || defaultWidth,
@@ -66,17 +66,22 @@ export function SkeletonText({
   className = '',
   animation = 'pulse',
 }: SkeletonTextProps) {
+  const spacingValue = typeof spacing === 'number' ? `${spacing}px` : spacing;
+
   return (
     <div className={`space-y-2 ${className}`} aria-hidden="true">
       {Array.from({ length: lines }).map((_, index) => (
-        <Skeleton
+        <div
           key={index}
-          variant="text"
-          height={lineHeight}
-          width={index === lines - 1 ? '80%' : '100%'}
-          animation={animation}
-          className={index > 0 ? `mt-[${spacing}]` : ''}
-        />
+          style={{ marginTop: index > 0 ? spacingValue : undefined }}
+        >
+          <Skeleton
+            variant="text"
+            height={lineHeight}
+            width={index === lines - 1 ? '80%' : '100%'}
+            animation={animation}
+          />
+        </div>
       ))}
     </div>
   );
@@ -99,7 +104,7 @@ export function SkeletonCard({
 }: SkeletonCardProps) {
   return (
     <div
-      className={`rounded-lg border border-gray-200 p-4 ${className}`}
+      className={`rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${className}`}
       aria-hidden="true"
     >
       {showAvatar && (

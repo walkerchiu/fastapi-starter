@@ -138,10 +138,10 @@ export default function TwoFactorSetupPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Set Up Two-Factor Authentication
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
           Add an extra layer of security to your account
         </p>
       </div>
@@ -163,19 +163,19 @@ export default function TwoFactorSetupPage() {
       {step === 'scan' && setupData && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-gray-900">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
               Step 1: Scan QR Code
             </h2>
           </CardHeader>
           <CardBody>
             <div className="space-y-6">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Scan this QR code with your authenticator app (Google
                 Authenticator, Authy, Microsoft Authenticator, etc.)
               </p>
 
               <div className="flex justify-center">
-                <div className="rounded-lg border bg-white p-4">
+                <div className="rounded-lg border bg-white p-4 dark:border-gray-600">
                   <Image
                     src={setupData.qrCode}
                     alt="2FA QR Code"
@@ -186,11 +186,11 @@ export default function TwoFactorSetupPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm font-medium text-gray-700">
+              <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Can&apos;t scan? Enter this code manually:
                 </p>
-                <code className="mt-2 block break-all rounded bg-gray-100 p-2 text-sm">
+                <code className="mt-2 block break-all rounded bg-gray-100 p-2 text-sm dark:bg-gray-700 dark:text-gray-200">
                   {setupData.manualEntryKey}
                 </code>
               </div>
@@ -206,13 +206,13 @@ export default function TwoFactorSetupPage() {
       {step === 'verify' && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-gray-900">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
               Step 2: Verify Setup
             </h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleVerify} className="space-y-6">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Enter the 6-digit code from your authenticator app to verify the
                 setup.
               </p>
@@ -222,7 +222,7 @@ export default function TwoFactorSetupPage() {
               <div>
                 <label
                   htmlFor="code"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Verification Code
                 </label>
@@ -236,7 +236,7 @@ export default function TwoFactorSetupPage() {
                     )
                   }
                   placeholder="000000"
-                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-2xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-2xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:focus:ring-indigo-500"
                   maxLength={6}
                   required
                   autoFocus
@@ -269,9 +269,9 @@ export default function TwoFactorSetupPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
                 <svg
-                  className="h-6 w-6 text-green-600"
+                  className="h-6 w-6 text-green-600 dark:text-green-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
@@ -284,7 +284,7 @@ export default function TwoFactorSetupPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-lg font-medium text-gray-900">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
                 Two-Factor Authentication Enabled
               </h2>
             </div>
@@ -296,11 +296,11 @@ export default function TwoFactorSetupPage() {
                 account.
               </Alert>
 
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                <h3 className="font-medium text-yellow-800">
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/30">
+                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
                   Save Your Backup Codes
                 </h3>
-                <p className="mt-1 text-sm text-yellow-700">
+                <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
                   Store these backup codes in a safe place. You can use them to
                   access your account if you lose your authenticator device.
                 </p>
@@ -308,7 +308,7 @@ export default function TwoFactorSetupPage() {
                   {backupCodes.map((code, index) => (
                     <code
                       key={index}
-                      className="rounded bg-white px-3 py-1 text-center text-sm font-mono"
+                      className="rounded bg-white px-3 py-1 text-center text-sm font-mono dark:bg-gray-800 dark:text-gray-200"
                     >
                       {code}
                     </code>

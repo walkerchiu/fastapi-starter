@@ -61,15 +61,15 @@ function VerifyEmailContent() {
   }, [token, status, verifyEmail]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 text-center">
         {status === 'loading' && (
           <>
             <Spinner />
-            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
               Verifying your email...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Please wait while we verify your email address.
             </p>
           </>
@@ -77,9 +77,9 @@ function VerifyEmailContent() {
 
         {status === 'success' && (
           <>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
               <svg
-                className="h-8 w-8 text-green-600"
+                className="h-8 w-8 text-green-600 dark:text-green-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
@@ -92,7 +92,7 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
               Email Verified!
             </h2>
             <Alert variant="success">
@@ -106,9 +106,9 @@ function VerifyEmailContent() {
 
         {status === 'error' && (
           <>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
               <svg
-                className="h-8 w-8 text-red-600"
+                className="h-8 w-8 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
@@ -121,11 +121,11 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
               Verification Failed
             </h2>
             <Alert variant="error">{errorMessage}</Alert>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               The verification link may be expired or invalid.
             </p>
             <div className="mt-6 space-y-3">
@@ -138,9 +138,9 @@ function VerifyEmailContent() {
 
         {status === 'no-token' && (
           <>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
               <svg
-                className="h-8 w-8 text-yellow-600"
+                className="h-8 w-8 text-yellow-600 dark:text-yellow-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
@@ -153,13 +153,13 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
               Invalid Link
             </h2>
             <Alert variant="warning">
               No verification token found in the URL.
             </Alert>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Please check your email for the correct verification link.
             </p>
             <div className="mt-6">
