@@ -1,10 +1,14 @@
 'use client';
 
 import { signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { ThemeToggle } from '@/components/ui';
+import { useTranslations } from 'next-intl';
+
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Link } from '@/i18n/routing';
 
 export function Navbar() {
+  const t = useTranslations('nav');
   const { data: session, status } = useSession();
   const isLoading = status === 'loading';
 
@@ -17,10 +21,11 @@ export function Navbar() {
               href="/"
               className="flex flex-shrink-0 items-center text-xl font-bold text-indigo-600 dark:text-indigo-400"
             >
-              FastAPI NextJS
+              {t('home')}
             </Link>
           </div>
           <div className="flex items-center space-x-4">
+            <LanguageSwitcher />
             <ThemeToggle />
             {isLoading ? (
               <div className="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
@@ -30,7 +35,7 @@ export function Navbar() {
                   href="/dashboard"
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
-                  Dashboard
+                  {t('dashboard')}
                 </Link>
                 <Link
                   href="/profile"
@@ -42,7 +47,7 @@ export function Navbar() {
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
-                  Sign out
+                  {t('signOut')}
                 </button>
               </>
             ) : (
@@ -51,13 +56,13 @@ export function Navbar() {
                   href="/login"
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
-                  Sign in
+                  {t('signIn')}
                 </Link>
                 <Link
                   href="/register"
                   className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
                 >
-                  Sign up
+                  {t('signUp')}
                 </Link>
               </>
             )}

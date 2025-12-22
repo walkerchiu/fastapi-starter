@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
-import { Navbar } from '@/components/nav/navbar';
-import { GraphQLProvider } from '@/components/providers/graphql-provider';
-import { SessionProvider } from '@/components/providers/session-provider';
-import { ThemeProvider, ThemeScript } from '@/components/providers';
+
+import { ThemeScript } from '@/components/providers/theme-script';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,19 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
-      <body>
-        <ThemeProvider>
-          <SessionProvider>
-            <GraphQLProvider>
-              <Navbar />
-              <main>{children}</main>
-            </GraphQLProvider>
-          </SessionProvider>
-        </ThemeProvider>
+      <body className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+        {children}
       </body>
     </html>
   );

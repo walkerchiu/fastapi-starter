@@ -16,6 +16,38 @@ function Wrapper({ children }: { children: ReactNode }) {
   return <ThemeProvider>{children}</ThemeProvider>;
 }
 
+vi.mock('@/i18n', () => ({
+  locales: ['en', 'zh-TW'],
+  localeNames: {
+    en: 'English',
+    'zh-TW': '繁體中文',
+  },
+  defaultLocale: 'en',
+}));
+
+vi.mock('@/i18n/routing', () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+  useRouter: () => ({
+    replace: vi.fn(),
+  }),
+  usePathname: () => '/test-path',
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      dashboard: 'Dashboard',
+      signIn: 'Sign in',
+      signUp: 'Sign up',
+      signOut: 'Sign out',
+    };
+    return translations[key] || key;
+  },
+  useLocale: () => 'en',
+}));
+
 describe('Navbar', () => {
   beforeEach(() => {
     vi.clearAllMocks();

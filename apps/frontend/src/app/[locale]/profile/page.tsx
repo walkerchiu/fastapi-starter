@@ -1,10 +1,11 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useQuery } from 'urql';
 
+import { ChangePasswordModal, EditProfileModal } from '@/components/profile';
 import {
   Alert,
   Badge,
@@ -15,11 +16,12 @@ import {
   Modal,
   Spinner,
 } from '@/components/ui';
-import { ChangePasswordModal, EditProfileModal } from '@/components/profile';
 import { env } from '@/config/env';
 import { MeDocument } from '@/graphql/generated/graphql';
+import { useRouter } from '@/i18n/routing';
 
 export default function ProfilePage() {
+  const t = useTranslations('profile');
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -74,7 +76,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to disable 2FA');
+        throw new Error(data.message || t('disable2FAFailed'));
       }
 
       setIsDisable2FAModalOpen(false);
@@ -84,7 +86,7 @@ export default function ProfilePage() {
       if (err instanceof Error) {
         setDisable2FAError(err.message);
       } else {
-        setDisable2FAError('An error occurred. Please try again.');
+        setDisable2FAError(t('genericError'));
       }
     } finally {
       setIsDisable2FALoading(false);
@@ -109,7 +111,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to regenerate backup codes');
+        throw new Error(data.message || t('regenerateBackupCodesFailed'));
       }
 
       const data = await response.json();
@@ -119,7 +121,7 @@ export default function ProfilePage() {
       if (err instanceof Error) {
         setBackupCodesError(err.message);
       } else {
-        setBackupCodesError('An error occurred. Please try again.');
+        setBackupCodesError(t('genericError'));
       }
     } finally {
       setIsBackupCodesLoading(false);
@@ -153,8 +155,10 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-        <p className="mt-2 text-gray-600">Manage your account settings</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          {t('title')}
+        </h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
       </div>
 
       {meResult.error && (
@@ -166,43 +170,51 @@ export default function ProfilePage() {
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">
-              Account Information
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              {t('userInformation')}
             </h2>
             <Button
               variant="secondary"
               size="sm"
               onClick={() => setIsEditModalOpen(true)}
             >
-              Edit
+              {t('edit')}
             </Button>
           </div>
         </CardHeader>
         <CardBody>
-          <dl className="divide-y divide-gray-200">
+          <dl className="divide-y divide-gray-200 dark:divide-gray-700">
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-500">Name</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t('name')}
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
                 {user?.name || '-'}
               </dd>
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t('email')}
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
                 {user?.email}
               </dd>
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t('status')}
+              </dt>
               <dd className="mt-1 sm:col-span-2 sm:mt-0">
                 <Badge variant={user?.isActive ? 'success' : 'error'}>
-                  {user?.isActive ? 'Active' : 'Inactive'}
+                  {user?.isActive ? t('active') : t('inactive')}
                 </Badge>
               </dd>
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-500">Created</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t('memberSince')}
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
                 {user?.createdAt
                   ? new Date(user.createdAt).toLocaleDateString()
                   : '-'}
@@ -214,15 +226,19 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-medium text-gray-900">Security</h2>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            {t('security')}
+          </h2>
         </CardHeader>
         <CardBody>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             <div className="flex items-center justify-between py-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Password</h3>
-                <p className="text-sm text-gray-500">
-                  Change your account password
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t('password')}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('changePasswordDescription')}
                 </p>
               </div>
               <Button
@@ -230,7 +246,7 @@ export default function ProfilePage() {
                 size="sm"
                 onClick={() => setIsPasswordModalOpen(true)}
               >
-                Change
+                {t('change')}
               </Button>
             </div>
 
@@ -238,17 +254,17 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-gray-900">
-                      Two-Factor Authentication
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {t('twoFactorAuth')}
                     </h3>
                     <Badge
                       variant={user?.isTwoFactorEnabled ? 'success' : 'neutral'}
                     >
-                      {user?.isTwoFactorEnabled ? 'Enabled' : 'Disabled'}
+                      {user?.isTwoFactorEnabled ? t('enabled') : t('disabled')}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Add an extra layer of security to your account
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('twoFactorAuthDescription')}
                   </p>
                 </div>
                 {user?.isTwoFactorEnabled ? (
@@ -257,7 +273,7 @@ export default function ProfilePage() {
                     size="sm"
                     onClick={openDisable2FAModal}
                   >
-                    Disable
+                    {t('disable')}
                   </Button>
                 ) : (
                   <Button
@@ -265,30 +281,29 @@ export default function ProfilePage() {
                     size="sm"
                     onClick={() => router.push('/2fa/setup')}
                   >
-                    Enable
+                    {t('enable')}
                   </Button>
                 )}
               </div>
 
               {user?.isTwoFactorEnabled && (
-                <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                <div className="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">
-                        Backup Codes
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {t('backupCodes')}
                       </h4>
-                      <p className="text-sm text-gray-500">
-                        Generate new backup codes if you have lost access to
-                        your existing ones
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t('backupCodesDescription')}
                       </p>
                     </div>
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={handleRegenerateBackupCodes}
-                      isLoading={isBackupCodesLoading}
+                      loading={isBackupCodesLoading}
                     >
-                      Regenerate
+                      {t('regenerate')}
                     </Button>
                   </div>
                   {backupCodesError && (
@@ -321,12 +336,11 @@ export default function ProfilePage() {
       <Modal
         isOpen={isDisable2FAModalOpen}
         onClose={() => setIsDisable2FAModalOpen(false)}
-        title="Disable Two-Factor Authentication"
+        title={t('disable2FATitle')}
       >
         <form onSubmit={handleDisable2FA}>
-          <p className="mb-4 text-sm text-gray-600">
-            Enter your password to confirm disabling two-factor authentication.
-            This will make your account less secure.
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            {t('disable2FADescription')}
           </p>
           {disable2FAError && (
             <Alert variant="error" className="mb-4">
@@ -336,9 +350,9 @@ export default function ProfilePage() {
           <div className="mb-4">
             <label
               htmlFor="disable2FAPassword"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Password
+              {t('password')}
             </label>
             <input
               type="password"
@@ -346,7 +360,7 @@ export default function ProfilePage() {
               value={disable2FAPassword}
               onChange={(e) => setDisable2FAPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-600 sm:text-sm sm:leading-6"
             />
           </div>
           <div className="flex justify-end gap-3">
@@ -355,10 +369,10 @@ export default function ProfilePage() {
               variant="secondary"
               onClick={() => setIsDisable2FAModalOpen(false)}
             >
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button type="submit" isLoading={isDisable2FALoading}>
-              Disable 2FA
+            <Button type="submit" loading={isDisable2FALoading}>
+              {t('disable2FA')}
             </Button>
           </div>
         </form>
@@ -368,18 +382,15 @@ export default function ProfilePage() {
       <Modal
         isOpen={isBackupCodesModalOpen}
         onClose={() => setIsBackupCodesModalOpen(false)}
-        title="New Backup Codes"
+        title={t('newBackupCodesTitle')}
       >
         <div className="space-y-4">
-          <Alert variant="warning">
-            Your previous backup codes have been invalidated. Save these new
-            codes in a secure location.
-          </Alert>
+          <Alert variant="warning">{t('backupCodesWarning')}</Alert>
           <div className="grid grid-cols-2 gap-2">
             {backupCodes.map((code, index) => (
               <code
                 key={index}
-                className="rounded bg-gray-100 px-3 py-2 text-center text-sm font-mono"
+                className="rounded bg-gray-100 px-3 py-2 text-center font-mono text-sm dark:bg-gray-800 dark:text-gray-200"
               >
                 {code}
               </code>
@@ -387,10 +398,10 @@ export default function ProfilePage() {
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={handleCopyBackupCodes}>
-              Copy All
+              {t('copyAll')}
             </Button>
             <Button onClick={() => setIsBackupCodesModalOpen(false)}>
-              Done
+              {t('done')}
             </Button>
           </div>
         </div>

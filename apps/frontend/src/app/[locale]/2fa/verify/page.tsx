@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
 
 import {
@@ -13,8 +13,10 @@ import {
   Spinner,
 } from '@/components/ui';
 import { env } from '@/config/env';
+import { Link, useRouter } from '@/i18n/routing';
 
 function TwoFactorVerifyContent() {
+  const t = useTranslations('auth.twoFactor');
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get('user_id');
@@ -29,11 +31,9 @@ function TwoFactorVerifyContent() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8 text-center">
-          <Alert variant="error">
-            Invalid request. Please try logging in again.
-          </Alert>
+          <Alert variant="error">{t('invalidRequest')}</Alert>
           <Link href="/login">
-            <Button>Go to Login</Button>
+            <Button>{t('goToLogin')}</Button>
           </Link>
         </div>
       </div>
@@ -63,7 +63,7 @@ function TwoFactorVerifyContent() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Invalid verification code');
+        throw new Error(data.message || t('invalidCode'));
       }
 
       const data = await response.json();
@@ -85,7 +85,7 @@ function TwoFactorVerifyContent() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Failed to verify 2FA code');
+        setError(t('verifyFailed'));
       }
     } finally {
       setIsLoading(false);
@@ -114,12 +114,10 @@ function TwoFactorVerifyContent() {
                 </svg>
               </div>
               <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-                Two-Factor Authentication
+                {t('verifyTitle')}
               </h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {isBackupCode
-                  ? 'Enter one of your backup codes'
-                  : 'Enter the code from your authenticator app'}
+                {isBackupCode ? t('enterBackupCode') : t('enterAuthCode')}
               </p>
             </div>
           </CardHeader>
@@ -132,7 +130,7 @@ function TwoFactorVerifyContent() {
                   htmlFor="code"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {isBackupCode ? 'Backup Code' : 'Verification Code'}
+                  {isBackupCode ? t('backupCode') : t('verificationCode')}
                 </label>
                 <input
                   type="text"
@@ -145,7 +143,9 @@ function TwoFactorVerifyContent() {
                       setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
                     }
                   }}
-                  placeholder={isBackupCode ? 'Enter backup code' : '000000'}
+                  placeholder={
+                    isBackupCode ? t('enterBackupCodePlaceholder') : '000000'
+                  }
                   className="mt-1 block w-full rounded-md border-0 py-3 text-center text-xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:focus:ring-indigo-500"
                   maxLength={isBackupCode ? 20 : 6}
                   required
@@ -156,11 +156,11 @@ function TwoFactorVerifyContent() {
 
               <Button
                 type="submit"
-                isLoading={isLoading}
+                loading={isLoading}
                 disabled={isBackupCode ? code.length === 0 : code.length !== 6}
                 fullWidth
               >
-                Verify
+                {t('verify')}
               </Button>
 
               <div className="text-center">
@@ -173,9 +173,7 @@ function TwoFactorVerifyContent() {
                   }}
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
-                  {isBackupCode
-                    ? 'Use authenticator app instead'
-                    : 'Use a backup code instead'}
+                  {isBackupCode ? t('useAuthApp') : t('useBackupCode')}
                 </button>
               </div>
 
@@ -184,7 +182,7 @@ function TwoFactorVerifyContent() {
                   href="/login"
                   className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  Cancel and return to login
+                  {t('cancelAndReturn')}
                 </Link>
               </div>
             </form>

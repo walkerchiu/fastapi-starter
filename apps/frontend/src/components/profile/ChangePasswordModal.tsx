@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
-import { Alert, Button, Modal } from '@/components/ui';
+import { Button, Input, Modal } from '@/components/ui';
 import { env } from '@/config/env';
 
 interface ChangePasswordModalProps {
@@ -15,36 +16,26 @@ export function ChangePasswordModal({
   isOpen,
   onClose,
 }: ChangePasswordModalProps) {
+  const t = useTranslations('profile');
   const { data: session } = useSession();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setError('');
-      setSuccess('');
-    }
-  }, [isOpen]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError(null);
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError(t('passwordTooShort'));
       return;
     }
 
@@ -68,97 +59,105 @@ export function ChangePasswordModal({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to change password');
+        throw new Error(data.message || t('changePasswordFailed'));
       }
 
-      setSuccess('Password changed successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setSuccess(true);
       setTimeout(() => {
-        onClose();
-        setSuccess('');
-      }, 1500);
+        handleClose();
+      }, 2000);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An error occurred. Please try again.');
-      }
+      setError(err instanceof Error ? err.message : t('genericError'));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setError(null);
+    setSuccess(false);
+    onClose();
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Change Password">
-      <form onSubmit={handleSubmit}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('changePassword')}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <Alert variant="error" className="mb-4">
-            {error}
-          </Alert>
+          <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+          </div>
         )}
+
         {success && (
-          <Alert variant="success" className="mb-4">
-            {success}
-          </Alert>
+          <div className="rounded-md bg-green-50 p-3 dark:bg-green-900/20">
+            <p className="text-sm text-green-700 dark:text-green-400">
+              {t('changePasswordSuccess')}
+            </p>
+          </div>
         )}
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="currentPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Current Password
-            </label>
-            <input
-              type="password"
-              id="currentPassword"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="newPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
-              New Password
-            </label>
-            <input
-              type="password"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="confirmNewPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              id="confirmNewPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            />
-          </div>
+
+        <div>
+          <label
+            htmlFor="currentPassword"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            {t('currentPassword')}
+          </label>
+          <Input
+            id="currentPassword"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+            className="mt-1"
+          />
         </div>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
+
+        <div>
+          <label
+            htmlFor="newPassword"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            {t('newPassword')}
+          </label>
+          <Input
+            id="newPassword"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            minLength={8}
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            {t('confirmPassword')}
+          </label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            className="mt-1"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            {t('cancel')}
           </Button>
-          <Button type="submit" isLoading={isLoading}>
-            Change Password
+          <Button type="submit" loading={isLoading} disabled={success}>
+            {t('changePassword')}
           </Button>
         </div>
       </form>

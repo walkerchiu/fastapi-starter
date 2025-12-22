@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+
+import { Link, useRouter } from '@/i18n/routing';
 import { Suspense, useState } from 'react';
 
 import { Alert, Button, Spinner } from '@/components/ui';
@@ -53,7 +54,7 @@ function ResetPasswordForm() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to reset password');
+        throw new Error(data.message || 'Failed to reset password');
       }
 
       setSuccess(true);
@@ -160,7 +161,7 @@ function ResetPasswordForm() {
               </div>
             </div>
 
-            <Button type="submit" isLoading={isLoading} fullWidth>
+            <Button type="submit" loading={isLoading} fullWidth>
               {isLoading ? 'Resetting...' : 'Reset password'}
             </Button>
 

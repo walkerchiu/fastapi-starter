@@ -139,7 +139,7 @@ describe('TwoFactorVerifyPage', () => {
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Invalid code' }),
+      json: () => Promise.resolve({ message: 'Invalid code' }),
     });
 
     render(<TwoFactorVerifyPage />);

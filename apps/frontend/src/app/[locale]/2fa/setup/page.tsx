@@ -1,9 +1,8 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import {
@@ -12,9 +11,11 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Input,
   Spinner,
 } from '@/components/ui';
 import { env } from '@/config/env';
+import { Link, useRouter } from '@/i18n/routing';
 
 type SetupStep = 'loading' | 'scan' | 'verify' | 'complete' | 'error';
 
@@ -27,6 +28,7 @@ interface SetupData {
 export default function TwoFactorSetupPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const t = useTranslations('auth.twoFactor');
 
   const [step, setStep] = useState<SetupStep>('loading');
   const [setupData, setSetupData] = useState<SetupData | null>(null);
@@ -62,7 +64,7 @@ export default function TwoFactorSetupPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to initialize 2FA setup');
+        throw new Error(data.message || t('setupFailed'));
       }
 
       const data = await response.json();
@@ -77,7 +79,7 @@ export default function TwoFactorSetupPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Failed to initialize 2FA setup');
+        setError(t('setupFailed'));
       }
     }
   };
@@ -102,7 +104,7 @@ export default function TwoFactorSetupPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Invalid verification code');
+        throw new Error(data.message || t('invalidCode'));
       }
 
       const data = await response.json();
@@ -112,7 +114,7 @@ export default function TwoFactorSetupPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Failed to enable 2FA');
+        setError(t('enableFailed'));
       }
     } finally {
       setIsLoading(false);
@@ -138,11 +140,11 @@ export default function TwoFactorSetupPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Set Up Two-Factor Authentication
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          {t('setupTitle')}
         </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Add an extra layer of security to your account
+          {t('setupDescription')}
         </p>
       </div>
 
@@ -151,9 +153,9 @@ export default function TwoFactorSetupPage() {
           <CardBody>
             <Alert variant="error">{error}</Alert>
             <div className="mt-4 flex gap-3">
-              <Button onClick={initializeSetup}>Try Again</Button>
+              <Button onClick={initializeSetup}>{t('tryAgain')}</Button>
               <Link href="/profile">
-                <Button variant="secondary">Back to Profile</Button>
+                <Button variant="secondary">{t('backToProfile')}</Button>
               </Link>
             </div>
           </CardBody>
@@ -163,19 +165,18 @@ export default function TwoFactorSetupPage() {
       {step === 'scan' && setupData && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-              Step 1: Scan QR Code
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              {t('step1Title')}
             </h2>
           </CardHeader>
           <CardBody>
             <div className="space-y-6">
               <p className="text-gray-600 dark:text-gray-400">
-                Scan this QR code with your authenticator app (Google
-                Authenticator, Authy, Microsoft Authenticator, etc.)
+                {t('step1Description')}
               </p>
 
               <div className="flex justify-center">
-                <div className="rounded-lg border bg-white p-4 dark:border-gray-600">
+                <div className="rounded-lg border bg-white p-4 dark:border-gray-600 dark:bg-gray-800">
                   <Image
                     src={setupData.qrCode}
                     alt="2FA QR Code"
@@ -188,7 +189,7 @@ export default function TwoFactorSetupPage() {
 
               <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Can&apos;t scan? Enter this code manually:
+                  {t('manualEntry')}
                 </p>
                 <code className="mt-2 block break-all rounded bg-gray-100 p-2 text-sm dark:bg-gray-700 dark:text-gray-200">
                   {setupData.manualEntryKey}
@@ -196,7 +197,7 @@ export default function TwoFactorSetupPage() {
               </div>
 
               <Button onClick={() => setStep('verify')} fullWidth>
-                Continue to Verification
+                {t('continueToVerify')}
               </Button>
             </div>
           </CardBody>
@@ -206,42 +207,34 @@ export default function TwoFactorSetupPage() {
       {step === 'verify' && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-              Step 2: Verify Setup
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              {t('step2Title')}
             </h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleVerify} className="space-y-6">
               <p className="text-gray-600 dark:text-gray-400">
-                Enter the 6-digit code from your authenticator app to verify the
-                setup.
+                {t('step2Description')}
               </p>
 
               {error && <Alert variant="error">{error}</Alert>}
 
-              <div>
-                <label
-                  htmlFor="code"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  id="code"
-                  value={verificationCode}
-                  onChange={(e) =>
-                    setVerificationCode(
-                      e.target.value.replace(/\D/g, '').slice(0, 6),
-                    )
-                  }
-                  placeholder="000000"
-                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-2xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:focus:ring-indigo-500"
-                  maxLength={6}
-                  required
-                  autoFocus
-                />
-              </div>
+              <Input
+                type="text"
+                id="code"
+                label={t('verificationCode')}
+                value={verificationCode}
+                onChange={(e) =>
+                  setVerificationCode(
+                    e.target.value.replace(/\D/g, '').slice(0, 6),
+                  )
+                }
+                placeholder="000000"
+                className="text-center text-2xl tracking-widest"
+                maxLength={6}
+                required
+                autoFocus
+              />
 
               <div className="flex gap-3">
                 <Button
@@ -249,15 +242,15 @@ export default function TwoFactorSetupPage() {
                   variant="secondary"
                   onClick={() => setStep('scan')}
                 >
-                  Back
+                  {t('back')}
                 </Button>
                 <Button
                   type="submit"
-                  isLoading={isLoading}
+                  loading={isLoading}
                   disabled={verificationCode.length !== 6}
                   fullWidth
                 >
-                  Enable 2FA
+                  {t('enable2FA')}
                 </Button>
               </div>
             </form>
@@ -284,31 +277,27 @@ export default function TwoFactorSetupPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                Two-Factor Authentication Enabled
+              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                {t('enabledTitle')}
               </h2>
             </div>
           </CardHeader>
           <CardBody>
             <div className="space-y-6">
-              <Alert variant="success">
-                Two-factor authentication has been successfully enabled for your
-                account.
-              </Alert>
+              <Alert variant="success">{t('enabledMessage')}</Alert>
 
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/30">
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
                 <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
-                  Save Your Backup Codes
+                  {t('saveBackupCodes')}
                 </h3>
                 <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                  Store these backup codes in a safe place. You can use them to
-                  access your account if you lose your authenticator device.
+                  {t('backupCodesDescription')}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   {backupCodes.map((code, index) => (
                     <code
                       key={index}
-                      className="rounded bg-white px-3 py-1 text-center text-sm font-mono dark:bg-gray-800 dark:text-gray-200"
+                      className="rounded bg-white px-3 py-1 text-center font-mono text-sm dark:bg-gray-800 dark:text-gray-200"
                     >
                       {code}
                     </code>
@@ -320,12 +309,12 @@ export default function TwoFactorSetupPage() {
                   className="mt-4"
                   onClick={handleCopyBackupCodes}
                 >
-                  Copy All Codes
+                  {t('copyAllCodes')}
                 </Button>
               </div>
 
               <Link href="/profile">
-                <Button fullWidth>Return to Profile</Button>
+                <Button fullWidth>{t('returnToProfile')}</Button>
               </Link>
             </div>
           </CardBody>

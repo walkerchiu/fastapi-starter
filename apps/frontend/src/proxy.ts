@@ -1,7 +1,13 @@
 import { auth } from '@/lib/auth';
+import createIntlMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { Role } from '@/types/next-auth';
+import { routing } from './i18n/routing';
 
+// Create the internationalization middleware
+const intlMiddleware = createIntlMiddleware(routing);
+
+// Routes that require authentication (without locale prefix)
 const protectedRoutes = ['/dashboard', '/profile', '/settings'];
 const authRoutes = ['/login', '/register'];
 
@@ -10,7 +16,7 @@ const authRoutes = ['/login', '/register'];
  * Each entry specifies a route path and the roles required to access it.
  */
 interface RoleProtectedRoute {
-  /** Route path (uses startsWith matching) */
+  /** Route path (uses startsWith matching, without locale prefix) */
   path: string;
   /** Required role codes (OR logic - any role grants access) */
   roles: string[];
@@ -43,26 +49,47 @@ function hasAnyRole(
   );
 }
 
+/**
+ * Remove locale prefix from pathname for route matching.
+ */
+function removeLocalePrefix(pathname: string): string {
+  const localePattern = /^\/(en|zh-TW)(\/|$)/;
+  return pathname.replace(localePattern, '/');
+}
+
+/**
+ * Get the locale from pathname.
+ */
+function getLocaleFromPathname(pathname: string): string | null {
+  const match = pathname.match(/^\/(en|zh-TW)(\/|$)/);
+  return match?.[1] ?? null;
+}
+
 export const proxy = auth((req) => {
   const { nextUrl } = req;
   const isAuthenticated = !!req.auth;
   const userRoles = req.auth?.user?.roles;
 
+  // Get pathname without locale prefix for route matching
+  const pathnameWithoutLocale = removeLocalePrefix(nextUrl.pathname);
+  const locale = getLocaleFromPathname(nextUrl.pathname);
+
   const isProtectedRoute = protectedRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route),
+    pathnameWithoutLocale.startsWith(route),
   );
   const isAuthRoute = authRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route),
+    pathnameWithoutLocale.startsWith(route),
   );
 
   // Check if route requires specific roles
   const roleRoute = roleProtectedRoutes.find((route) =>
-    nextUrl.pathname.startsWith(route.path),
+    pathnameWithoutLocale.startsWith(route.path),
   );
 
   // Redirect to login if not authenticated
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', nextUrl);
+    const loginPath = locale ? `/${locale}/login` : '/login';
+    const loginUrl = new URL(loginPath, nextUrl);
     const callbackPath = isValidPathname(nextUrl.pathname)
       ? nextUrl.pathname
       : '/';
@@ -72,7 +99,8 @@ export const proxy = auth((req) => {
 
   // Redirect to login if role-protected route and not authenticated
   if (roleRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', nextUrl);
+    const loginPath = locale ? `/${locale}/login` : '/login';
+    const loginUrl = new URL(loginPath, nextUrl);
     const callbackPath = isValidPathname(nextUrl.pathname)
       ? nextUrl.pathname
       : '/';
@@ -83,28 +111,30 @@ export const proxy = auth((req) => {
   // Check role access for role-protected routes
   if (roleRoute && isAuthenticated) {
     if (!hasAnyRole(userRoles, roleRoute.roles)) {
-      const unauthorizedUrl = new URL('/unauthorized', nextUrl);
+      const unauthorizedPath = locale
+        ? `/${locale}/unauthorized`
+        : '/unauthorized';
+      const unauthorizedUrl = new URL(unauthorizedPath, nextUrl);
       unauthorizedUrl.searchParams.set('from', nextUrl.pathname);
       return NextResponse.redirect(unauthorizedUrl);
     }
   }
 
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/', nextUrl));
+    const homePath = locale ? `/${locale}` : '/';
+    return NextResponse.redirect(new URL(homePath, nextUrl));
   }
 
-  return NextResponse.next();
+  // Run i18n middleware for locale handling
+  return intlMiddleware(req);
 });
 
 export const config = {
   matcher: [
-    {
-      source:
-        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
-    },
+    // Match all pathnames except for
+    // - API routes
+    // - Next.js internals (_next)
+    // - Static files
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };

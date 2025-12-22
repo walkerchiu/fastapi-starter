@@ -34,6 +34,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
+- **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
 - **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
@@ -62,6 +63,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [urql](https://commerce.nearform.com/open-source/urql/) - GraphQL client
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen) - TypeScript types from schema
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
+- [next-intl](https://next-intl.dev/) - Internationalization for Next.js
 - [Vitest](https://vitest.dev/) 4 - Testing framework
 - [React Testing Library](https://testing-library.com/react) - Component testing
 
@@ -97,27 +99,37 @@ fastapi-nextjs-tailwindcss-starter/
 │   └── frontend/                   # Next.js frontend application
 │       ├── src/
 │       │   ├── app/
-│       │   │   ├── 2fa/
-│       │   │   │   ├── setup/      # 2FA setup wizard
-│       │   │   │   └── verify/     # 2FA verification
-│       │   │   ├── 2fa-callback/   # 2FA sign-in completion
-│       │   │   ├── forgot-password/ # Password reset request
-│       │   │   ├── login/          # User login
-│       │   │   ├── profile/        # User profile management
-│       │   │   ├── register/       # User registration
-│       │   │   ├── reset-password/ # Password reset
-│       │   │   ├── verify-email/   # Email verification
+│       │   │   ├── [locale]/       # i18n dynamic routes
+│       │   │   │   ├── layout.tsx  # Locale layout
+│       │   │   │   ├── page.tsx    # Home page
+│       │   │   │   ├── 2fa/        # 2FA pages (setup, verify)
+│       │   │   │   ├── login/      # Login page
+│       │   │   │   ├── register/   # Registration page
+│       │   │   │   ├── dashboard/  # Protected dashboard
+│       │   │   │   ├── profile/    # User profile page
+│       │   │   │   ├── forgot-password/ # Password reset request
+│       │   │   │   ├── reset-password/  # Password reset form
+│       │   │   │   └── verify-email/    # Email verification page
+│       │   │   ├── 2fa-callback/   # 2FA callback handler
+│       │   │   ├── unauthorized/   # Access denied page
+│       │   │   ├── api/            # API routes
 │       │   │   ├── layout.tsx      # Root layout
-│       │   │   ├── page.tsx        # Home page
-│       │   │   ├── page.test.tsx   # Page tests
 │       │   │   └── globals.css     # Global styles with Tailwind
+│       │   ├── components/
+│       │   │   ├── ui/             # Reusable UI components
+│       │   │   ├── nav/            # Navigation components
+│       │   │   ├── auth/           # Role-based access components
+│       │   │   ├── profile/        # Profile edit modals
+│       │   │   └── providers/      # React context providers
 │       │   ├── config/
 │       │   │   └── env.ts          # Environment validation
 │       │   ├── lib/
 │       │   │   ├── api.ts          # API client wrapper
 │       │   │   └── auth.ts         # NextAuth configuration
-│       │   └── test/
-│       │       └── setup.ts        # Vitest setup
+│       │   ├── hooks/              # Custom React hooks
+│       │   ├── i18n/               # Internationalization config
+│       │   └── graphql/            # GraphQL operations
+│       ├── messages/               # Translation files (en, zh-TW)
 │       ├── .env.example            # Environment variables template
 │       ├── vitest.config.ts        # Vitest configuration
 │       ├── tailwind.config.ts      # TailwindCSS configuration
@@ -886,6 +898,103 @@ Use Tailwind's `dark:` variant to style components for dark mode:
   </p>
 </div>
 ```
+
+## Internationalization (i18n)
+
+The frontend supports multiple languages using next-intl:
+
+### Supported Locales
+
+| Locale  | Language            |
+| ------- | ------------------- |
+| `en`    | English (default)   |
+| `zh-TW` | Traditional Chinese |
+
+### Configuration
+
+i18n is configured in `src/i18n/`:
+
+```
+src/i18n/
+├── config.ts     # Locale configuration and types
+├── request.ts    # Server-side locale detection
+└── index.ts      # Exports
+```
+
+### Message Files
+
+Translation messages are stored in `src/messages/`:
+
+```
+src/messages/
+├── en.json       # English translations
+└── zh-TW.json    # Traditional Chinese translations
+```
+
+### Usage
+
+#### In Server Components
+
+```tsx
+import { getTranslations } from 'next-intl/server';
+
+export default async function Page() {
+  const t = await getTranslations('common');
+  return <h1>{t('welcome')}</h1>;
+}
+```
+
+#### In Client Components
+
+```tsx
+'use client';
+import { useTranslations } from 'next-intl';
+
+export default function MyComponent() {
+  const t = useTranslations('common');
+  return <button>{t('submit')}</button>;
+}
+```
+
+### LanguageSwitcher
+
+A button component that cycles through available locales:
+
+```tsx
+import { LanguageSwitcher } from '@/components/ui';
+
+<LanguageSwitcher />;
+```
+
+### Adding New Translations
+
+1. Add translations to `src/messages/en.json`:
+
+   ```json
+   {
+     "myFeature": {
+       "title": "My Feature",
+       "description": "Description here"
+     }
+   }
+   ```
+
+2. Add corresponding translations to `src/messages/zh-TW.json`:
+
+   ```json
+   {
+     "myFeature": {
+       "title": "我的功能",
+       "description": "描述在這裡"
+     }
+   }
+   ```
+
+3. Use in components:
+   ```tsx
+   const t = useTranslations('myFeature');
+   <h1>{t('title')}</h1>;
+   ```
 
 ## Docker
 

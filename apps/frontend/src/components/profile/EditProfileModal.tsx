@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
-import { Alert, Button, Modal } from '@/components/ui';
+import { Button, Input, Modal } from '@/components/ui';
 import { env } from '@/config/env';
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentName: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function EditProfileModal({
@@ -19,24 +20,15 @@ export function EditProfileModal({
   currentName,
   onSuccess,
 }: EditProfileModalProps) {
-  const { data: session, update: updateSession } = useSession();
+  const t = useTranslations('profile');
+  const { data: session } = useSession();
   const [name, setName] = useState(currentName);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setName(currentName);
-      setError('');
-      setSuccess('');
-    }
-  }, [isOpen, currentName]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError(null);
     setIsLoading(true);
 
     try {
@@ -54,62 +46,58 @@ export function EditProfileModal({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to update profile');
+        throw new Error(data.message || t('updateProfileFailed'));
       }
 
-      setSuccess('Profile updated successfully');
-      await updateSession();
-      onSuccess();
-      setTimeout(() => {
-        onClose();
-        setSuccess('');
-      }, 1500);
+      onSuccess?.();
+      onClose();
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An error occurred. Please try again.');
-      }
+      setError(err instanceof Error ? err.message : t('genericError'));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setName(currentName);
+    setError(null);
+    onClose();
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Profile">
-      <form onSubmit={handleSubmit}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('editProfile')}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <Alert variant="error" className="mb-4">
-            {error}
-          </Alert>
+          <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+          </div>
         )}
-        {success && (
-          <Alert variant="success" className="mb-4">
-            {success}
-          </Alert>
-        )}
-        <div className="mb-4">
+
+        <div>
           <label
-            htmlFor="editName"
-            className="block text-sm font-medium text-gray-700"
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Name
+            {t('name')}
           </label>
-          <input
+          <Input
+            id="name"
             type="text"
-            id="editName"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            placeholder="Your name"
+            required
+            minLength={2}
+            maxLength={100}
+            className="mt-1"
           />
         </div>
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            {t('cancel')}
           </Button>
-          <Button type="submit" isLoading={isLoading}>
-            Save
+          <Button type="submit" loading={isLoading}>
+            {t('save')}
           </Button>
         </div>
       </form>

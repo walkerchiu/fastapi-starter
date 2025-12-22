@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signIn } from 'next-auth/react';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import LoginPage from './page';
 
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
@@ -10,18 +9,48 @@ vi.mock('next-auth/react', () => ({
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+const mockSearchParams = new URLSearchParams();
 
 vi.mock('next/navigation', () => ({
+  useSearchParams: () => mockSearchParams,
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace: string) => (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      'auth.login': {
+        title: 'Sign in to your account',
+        email: 'Email address',
+        password: 'Password',
+        submit: 'Sign in',
+        submitting: 'Signing in...',
+        invalidCredentials: 'Invalid email or password',
+        genericError: 'An error occurred',
+        noAccount: 'create a new account',
+      },
+      common: {
+        or: 'Or',
+      },
+    };
+    return translations[namespace]?.[key] ?? key;
+  },
+}));
+
+vi.mock('@/i18n/routing', () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
   }),
-  useSearchParams: () => ({
-    get: vi.fn().mockReturnValue(null),
-  }),
 }));
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+// Import after mocks are set up
+import LoginPage from './page';
 
 describe('LoginPage', () => {
   beforeEach(() => {
@@ -87,7 +116,7 @@ describe('LoginPage', () => {
   it('shows error message on failed login', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Invalid email or password' }),
+      json: () => Promise.resolve({ message: 'Invalid email or password' }),
     });
 
     render(<LoginPage />);

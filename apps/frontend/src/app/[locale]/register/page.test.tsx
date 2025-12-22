@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signIn } from 'next-auth/react';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import RegisterPage from './page';
 
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
@@ -11,17 +10,54 @@ vi.mock('next-auth/react', () => ({
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
 
-vi.mock('next/navigation', () => ({
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace: string) => (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      'auth.register': {
+        title: 'Create your account',
+        name: 'Full name',
+        email: 'Email address',
+        password: 'Password',
+        confirmPassword: 'Confirm password',
+        submit: 'Create account',
+        submitting: 'Creating account...',
+        hasAccount: 'sign in to your existing account',
+        passwordMismatch: 'Passwords do not match',
+        passwordTooShort: 'Password must be at least 8 characters',
+        emailExists: 'Email already exists',
+        invalidInput: 'Invalid input',
+        registrationFailed: 'Registration failed',
+        genericError: 'An error occurred',
+      },
+      common: {
+        or: 'Or',
+      },
+    };
+    return translations[namespace]?.[key] ?? key;
+  },
+}));
+
+vi.mock('@/i18n/routing', () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
   }),
 }));
 
+// Import after mocks are set up
+import RegisterPage from './page';
+
+// Mock fetch for API calls
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
+    mockFetch.mockReset();
   });
 
   it('renders registration form', () => {
@@ -118,7 +154,7 @@ describe('RegisterPage', () => {
   });
 
   it('shows loading state when submitting', async () => {
-    (global.fetch as Mock).mockImplementation(
+    mockFetch.mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
@@ -144,7 +180,7 @@ describe('RegisterPage', () => {
   });
 
   it('redirects to home on successful registration and auto-login', async () => {
-    (global.fetch as Mock).mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: 1, email: 'john@example.com' }),
     });
@@ -177,10 +213,10 @@ describe('RegisterPage', () => {
   });
 
   it('shows error on registration failure', async () => {
-    (global.fetch as Mock).mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 400,
-      json: () => Promise.resolve({ detail: 'Email already registered' }),
+      json: () => Promise.resolve({ message: 'Email already registered' }),
     });
 
     render(<RegisterPage />);

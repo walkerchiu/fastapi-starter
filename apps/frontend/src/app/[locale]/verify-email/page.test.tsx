@@ -83,7 +83,7 @@ describe('VerifyEmailPage', () => {
     mockSearchParams.set('token', 'invalid-token');
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Invalid token' }),
+      json: () => Promise.resolve({ message: 'Invalid token' }),
     });
 
     render(<VerifyEmailPage />);

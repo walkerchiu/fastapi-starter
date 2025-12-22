@@ -230,7 +230,7 @@ describe('TwoFactorSetupPage', () => {
       }
       return Promise.resolve({
         ok: false,
-        json: () => Promise.resolve({ detail: 'Invalid code' }),
+        json: () => Promise.resolve({ message: 'Invalid code' }),
       });
     });
 

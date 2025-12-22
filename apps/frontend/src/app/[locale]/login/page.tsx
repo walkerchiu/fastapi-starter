@@ -1,14 +1,17 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
-import { Alert, Button, Spinner } from '@/components/ui';
+import { Alert, Button, Input, Spinner } from '@/components/ui';
 import { env } from '@/config/env';
+import { Link, useRouter } from '@/i18n/routing';
 
 function LoginForm() {
+  const t = useTranslations('auth.login');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -35,7 +38,7 @@ function LoginForm() {
 
       if (!loginResponse.ok) {
         const data = await loginResponse.json();
-        setError(data.detail || 'Invalid email or password');
+        setError(data.message || t('invalidCredentials'));
         return;
       }
 
@@ -58,13 +61,13 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError(t('invalidCredentials'));
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError(t('genericError'));
     } finally {
       setIsLoading(false);
     }
@@ -75,53 +78,43 @@ function LoginForm() {
       <div className="w-full max-w-md space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-            Sign in to your account
+            {t('title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{' '}
+            {tCommon('or')}{' '}
             <Link
               href="/register"
               className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              create a new account
+              {t('noAccount')}
             </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && <Alert variant="error">{error}</Alert>}
-          <div className="-space-y-px rounded-md shadow-sm">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="relative block w-full rounded-t-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                placeholder="Email address"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="relative block w-full rounded-b-md border-0 px-3 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                placeholder="Password"
-              />
-            </div>
+          <div className="space-y-4 rounded-md shadow-sm">
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('email')}
+              label={t('email')}
+            />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('password')}
+              label={t('password')}
+            />
           </div>
 
           <div className="flex items-center justify-end">
@@ -129,12 +122,12 @@ function LoginForm() {
               href="/forgot-password"
               className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              Forgot your password?
+              {t('forgotPassword')}
             </Link>
           </div>
 
-          <Button type="submit" isLoading={isLoading} fullWidth>
-            {isLoading ? 'Signing in...' : 'Sign in'}
+          <Button type="submit" loading={isLoading} fullWidth>
+            {isLoading ? t('submitting') : t('submit')}
           </Button>
         </form>
       </div>

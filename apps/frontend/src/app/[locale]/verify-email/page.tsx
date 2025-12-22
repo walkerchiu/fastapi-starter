@@ -1,11 +1,12 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 
 import { Alert, Button, Spinner } from '@/components/ui';
 import { env } from '@/config/env';
+import { Link, useRouter } from '@/i18n/routing';
 
 type VerificationStatus = 'loading' | 'success' | 'error' | 'no-token';
 
@@ -13,6 +14,7 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const t = useTranslations('auth.verifyEmail');
 
   const [status, setStatus] = useState<VerificationStatus>(
     token ? 'loading' : 'no-token',
@@ -35,7 +37,7 @@ function VerifyEmailContent() {
 
         if (!response.ok) {
           const data = await response.json();
-          throw new Error(data.detail || 'Failed to verify email');
+          throw new Error(data.message || t('verificationFailed'));
         }
 
         setStatus('success');
@@ -47,11 +49,11 @@ function VerifyEmailContent() {
         if (err instanceof Error) {
           setErrorMessage(err.message);
         } else {
-          setErrorMessage('An error occurred during verification.');
+          setErrorMessage(t('genericError'));
         }
       }
     },
-    [router],
+    [router, t],
   );
 
   useEffect(() => {
@@ -66,11 +68,11 @@ function VerifyEmailContent() {
         {status === 'loading' && (
           <>
             <Spinner />
-            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-              Verifying your email...
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('verifyingTitle')}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Please wait while we verify your email address.
+              {t('verifyingMessage')}
             </p>
           </>
         )}
@@ -92,14 +94,12 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-              Email Verified!
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('successTitle')}
             </h2>
-            <Alert variant="success">
-              Your email has been verified successfully. Redirecting to login...
-            </Alert>
+            <Alert variant="success">{t('successMessage')}</Alert>
             <Link href="/login">
-              <Button>Go to Login</Button>
+              <Button>{t('goToLogin')}</Button>
             </Link>
           </>
         )}
@@ -121,16 +121,16 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-              Verification Failed
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('errorTitle')}
             </h2>
             <Alert variant="error">{errorMessage}</Alert>
             <p className="text-gray-600 dark:text-gray-400">
-              The verification link may be expired or invalid.
+              {t('errorDescription')}
             </p>
             <div className="mt-6 space-y-3">
               <Link href="/login">
-                <Button fullWidth>Go to Login</Button>
+                <Button fullWidth>{t('goToLogin')}</Button>
               </Link>
             </div>
           </>
@@ -153,18 +153,16 @@ function VerifyEmailContent() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-              Invalid Link
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('invalidLinkTitle')}
             </h2>
-            <Alert variant="warning">
-              No verification token found in the URL.
-            </Alert>
+            <Alert variant="warning">{t('noTokenMessage')}</Alert>
             <p className="text-gray-600 dark:text-gray-400">
-              Please check your email for the correct verification link.
+              {t('checkEmailMessage')}
             </p>
             <div className="mt-6">
               <Link href="/login">
-                <Button>Go to Login</Button>
+                <Button>{t('goToLogin')}</Button>
               </Link>
             </div>
           </>
