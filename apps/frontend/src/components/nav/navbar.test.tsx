@@ -103,24 +103,6 @@ describe('Navbar', () => {
     expect(dashboardLink).toHaveAttribute('href', '/dashboard');
   });
 
-  it('renders dashboard link when authenticated', () => {
-    (useSession as Mock).mockReturnValue({
-      data: {
-        user: {
-          name: 'John Doe',
-          email: 'john@example.com',
-        },
-      },
-      status: 'authenticated',
-    });
-
-    render(<Navbar />);
-
-    const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
-    expect(dashboardLink).toBeInTheDocument();
-    expect(dashboardLink).toHaveAttribute('href', '/dashboard');
-  });
-
   it('renders user email when name is not available', () => {
     (useSession as Mock).mockReturnValue({
       data: {

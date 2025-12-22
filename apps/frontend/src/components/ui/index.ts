@@ -45,5 +45,7 @@ export type { StatCardProps } from './StatCard';
 export { ToastProvider, useToast } from './Toast';
 export type { Toast, ToastContextValue, ToastVariant } from './Toast';
 
+export { ThemeToggle } from './ThemeToggle';
+
 export { Tooltip } from './Tooltip';
 export type { TooltipPosition, TooltipProps } from './Tooltip';
