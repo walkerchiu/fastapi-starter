@@ -36,6 +36,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)
 - **UI Component Library** - Reusable components including Table, Pagination, Tabs, and DropdownMenu
+- **Storybook** - Interactive component development and documentation
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
 - **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
@@ -65,6 +66,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen) - TypeScript types from schema
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
 - [next-intl](https://next-intl.dev/) - Internationalization for Next.js
+- [Storybook](https://storybook.js.org/) 10 - Component development and documentation
 - [Vitest](https://vitest.dev/) 4 - Testing framework
 - [React Testing Library](https://testing-library.com/react) - Component testing
 
@@ -207,28 +209,30 @@ The applications will be available at:
 
 ### Root Level
 
-| Command              | Description                             |
-| -------------------- | --------------------------------------- |
-| `pnpm dev`           | Start frontend in development mode      |
-| `pnpm dev:backend`   | Start backend in development mode       |
-| `pnpm dev:frontend`  | Start frontend in development mode      |
-| `pnpm build`         | Build frontend for production           |
-| `pnpm test`          | Run tests in all apps                   |
-| `pnpm test:backend`  | Run backend tests                       |
-| `pnpm test:frontend` | Run frontend tests                      |
-| `pnpm test:cov`      | Run tests with coverage in all apps     |
-| `pnpm lint`          | Run ESLint across the workspace         |
-| `pnpm lint:fix`      | Fix ESLint issues automatically         |
-| `pnpm lint:backend`  | Run Ruff linter on backend              |
-| `pnpm format`        | Format code with Prettier and Ruff      |
-| `pnpm format:check`  | Check code formatting without modifying |
-| `pnpm generate:api`  | Generate TypeScript API client          |
-| `pnpm db:upgrade`    | Run database migrations                 |
-| `pnpm db:downgrade`  | Revert last migration                   |
-| `pnpm db:revision`   | Generate a new migration                |
-| `pnpm db:history`    | Show migration history                  |
-| `pnpm db:current`    | Show current migration status           |
-| `pnpm db:seed`       | Seed default data (roles, permissions)  |
+| Command                | Description                             |
+| ---------------------- | --------------------------------------- |
+| `pnpm dev`             | Start frontend in development mode      |
+| `pnpm dev:backend`     | Start backend in development mode       |
+| `pnpm dev:frontend`    | Start frontend in development mode      |
+| `pnpm build`           | Build frontend for production           |
+| `pnpm test`            | Run tests in all apps                   |
+| `pnpm test:backend`    | Run backend tests                       |
+| `pnpm test:frontend`   | Run frontend tests                      |
+| `pnpm test:cov`        | Run tests with coverage in all apps     |
+| `pnpm lint`            | Run ESLint across the workspace         |
+| `pnpm lint:fix`        | Fix ESLint issues automatically         |
+| `pnpm lint:backend`    | Run Ruff linter on backend              |
+| `pnpm format`          | Format code with Prettier and Ruff      |
+| `pnpm format:check`    | Check code formatting without modifying |
+| `pnpm generate:api`    | Generate TypeScript API client          |
+| `pnpm storybook`       | Start Storybook development server      |
+| `pnpm build-storybook` | Build Storybook for production          |
+| `pnpm db:upgrade`      | Run database migrations                 |
+| `pnpm db:downgrade`    | Revert last migration                   |
+| `pnpm db:revision`     | Generate a new migration                |
+| `pnpm db:history`      | Show migration history                  |
+| `pnpm db:current`      | Show current migration status           |
+| `pnpm db:seed`         | Seed default data (roles, permissions)  |
 
 > **Note**: `pnpm generate:api` requires the backend server to be running (`pnpm dev:backend`).
 
@@ -1146,6 +1150,81 @@ import {
 | `Alert`   | Alert messages with success, error, warning, info |
 | `Card`    | Container with header, content, and footer        |
 | `Spinner` | Loading spinner                                   |
+
+## Storybook
+
+The project includes Storybook for component development and documentation:
+
+### Running Storybook
+
+```bash
+# Start Storybook development server (port 6006)
+pnpm storybook
+
+# Build static Storybook site
+pnpm build-storybook
+```
+
+### Available Stories
+
+| Component        | Stories                                        |
+| ---------------- | ---------------------------------------------- |
+| Card             | Default, With Header, With Footer              |
+| Checkbox         | Default, Checked, Disabled                     |
+| FormField        | Default, With Error, Required                  |
+| Input            | Default, With Placeholder, Disabled, With Icon |
+| LanguageSwitcher | Default                                        |
+| Modal            | Default, With Footer, Closable                 |
+| Radio            | Default, Checked, Disabled, Group              |
+| Select           | Default, With Options, Disabled                |
+| Skeleton         | Default, Text, Avatar, Card                    |
+| Spinner          | Default, Small, Large                          |
+| StatCard         | Default, With Change, Colored                  |
+| ThemeToggle      | Default                                        |
+| Toast            | Success, Error, Warning, Info                  |
+| Tooltip          | Default, Positions, With Delay                 |
+
+### Writing Stories
+
+Create story files alongside components with `.stories.tsx` extension:
+
+```tsx
+// Card.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import { Card } from './Card';
+
+const meta: Meta<typeof Card> = {
+  title: 'UI/Card',
+  component: Card,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof Card>;
+
+export const Default: Story = {
+  args: {
+    children: 'Card content',
+  },
+};
+
+export const WithHeader: Story = {
+  args: {
+    header: 'Card Title',
+    children: 'Card content',
+  },
+};
+```
+
+### Storybook Configuration
+
+Storybook is configured in `apps/frontend/.storybook/`:
+
+```
+.storybook/
+├── main.ts      # Storybook configuration (addons, framework)
+└── preview.tsx  # Global decorators and parameters
+```
 
 ## Docker
 

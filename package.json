@@ -13,6 +13,8 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "build": "pnpm --filter frontend build",
     "build:frontend": "pnpm --filter frontend build",
+    "storybook": "pnpm --filter frontend storybook",
+    "build-storybook": "pnpm --filter frontend build-storybook",
     "test": "pnpm test:backend && pnpm test:frontend",
     "test:backend": "cd apps/backend && uv run pytest --ignore=tests/integration",
     "test:frontend": "pnpm --filter frontend test",
