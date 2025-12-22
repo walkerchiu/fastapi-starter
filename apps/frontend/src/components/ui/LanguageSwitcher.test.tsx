@@ -1,97 +1,54 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { LanguageSwitcher } from './LanguageSwitcher';
 
-// Mock locale state
-let mockLocale = 'en';
 const mockReplace = vi.fn();
-
-vi.mock('next-intl', () => ({
-  useLocale: () => mockLocale,
-}));
 
 vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({
     replace: mockReplace,
   }),
-  usePathname: () => '/test-path',
-}));
-
-vi.mock('@/i18n', () => ({
-  locales: ['en', 'zh-TW'],
-  localeNames: {
-    en: 'English',
-    'zh-TW': '繁體中文',
-  },
-  defaultLocale: 'en',
+  usePathname: () => '/dashboard',
 }));
 
 describe('LanguageSwitcher', () => {
   beforeEach(() => {
-    mockLocale = 'en';
-    mockReplace.mockClear();
+    vi.clearAllMocks();
   });
 
-  it('renders without crashing', () => {
+  it('renders language select', () => {
     render(<LanguageSwitcher />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
+
+    const select = screen.getByRole('combobox', { name: /select language/i });
+    expect(select).toBeInTheDocument();
   });
 
-  it('has correct aria-label for English locale', () => {
-    mockLocale = 'en';
+  it('displays available language options', () => {
     render(<LanguageSwitcher />);
-    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'English');
+
+    const select = screen.getByRole('combobox');
+    const options = select.querySelectorAll('option');
+
+    expect(options).toHaveLength(2);
+    // Options show translation keys since useTranslations is mocked
+    expect(options[0]).toHaveValue('en');
+    expect(options[1]).toHaveValue('zh-TW');
   });
 
-  it('has correct aria-label for Traditional Chinese locale', () => {
-    mockLocale = 'zh-TW';
+  it('calls router.replace when language is changed', () => {
     render(<LanguageSwitcher />);
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'aria-label',
-      '繁體中文',
-    );
+
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'zh-TW' } });
+
+    expect(mockReplace).toHaveBeenCalledWith('/dashboard', { locale: 'zh-TW' });
   });
 
-  it('displays EN for English locale', () => {
-    mockLocale = 'en';
+  it('has default value of en', () => {
     render(<LanguageSwitcher />);
-    expect(screen.getByText('EN')).toBeInTheDocument();
-  });
 
-  it('displays 繁 for Traditional Chinese locale', () => {
-    mockLocale = 'zh-TW';
-    render(<LanguageSwitcher />);
-    expect(screen.getByText('繁')).toBeInTheDocument();
-  });
-
-  it('cycles from en to zh-TW on click', () => {
-    mockLocale = 'en';
-    render(<LanguageSwitcher />);
-    fireEvent.click(screen.getByRole('button'));
-    expect(mockReplace).toHaveBeenCalledWith('/test-path', { locale: 'zh-TW' });
-  });
-
-  it('cycles from zh-TW to en on click', () => {
-    mockLocale = 'zh-TW';
-    render(<LanguageSwitcher />);
-    fireEvent.click(screen.getByRole('button'));
-    expect(mockReplace).toHaveBeenCalledWith('/test-path', { locale: 'en' });
-  });
-
-  it('applies custom className', () => {
-    render(<LanguageSwitcher className="custom-class" />);
-    expect(screen.getByRole('button')).toHaveClass('custom-class');
-  });
-
-  it('contains an SVG globe icon', () => {
-    render(<LanguageSwitcher />);
-    const button = screen.getByRole('button');
-    expect(button.querySelector('svg')).toBeInTheDocument();
-  });
-
-  it('has focus ring styles for accessibility', () => {
-    render(<LanguageSwitcher />);
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass('focus:ring-2');
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select.value).toBe('en');
   });
 });

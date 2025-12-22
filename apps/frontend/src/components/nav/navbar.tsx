@@ -13,7 +13,7 @@ export function Navbar() {
   const isLoading = status === 'loading';
 
   return (
-    <nav className="bg-white shadow dark:bg-gray-900 dark:shadow-gray-800">
+    <nav className="bg-white shadow dark:bg-gray-800 dark:shadow-gray-900/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex">
@@ -33,19 +33,22 @@ export function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
                   {t('dashboard')}
                 </Link>
                 <Link
                   href="/profile"
-                  className="text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
-                  {session.user?.name || session.user?.email}
+                  {t('profile')}
                 </Link>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {session.user?.name || session.user?.email}
+                </span>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
                   {t('signOut')}
                 </button>
@@ -54,7 +57,7 @@ export function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
                   {t('signIn')}
                 </Link>

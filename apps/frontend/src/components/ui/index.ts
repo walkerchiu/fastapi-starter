@@ -19,6 +19,8 @@ export type { FormFieldChildProps, FormFieldProps } from './FormField';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 
+export { LanguageSwitcher } from './LanguageSwitcher';
+
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
 
