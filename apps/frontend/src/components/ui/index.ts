@@ -19,12 +19,8 @@ export type { FormFieldChildProps, FormFieldProps } from './FormField';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 
-export { LanguageSwitcher } from './LanguageSwitcher';
-
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
-
-export { Pagination } from './Pagination';
 
 export { Radio, RadioGroup } from './Radio';
 export type { RadioGroupProps, RadioOption, RadioProps } from './Radio';
@@ -46,6 +42,20 @@ export type { SpinnerProps, SpinnerSize } from './Spinner';
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 
+export { ToastProvider, useToast } from './Toast';
+export type { Toast, ToastContextValue, ToastVariant } from './Toast';
+
+export { Tooltip } from './Tooltip';
+export type { TooltipPosition, TooltipProps } from './Tooltip';
+
+export { ThemeToggle } from './ThemeToggle';
+export type { ThemeToggleProps } from './ThemeToggle';
+
+export { LanguageSwitcher } from './LanguageSwitcher';
+
+export { Pagination } from './Pagination';
+export type { PaginationProps, PaginationSize } from './Pagination';
+
 export {
   Table,
   TableBody,
@@ -64,10 +74,29 @@ export type {
   TableRowProps,
 } from './Table';
 
-export { ToastProvider, useToast } from './Toast';
-export type { Toast, ToastContextValue, ToastVariant } from './Toast';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
+export type {
+  TabsContentProps,
+  TabsListProps,
+  TabsProps,
+  TabsTriggerProps,
+} from './Tabs';
 
-export { ThemeToggle } from './ThemeToggle';
-
-export { Tooltip } from './Tooltip';
-export type { TooltipPosition, TooltipProps } from './Tooltip';
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './DropdownMenu';
+export type {
+  DropdownMenuAlign,
+  DropdownMenuContentProps,
+  DropdownMenuItemProps,
+  DropdownMenuLabelProps,
+  DropdownMenuProps,
+  DropdownMenuSeparatorProps,
+  DropdownMenuSide,
+  DropdownMenuTriggerProps,
+} from './DropdownMenu';

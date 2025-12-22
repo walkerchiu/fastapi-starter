@@ -1069,6 +1069,84 @@ import { Pagination } from '@/components/ui';
 | `onPageChange`  | `(page: number) => void` | Page change handler          |
 | `showFirstLast` | `boolean`                | Show first/last page buttons |
 
+### Tabs
+
+A compound component for tabbed interfaces:
+
+```tsx
+import { Tabs, TabList, Tab, TabPanel } from '@/components/ui';
+
+<Tabs defaultTab="tab1">
+  <TabList>
+    <Tab id="tab1">Account</Tab>
+    <Tab id="tab2">Settings</Tab>
+    <Tab id="tab3" disabled>
+      Coming Soon
+    </Tab>
+  </TabList>
+  <TabPanel id="tab1">
+    <p>Account settings content</p>
+  </TabPanel>
+  <TabPanel id="tab2">
+    <p>Settings content</p>
+  </TabPanel>
+  <TabPanel id="tab3">
+    <p>Disabled tab content</p>
+  </TabPanel>
+</Tabs>;
+```
+
+### DropdownMenu
+
+A compound component for dropdown menus with labels, separators, and destructive actions:
+
+```tsx
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui';
+
+<DropdownMenu>
+  <DropdownMenuTrigger>
+    <Button>Open Menu</Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="left">
+    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+    <DropdownMenuItem onClick={() => handleProfile()}>Profile</DropdownMenuItem>
+    <DropdownMenuItem onClick={() => handleSettings()}>
+      Settings
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem destructive onClick={() => handleLogout()}>
+      Sign Out
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>;
+```
+
+#### DropdownMenuItem Props
+
+| Prop          | Type         | Description                       |
+| ------------- | ------------ | --------------------------------- |
+| `onClick`     | `() => void` | Click handler                     |
+| `disabled`    | `boolean`    | Disable the menu item             |
+| `destructive` | `boolean`    | Style as destructive action (red) |
+
+### Other Components
+
+| Component | Description                                       |
+| --------- | ------------------------------------------------- |
+| `Button`  | Button with variants (primary, secondary, danger) |
+| `Input`   | Form input with label and error state             |
+| `Badge`   | Status badges with color variants                 |
+| `Alert`   | Alert messages with success, error, warning, info |
+| `Card`    | Container with header, content, and footer        |
+| `Spinner` | Loading spinner                                   |
+
 ## Docker
 
 ### Using Docker Compose
