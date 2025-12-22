@@ -24,6 +24,8 @@ export { LanguageSwitcher } from './LanguageSwitcher';
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
 
+export { Pagination } from './Pagination';
+
 export { Radio, RadioGroup } from './Radio';
 export type { RadioGroupProps, RadioOption, RadioProps } from './Radio';
 
@@ -43,6 +45,24 @@ export type { SpinnerProps, SpinnerSize } from './Spinner';
 
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
+
+export {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './Table';
+export type {
+  SortDirection,
+  TableBodyProps,
+  TableCellProps,
+  TableHeadProps,
+  TableHeaderProps,
+  TableProps,
+  TableRowProps,
+} from './Table';
 
 export { ToastProvider, useToast } from './Toast';
 export type { Toast, ToastContextValue, ToastVariant } from './Toast';

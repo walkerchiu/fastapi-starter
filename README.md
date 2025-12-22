@@ -35,6 +35,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)
+- **UI Component Library** - Reusable components including Table, Pagination, Tabs, and DropdownMenu
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
 - **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
@@ -995,6 +996,78 @@ import { LanguageSwitcher } from '@/components/ui';
    const t = useTranslations('myFeature');
    <h1>{t('title')}</h1>;
    ```
+
+## UI Components
+
+The frontend includes a library of reusable UI components in `src/components/ui/`:
+
+### Table
+
+A flexible, generic table component with support for custom rendering, loading states, and row interactions:
+
+```tsx
+import { Table, type TableColumn } from '@/components/ui';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const columns: TableColumn<User>[] = [
+  { key: 'id', header: 'ID' },
+  { key: 'name', header: 'Name' },
+  { key: 'email', header: 'Email' },
+];
+
+<Table
+  columns={columns}
+  data={users}
+  keyExtractor={(user) => user.id}
+  striped
+  hoverable
+  loading={isLoading}
+  emptyMessage="No users found"
+  onRowClick={(user) => console.log('Clicked:', user)}
+/>;
+```
+
+#### Table Props
+
+| Prop           | Type                | Description                    |
+| -------------- | ------------------- | ------------------------------ |
+| `columns`      | `TableColumn<T>[]`  | Column definitions             |
+| `data`         | `T[]`               | Data array                     |
+| `keyExtractor` | `(item: T) => Key`  | Function to extract unique key |
+| `striped`      | `boolean`           | Alternate row backgrounds      |
+| `hoverable`    | `boolean`           | Highlight rows on hover        |
+| `loading`      | `boolean`           | Show loading spinner           |
+| `emptyMessage` | `string`            | Message when data is empty     |
+| `onRowClick`   | `(item: T) => void` | Row click handler              |
+
+### Pagination
+
+A pagination component with first/last navigation and ellipsis for large page ranges:
+
+```tsx
+import { Pagination } from '@/components/ui';
+
+<Pagination
+  currentPage={1}
+  totalPages={10}
+  onPageChange={(page) => setCurrentPage(page)}
+  showFirstLast={true}
+/>;
+```
+
+#### Pagination Props
+
+| Prop            | Type                     | Description                  |
+| --------------- | ------------------------ | ---------------------------- |
+| `currentPage`   | `number`                 | Current active page          |
+| `totalPages`    | `number`                 | Total number of pages        |
+| `onPageChange`  | `(page: number) => void` | Page change handler          |
+| `showFirstLast` | `boolean`                | Show first/last page buttons |
 
 ## Docker
 
