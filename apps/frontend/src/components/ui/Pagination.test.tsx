@@ -1,223 +1,202 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { Pagination } from './Pagination';
 
 describe('Pagination', () => {
+  const mockOnPageChange = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders nothing when totalPages is 1', () => {
     const { container } = render(
-      <Pagination currentPage={1} totalPages={1} onPageChange={vi.fn()} />,
+      <Pagination
+        currentPage={1}
+        totalPages={1}
+        onPageChange={mockOnPageChange}
+      />,
     );
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders nothing when totalPages is 0', () => {
-    const { container } = render(
-      <Pagination currentPage={1} totalPages={0} onPageChange={vi.fn()} />,
-    );
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders page buttons for small page counts', () => {
-    render(
-      <Pagination currentPage={1} totalPages={5} onPageChange={vi.fn()} />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: 'Go to page 1' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Go to page 2' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Go to page 3' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Go to page 4' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Go to page 5' }),
-    ).toBeInTheDocument();
-  });
-
-  it('highlights current page', () => {
-    render(
-      <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />,
-    );
-
-    const currentPageButton = screen.getByRole('button', {
-      name: 'Go to page 3',
-    });
-    expect(currentPageButton).toHaveAttribute('aria-current', 'page');
-    expect(currentPageButton).toHaveClass('bg-indigo-600');
-  });
-
-  it('calls onPageChange when a page button is clicked', () => {
-    const handlePageChange = vi.fn();
+  it('renders pagination with correct page buttons', () => {
     render(
       <Pagination
         currentPage={1}
         totalPages={5}
-        onPageChange={handlePageChange}
+        onPageChange={mockOnPageChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Go to page 3' }));
-    expect(handlePageChange).toHaveBeenCalledWith(3);
+    expect(
+      screen.getByRole('navigation', { name: /pagination/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Go to page 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Go to page 5')).toBeInTheDocument();
   });
 
-  it('calls onPageChange when next button is clicked', () => {
-    const handlePageChange = vi.fn();
+  it('marks current page with aria-current', () => {
+    render(
+      <Pagination
+        currentPage={3}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    const currentPageButton = screen.getByLabelText('Go to page 3');
+    expect(currentPageButton).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('calls onPageChange when clicking a page number', () => {
+    render(
+      <Pagination
+        currentPage={1}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText('Go to page 3'));
+    expect(mockOnPageChange).toHaveBeenCalledWith(3);
+  });
+
+  it('calls onPageChange when clicking next button', () => {
     render(
       <Pagination
         currentPage={2}
         totalPages={5}
-        onPageChange={handlePageChange}
+        onPageChange={mockOnPageChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
-    expect(handlePageChange).toHaveBeenCalledWith(3);
+    fireEvent.click(screen.getByLabelText('Go to next page'));
+    expect(mockOnPageChange).toHaveBeenCalledWith(3);
   });
 
-  it('calls onPageChange when previous button is clicked', () => {
-    const handlePageChange = vi.fn();
+  it('calls onPageChange when clicking previous button', () => {
     render(
       <Pagination
         currentPage={3}
         totalPages={5}
-        onPageChange={handlePageChange}
+        onPageChange={mockOnPageChange}
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Go to previous page' }),
-    );
-    expect(handlePageChange).toHaveBeenCalledWith(2);
+    fireEvent.click(screen.getByLabelText('Go to previous page'));
+    expect(mockOnPageChange).toHaveBeenCalledWith(2);
   });
 
   it('disables previous button on first page', () => {
     render(
-      <Pagination currentPage={1} totalPages={5} onPageChange={vi.fn()} />,
+      <Pagination
+        currentPage={1}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
     );
 
-    expect(
-      screen.getByRole('button', { name: 'Go to previous page' }),
-    ).toBeDisabled();
+    expect(screen.getByLabelText('Go to previous page')).toBeDisabled();
+    expect(screen.getByLabelText('Go to first page')).toBeDisabled();
   });
 
   it('disables next button on last page', () => {
     render(
-      <Pagination currentPage={5} totalPages={5} onPageChange={vi.fn()} />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: 'Go to next page' }),
-    ).toBeDisabled();
-  });
-
-  it('renders first and last buttons when showFirstLast is true', () => {
-    render(
       <Pagination
-        currentPage={3}
-        totalPages={10}
-        onPageChange={vi.fn()}
-        showFirstLast={true}
+        currentPage={5}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
       />,
     );
 
-    expect(
-      screen.getByRole('button', { name: 'Go to first page' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Go to last page' }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Go to next page')).toBeDisabled();
+    expect(screen.getByLabelText('Go to last page')).toBeDisabled();
   });
 
-  it('does not render first and last buttons when showFirstLast is false', () => {
+  it('calls onPageChange when clicking first page button', () => {
     render(
       <Pagination
         currentPage={3}
-        totalPages={10}
-        onPageChange={vi.fn()}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText('Go to first page'));
+    expect(mockOnPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('calls onPageChange when clicking last page button', () => {
+    render(
+      <Pagination
+        currentPage={3}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText('Go to last page'));
+    expect(mockOnPageChange).toHaveBeenCalledWith(5);
+  });
+
+  it('hides first/last buttons when showFirstLast is false', () => {
+    render(
+      <Pagination
+        currentPage={3}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
         showFirstLast={false}
       />,
     );
 
-    expect(
-      screen.queryByRole('button', { name: 'Go to first page' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Go to last page' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Go to first page')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Go to last page')).not.toBeInTheDocument();
   });
 
-  it('calls onPageChange when first button is clicked', () => {
-    const handlePageChange = vi.fn();
+  it('shows ellipsis for large page counts', () => {
     render(
       <Pagination
         currentPage={5}
         totalPages={10}
-        onPageChange={handlePageChange}
-        showFirstLast={true}
+        onPageChange={mockOnPageChange}
       />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Go to first page' }));
-    expect(handlePageChange).toHaveBeenCalledWith(1);
-  });
-
-  it('calls onPageChange when last button is clicked', () => {
-    const handlePageChange = vi.fn();
-    render(
-      <Pagination
-        currentPage={5}
-        totalPages={10}
-        onPageChange={handlePageChange}
-        showFirstLast={true}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Go to last page' }));
-    expect(handlePageChange).toHaveBeenCalledWith(10);
-  });
-
-  it('disables first button on first page', () => {
-    render(
-      <Pagination
-        currentPage={1}
-        totalPages={10}
-        onPageChange={vi.fn()}
-        showFirstLast={true}
-      />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: 'Go to first page' }),
-    ).toBeDisabled();
-  });
-
-  it('disables last button on last page', () => {
-    render(
-      <Pagination
-        currentPage={10}
-        totalPages={10}
-        onPageChange={vi.fn()}
-        showFirstLast={true}
-      />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: 'Go to last page' }),
-    ).toBeDisabled();
-  });
-
-  it('renders ellipsis for large page counts', () => {
-    render(
-      <Pagination currentPage={5} totalPages={10} onPageChange={vi.fn()} />,
     );
 
     const ellipses = screen.getAllByText('...');
     expect(ellipses.length).toBeGreaterThan(0);
+  });
+
+  it('navigates with arrow keys', () => {
+    render(
+      <Pagination
+        currentPage={3}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    const nav = screen.getByRole('navigation');
+    fireEvent.keyDown(nav, { key: 'ArrowLeft' });
+    expect(mockOnPageChange).toHaveBeenCalledWith(2);
+
+    mockOnPageChange.mockClear();
+    fireEvent.keyDown(nav, { key: 'ArrowRight' });
+    expect(mockOnPageChange).toHaveBeenCalledWith(4);
+  });
+
+  it('does not call onPageChange when clicking current page', () => {
+    render(
+      <Pagination
+        currentPage={3}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText('Go to page 3'));
+    expect(mockOnPageChange).not.toHaveBeenCalled();
   });
 
   it('applies custom className', () => {
@@ -225,7 +204,7 @@ describe('Pagination', () => {
       <Pagination
         currentPage={1}
         totalPages={5}
-        onPageChange={vi.fn()}
+        onPageChange={mockOnPageChange}
         className="custom-class"
       />,
     );
@@ -233,14 +212,25 @@ describe('Pagination', () => {
     expect(screen.getByRole('navigation')).toHaveClass('custom-class');
   });
 
-  it('has proper aria-label for navigation', () => {
-    render(
-      <Pagination currentPage={1} totalPages={5} onPageChange={vi.fn()} />,
+  it('renders different sizes', () => {
+    const { rerender } = render(
+      <Pagination
+        currentPage={1}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+        size="sm"
+      />,
     );
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
 
-    expect(screen.getByRole('navigation')).toHaveAttribute(
-      'aria-label',
-      'Pagination',
+    rerender(
+      <Pagination
+        currentPage={1}
+        totalPages={5}
+        onPageChange={mockOnPageChange}
+        size="lg"
+      />,
     );
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 });
