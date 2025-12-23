@@ -31,12 +31,12 @@ export default tseslint.config(
   },
   {
     ignores: [
-      'node_modules/',
-      'dist/',
-      'build/',
-      '.next/',
-      'out/',
-      'coverage/',
+      '**/node_modules/',
+      '**/dist/',
+      '**/build/',
+      '**/.next/',
+      '**/out/',
+      '**/coverage/',
       '**/next-env.d.ts',
       '**/.venv/',
       '**/__pycache__/',
