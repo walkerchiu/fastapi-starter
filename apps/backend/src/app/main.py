@@ -20,7 +20,7 @@ from src.app.core.exception_handlers import (
 )
 from src.app.core.exceptions import APIException
 from src.app.core.logging import get_logger, setup_logging
-from src.app.graphql import get_context, schema
+from src.app.graphql import apollo_sandbox_handler, get_context, schema
 from src.app.middleware import (
     RateLimitConfig,
     RateLimitMiddleware,
@@ -142,8 +142,17 @@ app.include_router(roles_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 
-# GraphQL route
-graphql_router = GraphQLRouter(schema, context_getter=get_context)
+# Apollo Sandbox (development mode only, must be registered before GraphQL router)
+if settings.environment == "development" or settings.debug:
+    app.add_api_route(
+        "/graphql",
+        apollo_sandbox_handler,
+        methods=["GET"],
+        include_in_schema=False,
+    )
+
+# GraphQL route (disable built-in GraphiQL, use Apollo Sandbox instead)
+graphql_router = GraphQLRouter(schema, context_getter=get_context, graphql_ide=None)
 app.include_router(graphql_router, prefix="/graphql")
 
 # Log startup
