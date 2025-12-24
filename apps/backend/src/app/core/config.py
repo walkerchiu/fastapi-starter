@@ -96,6 +96,7 @@ To get a token:
     # GraphQL Security
     graphql_max_depth: int = 10  # Maximum query depth
     graphql_max_complexity: int = 100  # Maximum query complexity
+    graphql_ide: Literal["sandbox", "graphiql", "none"] = "sandbox"  # GraphQL IDE
 
     # S3 Storage
     s3_endpoint_url: str | None = None  # None uses AWS S3; set URL for S3-compatible

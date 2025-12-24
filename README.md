@@ -82,7 +82,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 
 ## Project Structure
 
-```
+```text
 fastapi-nextjs-tailwindcss-starter/
 ├── apps/
 │   ├── backend/                    # FastAPI backend application
@@ -203,7 +203,36 @@ The applications will be available at:
 - **Frontend**: <http://localhost:3000>
 - **Backend**: <http://localhost:8000>
 - **REST API Docs**: <http://localhost:8000/api/docs>
-- **GraphiQL**: <http://localhost:8000/graphql>
+- **Apollo Sandbox**: <http://localhost:8000/graphql>
+
+## Configuration
+
+### TypeScript
+
+The project uses shared TypeScript configuration from `packages/typescript-config`:
+
+- `base.json` - Shared compiler options (ES2022, strict mode)
+- `nextjs.json` - Next.js specific settings (extends base)
+- `apps/frontend/tsconfig.json` - Extends `@repo/typescript-config/nextjs.json`
+
+### Python
+
+The backend uses modern Python tooling:
+
+- `pyproject.toml` - Project configuration with Ruff and pytest settings
+- `.python-version` - Python version lock (3.13)
+
+### Path Aliases
+
+The frontend supports path aliases for cleaner imports:
+
+```typescript
+// Instead of
+import { Component } from '../../../components/Component';
+
+// Use
+import { Component } from '@/components/Component';
+```
 
 ## Available Scripts
 
@@ -283,7 +312,24 @@ For the complete list of error codes, see [`src/app/core/error_codes.py`](apps/b
 
 ## GraphQL API
 
-The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE.
+The GraphQL endpoint is available at `/graphql` with an interactive IDE (Apollo Sandbox by default).
+
+### GraphQL IDE Configuration
+
+The GraphQL IDE can be configured via the `GRAPHQL_IDE` environment variable:
+
+| Value      | Description                                  |
+| ---------- | -------------------------------------------- |
+| `sandbox`  | Apollo Sandbox (default) - requires internet |
+| `graphiql` | GraphiQL - requires internet                 |
+| `none`     | Disable IDE landing page                     |
+
+```bash
+# Use GraphiQL instead of Apollo Sandbox
+GRAPHQL_IDE=graphiql pnpm dev:backend
+```
+
+**Note**: The IDE is only available in non-production environments.
 
 ### Error Codes
 
@@ -309,7 +355,7 @@ For the complete list of error codes, see [`src/app/core/error_codes.py`](apps/b
 
 ### Security
 
-The GraphQL API includes security protection:
+The GraphQL API includes multiple security layers:
 
 #### Rate Limiting
 
@@ -472,7 +518,7 @@ The application implements a flexible RBAC system with three core entities: User
 
 ### RBAC Model
 
-```
+```text
 User ←→ Role ←→ Permission
       (many-to-many)
 ```
@@ -599,162 +645,6 @@ class Query:
         require_permission(info, "reports:read")
         # Requires 'reports:read' permission
         return reports
-```
-
-## Development Workflow
-
-### Code Quality
-
-This project enforces code quality through automated tooling:
-
-- **ESLint** - Catches code issues and enforces consistent patterns (TypeScript/JavaScript)
-- **Ruff** - Fast Python linter and formatter (replaces Black, Flake8, isort)
-- **Prettier** - Ensures consistent code formatting
-- **TypeScript** - Provides type safety for frontend
-
-### Git Hooks
-
-Git hooks automatically enforce code quality:
-
-**Pre-commit** (runs on staged files):
-
-1. **ESLint** fixes issues in `.js`, `.mjs`, `.ts`, `.tsx` files
-2. **Prettier** formats all supported files
-3. **Ruff** formats and lints Python files
-
-**Commit-msg** (validates commit message):
-
-- **commitlint** ensures commit messages follow the convention below
-
-### Commit Convention
-
-This project follows a structured commit message format.
-
-```text
-<Type>(<Scope>): <Subject>
-
-<Optional Body>
-
-<Optional Footer>
-```
-
-**Types**: `Build`, `Chore`, `CI`, `Deprecate`, `Docs`, `Feat`, `Fix`, `Perf`, `Refactor`, `Release`, `Test`, `Revert`, `Style`
-
-**Scopes**: `API`, `Config`, `Framework`, `Function`, `Git`, `Infra`, `Lang`, `Module`, `Project`, `Theme`, `Vendor`, `Views`
-
-**Example**:
-
-```text
-Feat(Module): Add user authentication module
-
-1. Implement JWT-based authentication.
-2. Add refresh token support.
-
-Reference:
-1. PJ-123.
-```
-
-## Testing
-
-### Backend (pytest)
-
-```bash
-cd apps/backend
-
-# Run all tests
-uv run pytest
-
-# Run with coverage
-uv run pytest --cov
-
-# Run with verbose output
-uv run pytest -v
-```
-
-### RBAC Test Fixtures
-
-The backend includes test fixtures for comprehensive RBAC testing in `tests/conftest.py`:
-
-```python
-import pytest
-
-@pytest.fixture
-async def super_admin_headers(client, db_session):
-    """Create a super_admin user with all 20 permissions."""
-    # Returns auth headers for super_admin user
-    # Has: users/roles/permissions/files CRUD + hard_delete
-
-@pytest.fixture
-async def admin_headers(client, db_session):
-    """Create an admin user with 10 permissions."""
-    # Returns auth headers for admin user
-    # Has: users CRUD, roles:read, permissions:read, files CRUD
-
-@pytest.fixture
-async def auth_headers(client):
-    """Create a regular user with 3 permissions."""
-    # Returns auth headers for regular user
-    # Has: users:read, files:read, files:create
-```
-
-Usage in tests:
-
-```python
-async def test_super_admin_can_delete_user(client, super_admin_headers):
-    response = await client.delete(
-        "/api/v1/users/1",
-        headers=super_admin_headers
-    )
-    assert response.status_code == 200
-
-async def test_regular_user_cannot_delete_user(client, auth_headers):
-    response = await client.delete(
-        "/api/v1/users/1",
-        headers=auth_headers
-    )
-    assert response.status_code == 403
-```
-
-### Frontend (Vitest)
-
-```bash
-# Run all tests
-pnpm --filter frontend test
-
-# Run with coverage
-pnpm --filter frontend test:cov
-
-# Watch mode
-pnpm --filter frontend test:watch
-```
-
-## Configuration
-
-### TypeScript
-
-The project uses shared TypeScript configuration from `packages/typescript-config`:
-
-- `base.json` - Shared compiler options (ES2022, strict mode)
-- `nextjs.json` - Next.js specific settings (extends base)
-- `apps/frontend/tsconfig.json` - Extends `@repo/typescript-config/nextjs.json`
-
-### Python
-
-The backend uses modern Python tooling:
-
-- `pyproject.toml` - Project configuration with Ruff and pytest settings
-- `.python-version` - Python version lock (3.13)
-
-### Path Aliases
-
-The frontend supports path aliases for cleaner imports:
-
-```typescript
-// Instead of
-import { Component } from '../../../components/Component';
-
-// Use
-import { Component } from '@/components/Component';
 ```
 
 ## Email Service
@@ -919,7 +809,7 @@ The frontend supports multiple languages using next-intl:
 
 i18n is configured in `src/i18n/`:
 
-```
+```text
 src/i18n/
 ├── config.ts     # Locale configuration and types
 ├── request.ts    # Server-side locale detection
@@ -930,7 +820,7 @@ src/i18n/
 
 Translation messages are stored in `src/messages/`:
 
-```
+```text
 src/messages/
 ├── en.json       # English translations
 └── zh-TW.json    # Traditional Chinese translations
@@ -975,31 +865,36 @@ import { LanguageSwitcher } from '@/components/ui';
 
 1. Add translations to `src/messages/en.json`:
 
-   ```json
+   ````json
    {
      "myFeature": {
        "title": "My Feature",
        "description": "Description here"
      }
    }
-   ```
+   ```text
+
+   ````
 
 2. Add corresponding translations to `src/messages/zh-TW.json`:
 
-   ```json
+   ````json
    {
      "myFeature": {
        "title": "我的功能",
        "description": "描述在這裡"
      }
    }
-   ```
+   ```text
+
+   ````
 
 3. Use in components:
-   ```tsx
+   ````tsx
    const t = useTranslations('myFeature');
    <h1>{t('title')}</h1>;
-   ```
+   ```text
+   ````
 
 ## UI Components
 
@@ -1220,10 +1115,137 @@ export const WithHeader: Story = {
 
 Storybook is configured in `apps/frontend/.storybook/`:
 
-```
+```text
 .storybook/
 ├── main.ts      # Storybook configuration (addons, framework)
 └── preview.tsx  # Global decorators and parameters
+```
+
+## Development Workflow
+
+### Code Quality
+
+This project enforces code quality through automated tooling:
+
+- **ESLint** - Catches code issues and enforces consistent patterns (TypeScript/JavaScript)
+- **Ruff** - Fast Python linter and formatter (replaces Black, Flake8, isort)
+- **Prettier** - Ensures consistent code formatting
+- **TypeScript** - Provides type safety for frontend
+
+### Git Hooks
+
+Git hooks automatically enforce code quality:
+
+**Pre-commit** (runs on staged files):
+
+1. **ESLint** fixes issues in `.js`, `.mjs`, `.ts`, `.tsx` files
+2. **Prettier** formats all supported files
+3. **Ruff** formats and lints Python files
+
+**Commit-msg** (validates commit message):
+
+- **commitlint** ensures commit messages follow the convention below
+
+### Commit Convention
+
+This project follows a structured commit message format.
+
+```text
+<Type>(<Scope>): <Subject>
+
+<Optional Body>
+
+<Optional Footer>
+```
+
+**Types**: `Build`, `Chore`, `CI`, `Deprecate`, `Docs`, `Feat`, `Fix`, `Perf`, `Refactor`, `Release`, `Test`, `Revert`, `Style`
+
+**Scopes**: `API`, `Config`, `Framework`, `Function`, `Git`, `Infra`, `Lang`, `Module`, `Project`, `Theme`, `Vendor`, `Views`
+
+**Example**:
+
+```text
+Feat(Module): Add user authentication module
+
+1. Implement JWT-based authentication.
+2. Add refresh token support.
+
+Reference:
+1. PJ-123.
+```
+
+## Testing
+
+### Backend (pytest)
+
+```bash
+cd apps/backend
+
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov
+
+# Run with verbose output
+uv run pytest -v
+```
+
+### RBAC Test Fixtures
+
+The backend includes test fixtures for comprehensive RBAC testing in `tests/conftest.py`:
+
+```python
+import pytest
+
+@pytest.fixture
+async def super_admin_headers(client, db_session):
+    """Create a super_admin user with all 20 permissions."""
+    # Returns auth headers for super_admin user
+    # Has: users/roles/permissions/files CRUD + hard_delete
+
+@pytest.fixture
+async def admin_headers(client, db_session):
+    """Create an admin user with 10 permissions."""
+    # Returns auth headers for admin user
+    # Has: users CRUD, roles:read, permissions:read, files CRUD
+
+@pytest.fixture
+async def auth_headers(client):
+    """Create a regular user with 3 permissions."""
+    # Returns auth headers for regular user
+    # Has: users:read, files:read, files:create
+```
+
+Usage in tests:
+
+```python
+async def test_super_admin_can_delete_user(client, super_admin_headers):
+    response = await client.delete(
+        "/api/v1/users/1",
+        headers=super_admin_headers
+    )
+    assert response.status_code == 200
+
+async def test_regular_user_cannot_delete_user(client, auth_headers):
+    response = await client.delete(
+        "/api/v1/users/1",
+        headers=auth_headers
+    )
+    assert response.status_code == 403
+```
+
+### Frontend (Vitest)
+
+```bash
+# Run all tests
+pnpm --filter frontend test
+
+# Run with coverage
+pnpm --filter frontend test:cov
+
+# Watch mode
+pnpm --filter frontend test:watch
 ```
 
 ## Docker
