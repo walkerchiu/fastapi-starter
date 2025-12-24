@@ -94,6 +94,13 @@ class BatchFileUploadResponseType:
     failed: int
 
 
+@strawberry.type
+class Message:
+    """Message response type."""
+
+    message: str
+
+
 @strawberry.input
 class UpdateFileInput:
     """Input type for updating a file's metadata."""
@@ -116,10 +123,3 @@ class BatchDeleteFilesResponse:
     successful: int
     failed: int
     errors: list[str]
-
-
-@strawberry.type
-class Message:
-    """Message response type."""
-
-    message: str

@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
 import {
@@ -10,6 +10,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Input,
   Spinner,
 } from '@/components/ui';
 import { env } from '@/config/env';
@@ -113,7 +114,7 @@ function TwoFactorVerifyContent() {
                   />
                 </svg>
               </div>
-              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-gray-100">
                 {t('verifyTitle')}
               </h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -125,34 +126,27 @@ function TwoFactorVerifyContent() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && <Alert variant="error">{error}</Alert>}
 
-              <div>
-                <label
-                  htmlFor="code"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  {isBackupCode ? t('backupCode') : t('verificationCode')}
-                </label>
-                <input
-                  type="text"
-                  id="code"
-                  value={code}
-                  onChange={(e) => {
-                    if (isBackupCode) {
-                      setCode(e.target.value);
-                    } else {
-                      setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                    }
-                  }}
-                  placeholder={
-                    isBackupCode ? t('enterBackupCodePlaceholder') : '000000'
+              <Input
+                type="text"
+                id="code"
+                label={isBackupCode ? t('backupCode') : t('verificationCode')}
+                value={code}
+                onChange={(e) => {
+                  if (isBackupCode) {
+                    setCode(e.target.value);
+                  } else {
+                    setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
                   }
-                  className="mt-1 block w-full rounded-md border-0 py-3 text-center text-xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:focus:ring-indigo-500"
-                  maxLength={isBackupCode ? 20 : 6}
-                  required
-                  autoFocus
-                  autoComplete="one-time-code"
-                />
-              </div>
+                }}
+                placeholder={
+                  isBackupCode ? t('enterBackupCodePlaceholder') : '000000'
+                }
+                className="text-center text-xl tracking-widest"
+                maxLength={isBackupCode ? 20 : 6}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+              />
 
               <Button
                 type="submit"
@@ -164,17 +158,17 @@ function TwoFactorVerifyContent() {
               </Button>
 
               <div className="text-center">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     setIsBackupCode(!isBackupCode);
                     setCode('');
                     setError('');
                   }}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
                   {isBackupCode ? t('useAuthApp') : t('useBackupCode')}
-                </button>
+                </Button>
               </div>
 
               <div className="border-t pt-4 text-center dark:border-gray-700">

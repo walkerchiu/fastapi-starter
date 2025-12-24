@@ -1,9 +1,11 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useQuery } from 'urql';
+
+import { useRouter } from '@/i18n/routing';
 
 import {
   Badge,
@@ -12,14 +14,21 @@ import {
   CardHeader,
   Spinner,
   StatCard,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui';
 import {
   MeDocument,
   UsersDocument,
-  type UserType,
+  type User,
 } from '@/graphql/generated/graphql';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [apiType, setApiType] = useState<'graphql' | 'rest'>('graphql');
@@ -53,32 +62,38 @@ export default function DashboardPage() {
     return null;
   }
 
-  const users: Pick<UserType, 'id' | 'email' | 'name' | 'isActive'>[] =
+  const users: Pick<User, 'id' | 'email' | 'name' | 'isActive'>[] =
     usersResult.data?.users.items ?? [];
   const total = usersResult.data?.users.total ?? 0;
   const loading = usersResult.fetching;
   const error = usersResult.error?.message ?? null;
 
+  const userName = session?.user?.name || session?.user?.email || '';
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Welcome back, {session?.user?.name || session?.user?.email}!
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          {t('title')}
+        </h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          {t('welcome', { name: userName })}
         </p>
       </div>
 
       <div className="mb-4 flex items-center gap-4">
-        <span className="text-sm font-medium text-gray-700">API Type:</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {t('apiType')}
+        </span>
         <div className="flex rounded-md shadow-sm">
           <button
             type="button"
             onClick={() => setApiType('graphql')}
             className={`rounded-l-md px-4 py-2 text-sm font-medium ${
               apiType === 'graphql'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border border-gray-300`}
+                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+            } border border-gray-300 dark:border-gray-600`}
           >
             GraphQL
           </button>
@@ -87,36 +102,38 @@ export default function DashboardPage() {
             onClick={() => setApiType('rest')}
             className={`rounded-r-md px-4 py-2 text-sm font-medium ${
               apiType === 'rest'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border border-l-0 border-gray-300`}
+                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+            } border border-l-0 border-gray-300 dark:border-gray-600`}
           >
             REST
           </button>
         </div>
-        {apiType === 'graphql' && (
-          <Badge variant="success">Using urql + Strawberry</Badge>
+        {apiType === 'graphql' ? (
+          <Badge variant="success">{t('usingGraphQL')}</Badge>
+        ) : (
+          <Badge variant="info">{t('usingREST')}</Badge>
         )}
       </div>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard title="Total Users" value={total} />
+        <StatCard title={t('totalUsers')} value={total} />
         <StatCard
-          title="Your Email"
+          title={t('yourEmail')}
           value={meResult.data?.me?.email ?? session?.user?.email}
-          valueClassName="truncate text-lg font-medium text-gray-900"
+          valueClassName="truncate text-lg font-medium text-gray-900 dark:text-gray-100"
         />
         <StatCard
-          title="Status"
-          value={meResult.data?.me?.isActive ? 'Active' : 'Inactive'}
-          valueClassName="text-lg font-medium text-green-600"
+          title={t('status')}
+          value={meResult.data?.me?.isActive ? t('active') : t('inactive')}
+          valueClassName="text-lg font-medium text-green-600 dark:text-green-400"
         />
       </div>
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-medium text-gray-900">
-            Users {apiType === 'graphql' && '(via GraphQL)'}
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            {apiType === 'graphql' ? t('usersViaGraphQL') : t('usersTitle')}
           </h2>
         </CardHeader>
         <CardBody>
@@ -125,50 +142,40 @@ export default function DashboardPage() {
               <Spinner />
             </div>
           ) : error ? (
-            <p className="py-8 text-center text-red-500">{error}</p>
+            <p className="py-8 text-center text-red-500 dark:text-red-400">
+              {error}
+            </p>
           ) : users.length === 0 ? (
-            <p className="py-8 text-center text-gray-500">No users found</p>
+            <p className="py-8 text-center text-gray-500 dark:text-gray-400">
+              {t('noUsersFound')}
+            </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      ID
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Name
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Email
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {user.id}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {user.name}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                        {user.email}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <Badge variant={user.isActive ? 'success' : 'error'}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('tableId')}</TableHead>
+                  <TableHead>{t('tableName')}</TableHead>
+                  <TableHead>{t('tableEmail')}</TableHead>
+                  <TableHead>{t('tableStatus')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.isActive ? 'success' : 'error'}>
+                        {user.isActive ? t('active') : t('inactive')}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardBody>
       </Card>

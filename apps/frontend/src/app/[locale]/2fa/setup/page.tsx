@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
+import { Link, useRouter } from '@/i18n/routing';
+
 import {
   Alert,
   Button,
@@ -15,7 +17,6 @@ import {
   Spinner,
 } from '@/components/ui';
 import { env } from '@/config/env';
-import { Link, useRouter } from '@/i18n/routing';
 
 type SetupStep = 'loading' | 'scan' | 'verify' | 'complete' | 'error';
 
