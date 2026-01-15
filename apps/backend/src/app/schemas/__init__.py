@@ -1,7 +1,13 @@
 """Pydantic schemas."""
 
 from src.app.schemas.auth import LoginRequest, RefreshTokenRequest, Token, TokenPayload
-from src.app.schemas.user import MessageResponse, UserCreate, UserRead, UserUpdate
+from src.app.schemas.user import (
+    MessageResponse,
+    UserCreate,
+    UserRead,
+    UserRegister,
+    UserUpdate,
+)
 
 __all__ = [
     "LoginRequest",
@@ -11,5 +17,6 @@ __all__ = [
     "TokenPayload",
     "UserCreate",
     "UserRead",
+    "UserRegister",
     "UserUpdate",
 ]

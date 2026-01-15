@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
@@ -16,6 +16,12 @@ class UserCreate(UserBase):
     """Schema for creating a user."""
 
     pass
+
+
+class UserRegister(UserBase):
+    """Schema for user registration with password."""
+
+    password: str = Field(..., min_length=8, max_length=100)
 
 
 class UserUpdate(BaseModel):

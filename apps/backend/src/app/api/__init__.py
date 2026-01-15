@@ -1,5 +1,6 @@
 """API routes."""
 
+from src.app.api.auth import router as auth_router
 from src.app.api.users import router as users_router
 
-__all__ = ["users_router"]
+__all__ = ["auth_router", "users_router"]
