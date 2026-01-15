@@ -1,6 +1,12 @@
 """User GraphQL resolvers."""
 
 import strawberry
+from src.app.graphql.errors import (
+    EmailAlreadyExistsError as GQLEmailAlreadyExistsError,
+)
+from src.app.graphql.errors import (
+    UserNotFoundError as GQLUserNotFoundError,
+)
 from src.app.graphql.types import (
     CreateUserInput,
     Message,
@@ -85,8 +91,8 @@ class UserMutation:
         try:
             user = await service.create(user_data)
             return convert_user_to_type(user)
-        except EmailAlreadyExistsError as e:
-            raise Exception(str(e)) from None
+        except EmailAlreadyExistsError:
+            raise GQLEmailAlreadyExistsError(input.email) from None
 
     @strawberry.mutation
     async def update_user(
@@ -114,7 +120,7 @@ class UserMutation:
 
     @strawberry.mutation
     async def delete_user(self, info: Info, id: int) -> Message:
-        """Delete a user. Returns message if successful."""
+        """Delete a user. Returns message if successful, raises error if not found."""
         db = info.context["db"]
         service = UserService(db)
 
@@ -122,4 +128,4 @@ class UserMutation:
             await service.delete(id)
             return Message(message="User deleted successfully")
         except UserNotFoundError:
-            return Message(message="User not found")
+            raise GQLUserNotFoundError(id) from None

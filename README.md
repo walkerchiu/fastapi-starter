@@ -221,6 +221,34 @@ Full REST API documentation is available at:
 
 The GraphQL endpoint is available at `/graphql` with an interactive GraphiQL IDE.
 
+### Error Codes
+
+All GraphQL errors include standardized error codes in the `extensions` field:
+
+| Category       | Code                   | Description                 |
+| -------------- | ---------------------- | --------------------------- |
+| Authentication | `UNAUTHENTICATED`      | User not authenticated      |
+| Authentication | `INVALID_CREDENTIALS`  | Wrong email or password     |
+| Authentication | `INVALID_TOKEN`        | Token is invalid or expired |
+| Authentication | `INACTIVE_USER`        | User account is disabled    |
+| Resource       | `USER_NOT_FOUND`       | User does not exist         |
+| Resource       | `EMAIL_ALREADY_EXISTS` | Email is already registered |
+
+#### Example Error Response
+
+```json
+{
+  "errors": [
+    {
+      "message": "Invalid credentials",
+      "extensions": {
+        "code": "INVALID_CREDENTIALS"
+      }
+    }
+  ]
+}
+```
+
 ### Frontend GraphQL Integration
 
 The frontend uses urql with GraphQL Codegen for type-safe queries:

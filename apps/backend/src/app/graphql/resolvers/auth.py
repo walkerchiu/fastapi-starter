@@ -1,6 +1,18 @@
 """Authentication GraphQL resolvers."""
 
 import strawberry
+from src.app.graphql.errors import (
+    EmailAlreadyExistsError as GQLEmailAlreadyExistsError,
+)
+from src.app.graphql.errors import (
+    InactiveUserError as GQLInactiveUserError,
+)
+from src.app.graphql.errors import (
+    InvalidCredentialsError as GQLInvalidCredentialsError,
+)
+from src.app.graphql.errors import (
+    InvalidTokenError as GQLInvalidTokenError,
+)
 from src.app.graphql.resolvers.users import convert_user_to_type
 from src.app.graphql.types import (
     LoginInput,
@@ -54,8 +66,8 @@ class AuthMutation:
         try:
             user = await service.register(user_data)
             return convert_user_to_type(user)
-        except EmailAlreadyExistsError as e:
-            raise Exception(str(e)) from None
+        except EmailAlreadyExistsError:
+            raise GQLEmailAlreadyExistsError(input.email) from None
 
     @strawberry.mutation
     async def login(self, info: Info, input: LoginInput) -> TokenType:
@@ -71,9 +83,9 @@ class AuthMutation:
                 token_type=token.token_type,
             )
         except InvalidCredentialsError:
-            raise Exception("Invalid email or password") from None
+            raise GQLInvalidCredentialsError() from None
         except InactiveUserError:
-            raise Exception("User account is inactive") from None
+            raise GQLInactiveUserError() from None
 
     @strawberry.mutation
     async def refresh_token(self, info: Info, input: RefreshTokenInput) -> TokenType:
@@ -89,11 +101,11 @@ class AuthMutation:
                 token_type=token.token_type,
             )
         except InvalidTokenTypeError:
-            raise Exception("Invalid token type") from None
+            raise GQLInvalidTokenError("Invalid token type") from None
         except (InvalidTokenError, UserNotFoundError):
-            raise Exception("Invalid or expired token") from None
+            raise GQLInvalidTokenError() from None
         except InactiveUserError:
-            raise Exception("User account is inactive") from None
+            raise GQLInactiveUserError() from None
 
     @strawberry.mutation
     async def logout(self, info: Info) -> Message:

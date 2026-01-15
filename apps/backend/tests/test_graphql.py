@@ -174,7 +174,7 @@ class TestGraphQLUserMutations:
         assert data["data"]["user"] is None
 
     async def test_delete_user_not_found(self, client: AsyncClient):
-        """Test deleting a non-existent user returns false."""
+        """Test deleting a non-existent user raises error with code."""
         mutation = """
             mutation {
                 deleteUser(id: 9999) {
@@ -185,7 +185,11 @@ class TestGraphQLUserMutations:
         response = await client.post("/graphql", json={"query": mutation})
         assert response.status_code == 200
         data = response.json()
-        assert data["data"]["deleteUser"] is False
+        assert "errors" in data
+        error = data["errors"][0]
+        assert "User not found" in error["message"]
+        assert error["extensions"]["code"] == "USER_NOT_FOUND"
+        assert error["extensions"]["id"] == "9999"
 
 
 class TestGraphQLAuthMutations:
@@ -292,7 +296,7 @@ class TestGraphQLAuthMutations:
         assert new_token["refreshToken"] is not None
 
     async def test_login_invalid_credentials(self, client: AsyncClient):
-        """Test login with invalid credentials."""
+        """Test login with invalid credentials returns error with code."""
         mutation = """
             mutation {
                 login(input: {email: "nonexistent@example.com", password: "wrongpassword"}) {
@@ -304,7 +308,35 @@ class TestGraphQLAuthMutations:
         assert response.status_code == 200
         data = response.json()
         assert "errors" in data
-        assert "Invalid email or password" in data["errors"][0]["message"]
+        error = data["errors"][0]
+        assert "Invalid email or password." in error["message"]
+        assert error["extensions"]["code"] == "INVALID_CREDENTIALS"
+
+    async def test_register_duplicate_email(self, client: AsyncClient):
+        """Test registration with duplicate email returns error with code."""
+        # First register a user
+        mutation = """
+            mutation {
+                register(input: {
+                    email: "duplicate@example.com",
+                    name: "First User",
+                    password: "securepassword123"
+                }) {
+                    id
+                }
+            }
+        """
+        await client.post("/graphql", json={"query": mutation})
+
+        # Try to register with same email
+        response = await client.post("/graphql", json={"query": mutation})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+        error = data["errors"][0]
+        assert "Email is already registered" in error["message"]
+        assert error["extensions"]["code"] == "EMAIL_ALREADY_EXISTS"
+        assert error["extensions"]["field"] == "email"
 
 
 class TestGraphQLMeQuery:
