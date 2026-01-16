@@ -6,6 +6,13 @@ import strawberry
 
 
 @strawberry.type
+class Message:
+    """Message response type."""
+
+    message: str
+
+
+@strawberry.type
 class UserType:
     """GraphQL type for User."""
 
