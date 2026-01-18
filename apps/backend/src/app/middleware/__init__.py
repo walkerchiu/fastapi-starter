@@ -10,6 +10,7 @@ from src.app.middleware.request_id import (
     RequestIDMiddleware,
     get_request_id,
 )
+from src.app.middleware.security_headers import SecurityHeadersMiddleware
 from src.app.middleware.trusted_host import TrustedHostMiddleware
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "RateLimitMiddleware",
     "REQUEST_ID_HEADER",
     "RequestIDMiddleware",
+    "SecurityHeadersMiddleware",
     "TrustedHostMiddleware",
     "get_request_id",
 ]

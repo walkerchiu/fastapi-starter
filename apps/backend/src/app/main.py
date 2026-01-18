@@ -33,6 +33,7 @@ from src.app.middleware import (
     RateLimitConfig,
     RateLimitMiddleware,
     RequestIDMiddleware,
+    SecurityHeadersMiddleware,
 )
 from src.app.services.exceptions import ServiceError
 from strawberry.fastapi import GraphQLRouter
@@ -150,6 +151,14 @@ if settings.access_log_enabled:
 # Add GZIP compression middleware
 if settings.gzip_enabled:
     app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_minimum_size)
+
+# Add security headers middleware
+if settings.security_headers_enabled:
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        hsts_enabled=settings.hsts_enabled,
+        hsts_max_age=settings.hsts_max_age,
+    )
 
 # Health check routes (no prefix for /health, /health/live, /health/ready)
 app.include_router(health_router)

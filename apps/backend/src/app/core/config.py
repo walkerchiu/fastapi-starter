@@ -158,5 +158,10 @@ To get a token:
     gzip_enabled: bool = True
     gzip_minimum_size: int = 1024  # Minimum response size to compress (bytes)
 
+    # Security Headers
+    security_headers_enabled: bool = True
+    hsts_enabled: bool = False  # Enable only after confirming HTTPS works
+    hsts_max_age: int = 31536000  # 1 year in seconds
+
 
 settings = Settings()
