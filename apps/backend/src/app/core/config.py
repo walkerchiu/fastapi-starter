@@ -78,6 +78,12 @@ To get a token:
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
     database_echo: bool = False
 
+    # Redis
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: str = ""
+    redis_db: int = 0
+
     # JWT Authentication
     jwt_secret_key: str = "your-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"

@@ -1,4 +1,17 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
   seaweedfs:
     image: chrislusf/seaweedfs:latest
     ports:
@@ -40,7 +53,11 @@ services:
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-admin}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-uploads}
       - S3_REGION=${S3_REGION:-us-east-1}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
+      redis:
+        condition: service_healthy
       seaweedfs:
         condition: service_healthy
     healthcheck:
@@ -87,5 +104,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  redis_data:
   seaweedfs_data:
   backend_data:

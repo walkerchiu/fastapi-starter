@@ -1,4 +1,5 @@
 from src.app.services.auth_service import AuthService
+from src.app.services.cache import CacheService
 from src.app.services.email_service import EmailService, email_service
 from src.app.services.exceptions import (
     EmailAlreadyExistsError,
@@ -43,6 +44,7 @@ from src.app.services.user_service import UserService
 __all__ = [
     # Services
     "AuthService",
+    "CacheService",
     "EmailService",
     "FileService",
     "PermissionService",

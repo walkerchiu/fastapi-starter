@@ -6,6 +6,7 @@ from src.app.core.exception_handlers import (
     service_exception_handler,
     sqlalchemy_exception_handler,
 )
+from src.app.core.redis import RedisPool, get_redis, redis_lifespan
 from src.app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -36,6 +37,10 @@ __all__ = [
     "ErrorCode",
     # Config
     "settings",
+    # Redis
+    "RedisPool",
+    "get_redis",
+    "redis_lifespan",
     # Exception handlers
     "service_exception_handler",
     "sqlalchemy_exception_handler",

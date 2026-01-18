@@ -32,6 +32,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Error Codes** - Standardized error codes across REST and GraphQL endpoints
 - **File Upload** - S3-compatible storage integration for file management
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
+- **Redis Cache** - Unified caching layer for session, rate limiting, and data caching
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)
@@ -54,6 +55,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager
 - [Ruff](https://docs.astral.sh/ruff/) - Python linter and formatter
+- [redis-py](https://github.com/redis/redis-py) - Redis client for caching
 - [pytest](https://docs.pytest.org/) - Testing framework
 
 ### Frontend
@@ -90,7 +92,8 @@ fastapi-nextjs-tailwindcss-starter/
 │   │   ├── src/
 │   │   │   └── app/
 │   │   │       ├── core/
-│   │   │       │   └── config.py   # Application settings
+│   │   │       │   ├── config.py   # Application settings
+│   │   │       │   └── redis.py    # Redis connection pool
 │   │   │       ├── __init__.py
 │   │   │       └── main.py         # Application entry point
 │   │   ├── tests/
