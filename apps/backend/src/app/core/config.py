@@ -145,5 +145,14 @@ To get a token:
     two_factor_totp_window: int = 1  # Number of 30-second windows for clock skew
     two_factor_backup_codes_count: int = 10  # Number of backup codes to generate
 
+    # Access Logging
+    access_log_enabled: bool = True
+    access_log_skip_paths: list[str] = [
+        "/health",
+        "/health/live",
+        "/health/ready",
+        "/metrics",
+    ]
+
 
 settings = Settings()

@@ -27,6 +27,7 @@ from src.app.graphql import (
     schema,
 )
 from src.app.middleware import (
+    AccessLogMiddleware,
     RateLimitConfig,
     RateLimitMiddleware,
     RequestIDMiddleware,
@@ -135,6 +136,13 @@ app.add_middleware(
 
 # Add request ID middleware for request tracing
 app.add_middleware(RequestIDMiddleware)
+
+# Add access log middleware for HTTP request logging
+if settings.access_log_enabled:
+    app.add_middleware(
+        AccessLogMiddleware,
+        skip_paths=settings.access_log_skip_paths,
+    )
 
 # Health check routes (no prefix for /health, /health/live, /health/ready)
 app.include_router(health_router)

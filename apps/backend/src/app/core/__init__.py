@@ -6,6 +6,7 @@ from src.app.core.exception_handlers import (
     service_exception_handler,
     sqlalchemy_exception_handler,
 )
+from src.app.core.logging import Logger, get_logger, setup_logging
 from src.app.core.redis import RedisPool, get_redis, redis_lifespan
 from src.app.core.security import (
     create_access_token,
@@ -37,6 +38,10 @@ __all__ = [
     "ErrorCode",
     # Config
     "settings",
+    # Logging
+    "Logger",
+    "get_logger",
+    "setup_logging",
     # Redis
     "RedisPool",
     "get_redis",
