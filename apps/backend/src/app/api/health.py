@@ -19,8 +19,8 @@ from src.app.db import get_db
 from src.app.models import User
 from src.app.services.storage_service import storage_service
 
-# Health check timeout in seconds
-HEALTH_CHECK_TIMEOUT = 5.0
+# Health check timeout from config
+HEALTH_CHECK_TIMEOUT = float(settings.health_check_timeout)
 
 # App start time for uptime calculation
 APP_START_TIME = time.time()

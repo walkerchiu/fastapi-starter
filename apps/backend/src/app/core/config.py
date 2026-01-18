@@ -130,6 +130,8 @@ To get a token:
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_use_tls: bool = True
+    smtp_connection_timeout: int = 10000  # 10 seconds in milliseconds
+    smtp_socket_timeout: int = 10000  # 10 seconds in milliseconds
     email_from_address: str = "noreply@example.com"
     email_from_name: str = "FastAPI App"
 
@@ -166,6 +168,14 @@ To get a token:
     # Trusted Host Validation
     trusted_host_enabled: bool = False  # Disabled by default for development
     trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
+
+    # Timeouts
+    request_timeout: int = 30  # Maximum time for processing HTTP request (seconds)
+    shutdown_timeout: int = 30  # Maximum time for graceful shutdown (seconds)
+    shutdown_drain_delay: int = (
+        2  # Delay for LB to remove node after health check fails
+    )
+    health_check_timeout: int = 5  # Timeout for health check operations (seconds)
 
 
 settings = Settings()

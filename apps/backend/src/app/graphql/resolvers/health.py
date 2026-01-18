@@ -16,8 +16,8 @@ from src.app.graphql.types import (
 )
 from strawberry.types import Info
 
-# Health check timeout in seconds
-HEALTH_CHECK_TIMEOUT = 5.0
+# Health check timeout from config
+HEALTH_CHECK_TIMEOUT = float(settings.health_check_timeout)
 
 
 async def check_database(info: Info) -> ComponentHealthType:

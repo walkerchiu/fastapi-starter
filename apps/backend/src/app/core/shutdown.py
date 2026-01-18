@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
+from src.app.core.config import settings
 from src.app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -74,7 +75,7 @@ async def lifespan(app: Any) -> AsyncGenerator[None]:
 
     # Allow time for load balancer to detect unhealthy state
     logger.info("Waiting for connections to drain...")
-    await asyncio.sleep(2)
+    await asyncio.sleep(settings.shutdown_drain_delay)
 
     # Close Redis connection
     try:

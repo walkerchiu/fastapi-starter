@@ -54,6 +54,9 @@ class EmailService:
         max_retries = 3
         base_delay = 1.0
 
+        # Convert milliseconds to seconds for aiosmtplib
+        timeout_seconds = settings.smtp_socket_timeout / 1000
+
         for attempt in range(max_retries):
             try:
                 await aiosmtplib.send(
@@ -63,6 +66,7 @@ class EmailService:
                     username=settings.smtp_user if settings.smtp_user else None,
                     password=settings.smtp_password if settings.smtp_password else None,
                     start_tls=settings.smtp_use_tls,
+                    timeout=timeout_seconds,
                 )
                 logger.info(f"Email sent successfully to {to_email}")
                 return
