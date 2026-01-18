@@ -39,7 +39,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **Storybook** - Interactive component development and documentation
 - **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
 - **Git Hooks** - Husky and lint-staged for automated code quality checks
-- **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
+- **Testing Ready** - pytest for backend, Vitest for unit tests, Playwright for E2E tests
 - **Developer Experience** - Hot reload, path aliases, and consistent tooling
 - **Production Ready** - Docker Compose and Nginx configuration included
 
@@ -67,8 +67,9 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
 - [next-intl](https://next-intl.dev/) - Internationalization for Next.js
 - [Storybook](https://storybook.js.org/) 10 - Component development and documentation
-- [Vitest](https://vitest.dev/) 4 - Testing framework
+- [Vitest](https://vitest.dev/) 4 - Unit testing framework
 - [React Testing Library](https://testing-library.com/react) - Component testing
+- [Playwright](https://playwright.dev/) - E2E testing framework
 
 ### Development Tools
 
@@ -141,6 +142,13 @@ fastapi-nextjs-tailwindcss-starter/
 │       ├── messages/               # Translation files (en, zh-TW)
 │       ├── .env.example            # Environment variables template
 │       ├── vitest.config.ts        # Vitest configuration
+│       ├── playwright.config.ts    # Playwright E2E configuration
+│       ├── e2e/                    # E2E tests
+│       │   ├── specs/              # Test specifications
+│       │   ├── pages/              # Page Objects
+│       │   ├── components/         # Component Objects
+│       │   ├── fixtures/           # Test fixtures
+│       │   └── utils/              # Test utilities
 │       ├── tailwind.config.ts      # TailwindCSS configuration
 │       └── tsconfig.json
 │
@@ -289,14 +297,16 @@ import { Component } from '@/components/Component';
 
 ### Frontend (apps/frontend)
 
-| Command                             | Description             |
-| ----------------------------------- | ----------------------- |
-| `pnpm --filter frontend dev`        | Start with Turbopack    |
-| `pnpm --filter frontend build`      | Build for production    |
-| `pnpm --filter frontend start`      | Run production build    |
-| `pnpm --filter frontend test`       | Run tests               |
-| `pnpm --filter frontend test:watch` | Run tests in watch mode |
-| `pnpm --filter frontend test:cov`   | Run tests with coverage |
+| Command                              | Description             |
+| ------------------------------------ | ----------------------- |
+| `pnpm --filter frontend dev`         | Start with Turbopack    |
+| `pnpm --filter frontend build`       | Build for production    |
+| `pnpm --filter frontend start`       | Run production build    |
+| `pnpm --filter frontend test`        | Run unit tests          |
+| `pnpm --filter frontend test:watch`  | Run tests in watch mode |
+| `pnpm --filter frontend test:cov`    | Run tests with coverage |
+| `pnpm --filter frontend test:e2e`    | Run E2E tests           |
+| `pnpm --filter frontend test:e2e:ui` | Open E2E test UI        |
 
 ## API Endpoints
 
@@ -1299,7 +1309,7 @@ async def test_regular_user_cannot_delete_user(client, auth_headers):
     assert response.status_code == 403
 ```
 
-### Frontend (Vitest)
+### Frontend Unit Tests (Vitest)
 
 ```bash
 # Run all tests
@@ -1311,6 +1321,35 @@ pnpm --filter frontend test:cov
 # Watch mode
 pnpm --filter frontend test:watch
 ```
+
+### Frontend E2E Tests (Playwright)
+
+```bash
+# Run all E2E tests
+pnpm --filter frontend test:e2e
+
+# Open interactive UI mode
+pnpm --filter frontend test:e2e:ui
+
+# Run with visible browser
+pnpm --filter frontend test:e2e:headed
+
+# Debug mode
+pnpm --filter frontend test:e2e:debug
+
+# View test report
+pnpm --filter frontend test:e2e:report
+```
+
+E2E tests cover 20 scenarios including:
+
+- **Authentication** (8 tests): Registration, login, logout, password reset, email verification, 2FA.
+- **Profile** (3 tests): View, update, change password.
+- **Navigation** (3 tests): Authenticated/unauthenticated navigation, permission handling.
+- **i18n** (1 test): Language switching.
+- **Theme** (1 test): Dark mode toggle.
+- **API** (1 test): REST/GraphQL mode switching.
+- **Error Handling** (3 tests): Network errors, form validation, 404 pages.
 
 ## Docker
 
