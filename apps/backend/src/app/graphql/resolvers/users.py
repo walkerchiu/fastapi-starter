@@ -1,5 +1,7 @@
 """User GraphQL resolvers."""
 
+import uuid
+
 import strawberry
 from src.app.graphql.errors import (
     UserNotFoundError as GQLUserNotFoundError,
@@ -114,7 +116,7 @@ class UserQuery:
         service = UserService(db)
 
         try:
-            user = await service.get_by_id(id)
+            user = await service.get_by_id(uuid.UUID(str(id)))
             return convert_user_to_type(user)
         except UserNotFoundError:
             return None
@@ -128,7 +130,7 @@ class UserQuery:
         service = UserService(db)
 
         try:
-            user = await service.get_by_id(id, include_roles=True)
+            user = await service.get_by_id(uuid.UUID(str(id)), include_roles=True)
             return convert_user_to_type_with_roles(user)
         except UserNotFoundError:
             return None
@@ -142,10 +144,10 @@ class UserQuery:
         service = UserService(db)
 
         try:
-            permissions = await service.get_user_permissions(user_id)
+            permissions = await service.get_user_permissions(uuid.UUID(str(user_id)))
             return [convert_permission_to_type(p) for p in permissions]
         except UserNotFoundError:
-            raise GQLUserNotFoundError(user_id) from None
+            raise GQLUserNotFoundError(str(user_id)) from None
 
     @strawberry.field(permission_classes=[require_permissions("users:read")])
     async def user_roles(self, info: Info, user_id: strawberry.ID) -> list[RoleType]:
@@ -154,10 +156,10 @@ class UserQuery:
         service = UserService(db)
 
         try:
-            user = await service.get_by_id(user_id, include_roles=True)
+            user = await service.get_by_id(uuid.UUID(str(user_id)), include_roles=True)
             return [convert_role_to_type(r) for r in user.roles]
         except UserNotFoundError:
-            raise GQLUserNotFoundError(user_id) from None
+            raise GQLUserNotFoundError(str(user_id)) from None
 
 
 @strawberry.type
@@ -202,7 +204,7 @@ class UserMutation:
 
         update_data = UserUpdate(**update_dict)
         try:
-            user = await service.update(int(id), update_data)
+            user = await service.update(uuid.UUID(str(id)), update_data)
             # Publish user updated event
             await publish_user_updated(user.id, user.email)
             return convert_user_to_type(user)
@@ -216,12 +218,13 @@ class UserMutation:
         service = UserService(db)
 
         try:
-            await service.delete(id)
+            user_id = uuid.UUID(str(id))
+            await service.delete(user_id)
             # Publish user deleted event
-            await publish_user_deleted(id)
+            await publish_user_deleted(user_id)
             return Message(message="User deleted successfully")
         except UserNotFoundError:
-            raise GQLUserNotFoundError(id) from None
+            raise GQLUserNotFoundError(str(id)) from None
 
     @strawberry.mutation(permission_classes=[require_permissions("users:update")])
     async def assign_role_to_user(
@@ -232,7 +235,7 @@ class UserMutation:
         service = UserService(db)
 
         try:
-            await service.assign_role(int(user_id), int(role_id))
+            await service.assign_role(uuid.UUID(str(user_id)), int(role_id))
             return Message(message="Role assigned to user successfully")
         except ServiceError as e:
             raise map_service_exception_to_graphql(e) from None
@@ -246,7 +249,7 @@ class UserMutation:
         service = UserService(db)
 
         try:
-            await service.remove_role(int(user_id), int(role_id))
+            await service.remove_role(uuid.UUID(str(user_id)), int(role_id))
             return Message(message="Role removed from user successfully")
         except ServiceError as e:
             raise map_service_exception_to_graphql(e) from None
@@ -261,7 +264,7 @@ class UserMutation:
 
         try:
             user = await service.replace_roles(
-                int(user_id), [int(rid) for rid in input.role_ids]
+                uuid.UUID(str(user_id)), [int(rid) for rid in input.role_ids]
             )
             return [convert_role_to_type(r) for r in user.roles]
         except ServiceError as e:
@@ -277,7 +280,7 @@ class UserMutation:
 
         try:
             await service.remove_roles(
-                int(user_id), [int(rid) for rid in input.role_ids]
+                uuid.UUID(str(user_id)), [int(rid) for rid in input.role_ids]
             )
             return Message(message="Roles removed from user successfully")
         except ServiceError as e:
@@ -293,7 +296,7 @@ class UserMutation:
 
         try:
             user = await service.add_roles(
-                int(user_id), [int(rid) for rid in input.role_ids]
+                uuid.UUID(str(user_id)), [int(rid) for rid in input.role_ids]
             )
             return [convert_role_to_type(r) for r in user.roles]
         except ServiceError as e:

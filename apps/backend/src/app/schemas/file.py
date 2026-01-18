@@ -3,6 +3,7 @@
 import json
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -14,13 +15,13 @@ class FileRead(BaseModel):
         from_attributes=True,
     )
 
-    id: int = Field(..., description="File ID")
+    id: UUID = Field(..., description="File ID")
     key: str = Field(..., description="Unique storage key for the file")
     filename: str = Field(..., description="Original filename")
     size: int = Field(..., description="File size in bytes")
     content_type: str = Field("", description="MIME type of the file")
     bucket: str = Field(..., description="Storage bucket name")
-    user_id: int = Field(..., description="ID of the user who uploaded the file")
+    user_id: UUID = Field(..., description="ID of the user who uploaded the file")
     metadata: dict[str, Any] | None = Field(None, description="Additional metadata")
     created_at: datetime = Field(..., description="File creation time")
     updated_at: datetime = Field(..., description="File last update time")
@@ -207,14 +208,18 @@ class FileUpdate(BaseModel):
 class BatchDeleteRequest(BaseModel):
     """Request schema for batch file deletion."""
 
-    file_ids: list[int] = Field(
+    file_ids: list[UUID] = Field(
         ..., description="List of file IDs to delete", min_length=1
     )
 
     model_config = {
         "json_schema_extra": {
             "example": {
-                "file_ids": [1, 2, 3],
+                "file_ids": [
+                    "550e8400-e29b-41d4-a716-446655440000",
+                    "550e8400-e29b-41d4-a716-446655440001",
+                    "550e8400-e29b-41d4-a716-446655440002",
+                ],
             }
         }
     }

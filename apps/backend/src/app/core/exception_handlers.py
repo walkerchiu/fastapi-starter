@@ -100,7 +100,7 @@ async def service_exception_handler(
     if isinstance(exc, UserNotFoundError):
         errors: dict[str, Any] = {"resource": "User"}
         if exc.user_id is not None:
-            errors["id"] = exc.user_id
+            errors["id"] = str(exc.user_id)
         return _create_error_response(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found.",

@@ -1,5 +1,6 @@
 """GraphQL context utilities."""
 
+import uuid
 from typing import Annotated
 
 from fastapi import Depends, Request
@@ -37,7 +38,7 @@ async def get_current_user_from_request(
         return None
 
     # Load user - roles and permissions use lazy="selectin" in models
-    result = await db.execute(select(User).where(User.id == int(user_id)))
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if not user or not user.is_active:

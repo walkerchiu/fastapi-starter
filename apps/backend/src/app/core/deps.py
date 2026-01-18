@@ -1,5 +1,6 @@
 """Dependencies for authentication and authorization."""
 
+import uuid
 from collections.abc import Callable
 from typing import Annotated
 
@@ -40,7 +41,7 @@ async def get_current_user(
     if not user_id:
         raise InvalidTokenException(detail="Invalid token payload")
 
-    result = await db.execute(select(User).where(User.id == int(user_id)))
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -72,7 +73,7 @@ async def get_current_user_with_roles(
 
     result = await db.execute(
         select(User)
-        .where(User.id == int(user_id))
+        .where(User.id == uuid.UUID(user_id))
         .options(selectinload(User.roles).selectinload(Role.permissions))
     )
     user = result.scalar_one_or_none()

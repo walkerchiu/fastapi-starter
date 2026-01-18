@@ -1,6 +1,7 @@
 """User API endpoints."""
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -200,7 +201,7 @@ async def create_user(
 )
 async def get_user(
     _current_user: RequireUsersRead,
-    id: Annotated[int, Path(description="The ID of the user to retrieve", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user to retrieve")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserReadWithRoles:
     """Get a user by ID with roles."""
@@ -245,7 +246,7 @@ Update a user's information. Only provided fields will be updated.
 )
 async def update_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user to update", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user to update")],
     user_in: UserUpdate,
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserReadWithRoles:
@@ -273,7 +274,7 @@ async def update_user(
 )
 async def delete_user(
     _current_user: RequireUsersDelete,
-    id: Annotated[int, Path(description="The ID of the user to delete", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user to delete")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> None:
     """Delete a user."""
@@ -295,7 +296,7 @@ async def delete_user(
 )
 async def hard_delete_user(
     _current_user: RequireUsersHardDelete,
-    id: Annotated[int, Path(description="The ID of the user to delete", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user to delete")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
     """Permanently delete a user."""
@@ -317,7 +318,7 @@ async def hard_delete_user(
 )
 async def restore_user(
     _current_user: RequireSuperAdmin,
-    id: Annotated[int, Path(description="The ID of the user to restore", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user to restore")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserReadWithRoles:
     """Restore a soft-deleted user. Super Admin only."""
@@ -340,7 +341,7 @@ async def restore_user(
 )
 async def replace_roles_for_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
     request: AssignRolesRequest,
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> list[RoleRead]:
@@ -364,7 +365,7 @@ async def replace_roles_for_user(
 )
 async def add_roles_to_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
     request: AssignRolesRequest,
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> list[RoleRead]:
@@ -388,7 +389,7 @@ async def add_roles_to_user(
 )
 async def remove_roles_from_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
     request: AssignRolesRequest,
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
@@ -412,8 +413,8 @@ async def remove_roles_from_user(
 )
 async def assign_role_to_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
-    roleId: Annotated[int, Path(description="The ID of the role to assign", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
+    roleId: Annotated[int, Path(description="The ID of the role to assign")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
     """Assign a single role to a user."""
@@ -436,8 +437,8 @@ async def assign_role_to_user(
 )
 async def remove_role_from_user(
     _current_user: RequireUsersUpdate,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
-    roleId: Annotated[int, Path(description="The ID of the role to remove", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
+    roleId: Annotated[int, Path(description="The ID of the role to remove")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> MessageResponse:
     """Remove a single role from a user."""
@@ -474,7 +475,7 @@ async def remove_role_from_user(
 )
 async def get_user_permissions(
     _current_user: RequireUsersRead,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> list[PermissionRead]:
     """Get all permissions for a user through their roles."""
@@ -512,7 +513,7 @@ async def get_user_permissions(
 )
 async def get_user_roles(
     _current_user: RequireUsersRead,
-    id: Annotated[int, Path(description="The ID of the user", ge=1)],
+    id: Annotated[UUID, Path(description="The ID of the user")],
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> list[RoleRead]:
     """Get all roles assigned to a user."""

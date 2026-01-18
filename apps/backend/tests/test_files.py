@@ -1,5 +1,7 @@
 """File upload API integration tests."""
 
+import uuid
+from collections.abc import Callable
 from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -8,17 +10,21 @@ from httpx import AsyncClient
 
 
 @pytest.fixture
-def mock_file_record():
-    """Create a mock file record."""
-    record = MagicMock()
-    record.id = 1
-    record.key = "2024/01/01/abc123_test.txt"
-    record.filename = "test.txt"
-    record.size = 13
-    record.content_type = "text/plain"
-    record.bucket = "uploads"
-    record.user_id = 1  # Matches the authenticated user
-    return record
+def create_mock_file_record() -> Callable[[str], MagicMock]:
+    """Create a factory for mock file records."""
+
+    def _create(user_id: str) -> MagicMock:
+        record = MagicMock()
+        record.id = uuid.uuid4()
+        record.key = "2024/01/01/abc123_test.txt"
+        record.filename = "test.txt"
+        record.size = 13
+        record.content_type = "text/plain"
+        record.bucket = "uploads"
+        record.user_id = uuid.UUID(user_id)
+        return record
+
+    return _create
 
 
 @pytest.mark.asyncio
@@ -216,9 +222,11 @@ async def test_list_files_with_pagination(
 
 @pytest.mark.asyncio
 async def test_get_file_by_key_success(
-    client: AsyncClient, auth_headers: dict[str, str], mock_file_record
+    client: AsyncClient, auth_with_user_id: tuple[dict, str], create_mock_file_record
 ):
     """Test getting file by key."""
+    auth_headers, user_id = auth_with_user_id
+    mock_file_record = create_mock_file_record(user_id)
     with patch(
         "src.app.api.files.FileService.get_by_key",
         new_callable=AsyncMock,
@@ -284,9 +292,11 @@ async def test_get_file_by_key_forbidden(
 
 @pytest.mark.asyncio
 async def test_get_presigned_url_success(
-    client: AsyncClient, auth_headers: dict[str, str], mock_file_record
+    client: AsyncClient, auth_with_user_id: tuple[dict, str], create_mock_file_record
 ):
     """Test getting presigned URL."""
+    auth_headers, user_id = auth_with_user_id
+    mock_file_record = create_mock_file_record(user_id)
     with (
         patch(
             "src.app.api.files.FileService.get_by_key",
@@ -345,9 +355,11 @@ async def test_get_presigned_url_forbidden(
 
 @pytest.mark.asyncio
 async def test_get_presigned_url_custom_expiry(
-    client: AsyncClient, auth_headers: dict[str, str], mock_file_record
+    client: AsyncClient, auth_with_user_id: tuple[dict, str], create_mock_file_record
 ):
     """Test getting presigned URL with custom expiry."""
+    auth_headers, user_id = auth_with_user_id
+    mock_file_record = create_mock_file_record(user_id)
     with (
         patch(
             "src.app.api.files.FileService.get_by_key",
@@ -396,9 +408,11 @@ async def test_get_presigned_url_file_not_found(
 
 @pytest.mark.asyncio
 async def test_delete_file_success(
-    client: AsyncClient, auth_headers: dict[str, str], mock_file_record
+    client: AsyncClient, auth_with_user_id: tuple[dict, str], create_mock_file_record
 ):
     """Test successful file deletion."""
+    auth_headers, user_id = auth_with_user_id
+    mock_file_record = create_mock_file_record(user_id)
     with (
         patch(
             "src.app.api.files.FileService.get_by_key",

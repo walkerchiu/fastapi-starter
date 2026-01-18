@@ -1,5 +1,7 @@
 """2FA schemas."""
 
+from uuid import UUID
+
 from pydantic import BaseModel, Field
 from src.app.core.validators import PASSWORD_MAX_LENGTH
 
@@ -43,7 +45,7 @@ class BackupCodesResponse(BaseModel):
 class Verify2FARequest(BaseModel):
     """Request schema for 2FA verification during login."""
 
-    user_id: int = Field(..., description="User ID from initial login")
+    user_id: UUID = Field(..., description="User ID from initial login")
     code: str = Field(
         ...,
         min_length=6,
@@ -81,4 +83,4 @@ class TwoFactorLoginResponse(BaseModel):
     requires_two_factor: bool = Field(
         default=True, description="Indicates 2FA is required"
     )
-    user_id: int = Field(..., description="User ID for 2FA verification")
+    user_id: UUID = Field(..., description="User ID for 2FA verification")

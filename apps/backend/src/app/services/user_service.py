@@ -1,6 +1,7 @@
 """User service layer for business logic."""
 
 from datetime import UTC, datetime
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +24,7 @@ class UserService:
 
     async def get_by_id(
         self,
-        user_id: int,
+        user_id: UUID,
         include_deleted: bool = False,
         include_roles: bool = False,
     ) -> User:
@@ -142,7 +143,7 @@ class UserService:
         await self.db.refresh(user, ["roles"])
         return user
 
-    async def update(self, user_id: int, user_in: UserUpdate) -> User:
+    async def update(self, user_id: UUID, user_in: UserUpdate) -> User:
         """Update a user."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -160,13 +161,13 @@ class UserService:
         await self.db.refresh(user)
         return user
 
-    async def delete(self, user_id: int) -> None:
+    async def delete(self, user_id: UUID) -> None:
         """Soft delete a user by setting deleted_at timestamp."""
         user = await self.get_by_id(user_id)
         user.deleted_at = datetime.now(UTC)
         await self.db.commit()
 
-    async def restore(self, user_id: int) -> User:
+    async def restore(self, user_id: UUID) -> User:
         """Restore a soft-deleted user."""
         user = await self.get_by_id(user_id, include_deleted=True)
         user.deleted_at = None
@@ -174,7 +175,7 @@ class UserService:
         await self.db.refresh(user)
         return user
 
-    async def hard_delete(self, user_id: int, is_super_admin: bool = False) -> None:
+    async def hard_delete(self, user_id: UUID, is_super_admin: bool = False) -> None:
         """Permanently delete a user. Only allowed for super admins.
 
         Args:
@@ -192,7 +193,7 @@ class UserService:
         await self.db.delete(user)
         await self.db.commit()
 
-    async def assign_role(self, user_id: int, role_id: int) -> User:
+    async def assign_role(self, user_id: UUID, role_id: int) -> User:
         """Assign a role to a user."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -212,7 +213,7 @@ class UserService:
 
         return user
 
-    async def remove_role(self, user_id: int, role_id: int) -> User:
+    async def remove_role(self, user_id: UUID, role_id: int) -> User:
         """Remove a role from a user."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -223,7 +224,7 @@ class UserService:
 
         return user
 
-    async def replace_roles(self, user_id: int, role_ids: list[int]) -> User:
+    async def replace_roles(self, user_id: UUID, role_ids: list[int]) -> User:
         """Replace all roles for a user."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -238,7 +239,7 @@ class UserService:
 
         return user
 
-    async def add_roles(self, user_id: int, role_ids: list[int]) -> User:
+    async def add_roles(self, user_id: UUID, role_ids: list[int]) -> User:
         """Add multiple roles to a user (bulk operation)."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -256,7 +257,7 @@ class UserService:
 
         return user
 
-    async def remove_roles(self, user_id: int, role_ids: list[int]) -> User:
+    async def remove_roles(self, user_id: UUID, role_ids: list[int]) -> User:
         """Remove multiple roles from a user (bulk operation)."""
         user = await self.get_by_id(user_id, include_roles=True)
 
@@ -269,7 +270,7 @@ class UserService:
 
         return user
 
-    async def get_user_permissions(self, user_id: int) -> list[Permission]:
+    async def get_user_permissions(self, user_id: UUID) -> list[Permission]:
         """Get all permissions for a user through their roles."""
         # Query user with roles and their permissions
         result = await self.db.execute(
@@ -292,12 +293,12 @@ class UserService:
 
         return list(permissions_dict.values())
 
-    async def has_permission(self, user_id: int, permission_code: str) -> bool:
+    async def has_permission(self, user_id: UUID, permission_code: str) -> bool:
         """Check if a user has a specific permission."""
         permissions = await self.get_user_permissions(user_id)
         return any(p.code == permission_code for p in permissions)
 
-    async def has_role(self, user_id: int, role_code: str) -> bool:
+    async def has_role(self, user_id: UUID, role_code: str) -> bool:
         """Check if a user has a specific role."""
         user = await self.get_by_id(user_id, include_roles=True)
         return any(r.code == role_code for r in user.roles)

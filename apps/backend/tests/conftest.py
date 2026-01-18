@@ -83,6 +83,32 @@ async def auth_headers(client: AsyncClient) -> dict[str, str]:
 
 
 @pytest.fixture
+async def auth_with_user_id(client: AsyncClient) -> tuple[dict[str, str], str]:
+    """Create a test user and return authentication headers with user ID."""
+    # Register test user
+    register_response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "testuser@example.com",
+            "name": "Test User",
+            "password": "testpassword123",
+        },
+    )
+    user_id = register_response.json()["id"]
+
+    # Login to get access token
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "testuser@example.com",
+            "password": "testpassword123",
+        },
+    )
+    access_token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {access_token}"}, user_id
+
+
+@pytest.fixture
 async def superadmin_headers(client: AsyncClient, db_session: AsyncSession) -> dict:
     """Create a superadmin user with all permissions and return auth headers."""
     # Create all 19 permissions (must match seeds.py)

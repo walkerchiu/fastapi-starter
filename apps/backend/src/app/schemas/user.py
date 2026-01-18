@@ -1,6 +1,7 @@
 """User schemas."""
 
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from src.app.core.validators import (
@@ -67,7 +68,7 @@ class UserRead(UserBase):
         from_attributes=True,
     )
 
-    id: int
+    id: UUID
     is_active: bool
     is_email_verified: bool
     is_two_factor_enabled: bool

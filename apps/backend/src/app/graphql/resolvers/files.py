@@ -1,5 +1,7 @@
 """File GraphQL resolvers."""
 
+import uuid
+
 import strawberry
 from src.app.core.config import settings
 from src.app.graphql.errors import (
@@ -78,7 +80,7 @@ class FileQuery:
         service = FileService(db)
 
         try:
-            file = await service.get_by_id(int(id))
+            file = await service.get_by_id(uuid.UUID(str(id)))
             # Check ownership
             if file.user_id != user.id:
                 raise NotFoundError("File", str(id))
@@ -111,7 +113,7 @@ class FileQuery:
         service = FileService(db)
 
         try:
-            file = await service.get_by_id(int(id))
+            file = await service.get_by_id(uuid.UUID(str(id)))
         except FileNotFoundError:
             raise NotFoundError("File", id) from None
 
@@ -167,7 +169,7 @@ class FileMutation:
         service = FileService(db)
 
         try:
-            file = await service.get_by_id(int(id))
+            file = await service.get_by_id(uuid.UUID(str(id)))
         except FileNotFoundError:
             raise NotFoundError("File", id) from None
 
@@ -343,7 +345,7 @@ class FileMutation:
         service = FileService(db)
 
         try:
-            await service.hard_delete(int(id), is_super_admin=True)
+            await service.hard_delete(uuid.UUID(str(id)), is_super_admin=True)
             return True
         except ServiceError as e:
             raise ValidationError(str(e), field="file") from None
@@ -356,7 +358,7 @@ class FileMutation:
         service = FileService(db)
 
         try:
-            file = await service.restore(int(id))
+            file = await service.restore(uuid.UUID(str(id)))
             # Check ownership
             if file.user_id != user.id:
                 raise ForbiddenError("You do not have permission to restore this file")
@@ -402,12 +404,12 @@ class FileMutation:
         service = FileService(db)
 
         try:
-            file = await service.get_by_id(int(id))
+            file = await service.get_by_id(uuid.UUID(str(id)))
             # Check ownership
             if file.user_id != user.id:
                 raise ForbiddenError("You do not have permission to update this file")
             file = await service.update(
-                int(id), filename=input.filename, metadata=input.metadata
+                uuid.UUID(str(id)), filename=input.filename, metadata=input.metadata
             )
             return convert_file_to_type(file)
         except FileNotFoundError:
@@ -423,7 +425,7 @@ class FileMutation:
         service = FileService(db)
 
         successful, failed, errors = await service.delete_by_ids(
-            [int(fid) for fid in input.file_ids], user.id
+            [uuid.UUID(str(fid)) for fid in input.file_ids], user.id
         )
 
         return BatchDeleteFilesResponse(

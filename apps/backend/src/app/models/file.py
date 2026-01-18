@@ -1,9 +1,11 @@
 """File model."""
 
+import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import JSON, BigInteger, DateTime, ForeignKey, String, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.app.db.base import Base
 
@@ -16,14 +18,18 @@ class File(Base):
 
     __tablename__ = "files"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
+    )
     key: Mapped[str] = mapped_column(String(500), unique=True, index=True)
     filename: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(100), nullable=False, default="")
     size: Mapped[int] = mapped_column(BigInteger)
     bucket: Mapped[str] = mapped_column(String(100))
     file_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

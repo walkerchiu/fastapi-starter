@@ -196,7 +196,10 @@ async def test_get_user(client: AsyncClient, superadmin_headers: dict):
 @pytest.mark.asyncio
 async def test_get_user_not_found(client: AsyncClient, superadmin_headers: dict):
     """Test getting a non-existent user."""
-    response = await client.get("/api/v1/users/999", headers=superadmin_headers)
+    non_existent_id = "00000000-0000-0000-0000-000000000999"
+    response = await client.get(
+        f"/api/v1/users/{non_existent_id}", headers=superadmin_headers
+    )
     assert response.status_code == 404
 
 
@@ -246,8 +249,9 @@ async def test_delete_user(client: AsyncClient, superadmin_headers: dict):
 @pytest.mark.asyncio
 async def test_update_user_not_found(client: AsyncClient, superadmin_headers: dict):
     """Test updating a non-existent user."""
+    non_existent_id = "00000000-0000-0000-0000-000000000999"
     response = await client.patch(
-        "/api/v1/users/999",
+        f"/api/v1/users/{non_existent_id}",
         json={"name": "Updated Name"},
         headers=superadmin_headers,
     )
@@ -256,19 +260,22 @@ async def test_update_user_not_found(client: AsyncClient, superadmin_headers: di
     assert data["detail"] == "User not found."
     assert data["code"] == "USER_NOT_FOUND"
     assert data["errors"]["resource"] == "User"
-    assert data["errors"]["id"] == 999
+    assert data["errors"]["id"] == non_existent_id
 
 
 @pytest.mark.asyncio
 async def test_delete_user_not_found(client: AsyncClient, superadmin_headers: dict):
     """Test deleting a non-existent user."""
-    response = await client.delete("/api/v1/users/999", headers=superadmin_headers)
+    non_existent_id = "00000000-0000-0000-0000-000000000999"
+    response = await client.delete(
+        f"/api/v1/users/{non_existent_id}", headers=superadmin_headers
+    )
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "User not found."
     assert data["code"] == "USER_NOT_FOUND"
     assert data["errors"]["resource"] == "User"
-    assert data["errors"]["id"] == 999
+    assert data["errors"]["id"] == non_existent_id
 
 
 @pytest.mark.asyncio

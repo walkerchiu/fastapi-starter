@@ -165,7 +165,7 @@ class TestGraphQLUserMutations:
         # Update the user
         update_mutation = f"""
             mutation {{
-                updateUser(id: {user_id}, input: {{name: "Updated Name"}}) {{
+                updateUser(id: "{user_id}", input: {{name: "Updated Name"}}) {{
                     id
                     email
                     name
@@ -199,7 +199,7 @@ class TestGraphQLUserMutations:
         # Delete the user
         delete_mutation = f"""
             mutation {{
-                deleteUser(id: {user_id}) {{
+                deleteUser(id: "{user_id}") {{
                     message
                 }}
             }}
@@ -214,7 +214,7 @@ class TestGraphQLUserMutations:
         # Verify user is deleted
         query = f"""
             query {{
-                user(id: {user_id}) {{
+                user(id: "{user_id}") {{
                     id
                 }}
             }}
@@ -229,12 +229,13 @@ class TestGraphQLUserMutations:
         self, client: AsyncClient, superadmin_headers: dict
     ):
         """Test deleting a non-existent user raises error with code."""
-        mutation = """
-            mutation {
-                deleteUser(id: 9999) {
+        non_existent_id = "00000000-0000-0000-0000-000000009999"
+        mutation = f"""
+            mutation {{
+                deleteUser(id: "{non_existent_id}") {{
                     message
-                }
-            }
+                }}
+            }}
         """
         response = await client.post(
             "/graphql", json={"query": mutation}, headers=superadmin_headers
@@ -245,7 +246,7 @@ class TestGraphQLUserMutations:
         error = data["errors"][0]
         assert "User not found" in error["message"]
         assert error["extensions"]["code"] == "USER_NOT_FOUND"
-        assert error["extensions"]["id"] == "9999"
+        assert error["extensions"]["id"] == non_existent_id
 
 
 class TestGraphQLAuthMutations:
@@ -785,7 +786,7 @@ class TestGraphQLUserEdgeCases:
         # Update email
         update_mutation = f"""
             mutation {{
-                updateUser(id: {user_id}, input: {{email: "newemail@example.com"}}) {{
+                updateUser(id: "{user_id}", input: {{email: "newemail@example.com"}}) {{
                     id
                     email
                 }}
@@ -820,7 +821,7 @@ class TestGraphQLUserEdgeCases:
         # Deactivate user
         update_mutation = f"""
             mutation {{
-                updateUser(id: {user_id}, input: {{isActive: false}}) {{
+                updateUser(id: "{user_id}", input: {{isActive: false}}) {{
                     id
                     isActive
                 }}
@@ -837,12 +838,13 @@ class TestGraphQLUserEdgeCases:
         self, client: AsyncClient, superadmin_headers: dict
     ):
         """Test updating non-existent user returns null."""
-        mutation = """
-            mutation {
-                updateUser(id: 99999, input: {name: "New Name"}) {
+        non_existent_id = "00000000-0000-0000-0000-000000099999"
+        mutation = f"""
+            mutation {{
+                updateUser(id: "{non_existent_id}", input: {{name: "New Name"}}) {{
                     id
-                }
-            }
+                }}
+            }}
         """
         response = await client.post(
             "/graphql", json={"query": mutation}, headers=superadmin_headers

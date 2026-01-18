@@ -1,6 +1,7 @@
 """File upload API endpoints."""
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Path, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -278,7 +279,7 @@ Get a file's details by its ID.
 )
 async def get_file(
     current_user: CurrentUser,
-    file_id: Annotated[int, Path(description="The ID of the file to retrieve", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file to retrieve")],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> FileRead:
     """Get a file by ID."""
@@ -316,7 +317,7 @@ The URL is temporary and expires after the specified duration (default: 1 hour).
 )
 async def get_presigned_url_by_id(
     current_user: CurrentUser,
-    file_id: Annotated[int, Path(description="The ID of the file", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file")],
     db: Annotated[AsyncSession, Depends(get_db)],
     expires_in: Annotated[
         int,
@@ -402,7 +403,7 @@ Delete a file from storage by its ID.
 )
 async def delete_file_by_id(
     current_user: CurrentUser,
-    file_id: Annotated[int, Path(description="The ID of the file to delete", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file to delete")],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     """Delete a file from storage by its ID."""
@@ -447,7 +448,7 @@ The file cannot be recovered after hard deletion.
     },
 )
 async def hard_delete_file(
-    file_id: Annotated[int, Path(description="The ID of the file to delete", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file to delete")],
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
 ) -> MessageResponse:
@@ -488,7 +489,7 @@ Restore a previously soft-deleted file.
     },
 )
 async def restore_file(
-    file_id: Annotated[int, Path(description="The ID of the file to restore", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file to restore")],
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(require_permissions("files:hard_delete"))],
 ) -> FileRead:
@@ -517,7 +518,7 @@ Update a file's metadata (filename and/or custom metadata).
 )
 async def update_file(
     current_user: CurrentUser,
-    file_id: Annotated[int, Path(description="The ID of the file to update", ge=1)],
+    file_id: Annotated[UUID, Path(description="The ID of the file to update")],
     file_update: FileUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> FileRead:

@@ -440,7 +440,7 @@ async def test_graphql_user_with_roles(
 
     query = f"""
         query {{
-            userWithRoles(id: {user.id}) {{
+            userWithRoles(id: "{user.id}") {{
                 id
                 email
                 name
@@ -487,7 +487,7 @@ async def test_graphql_user_permissions(
 
     query = f"""
         query {{
-            userPermissions(userId: {user.id}) {{
+            userPermissions(userId: "{user.id}") {{
                 id
                 code
                 name
@@ -521,7 +521,7 @@ async def test_graphql_assign_role_to_user(
 
     mutation = f"""
         mutation {{
-            assignRoleToUser(userId: {user.id}, roleId: {role.id}) {{
+            assignRoleToUser(userId: "{user.id}", roleId: {role.id}) {{
                 message
             }}
         }}
@@ -557,7 +557,7 @@ async def test_graphql_remove_role_from_user(
 
     mutation = f"""
         mutation {{
-            removeRoleFromUser(userId: {user.id}, roleId: {role.id}) {{
+            removeRoleFromUser(userId: "{user.id}", roleId: {role.id}) {{
                 message
             }}
         }}

@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +16,7 @@ class FileService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(self, file_id: int, include_deleted: bool = False) -> File:
+    async def get_by_id(self, file_id: UUID, include_deleted: bool = False) -> File:
         """Get a file by ID.
 
         Args:
@@ -46,7 +47,7 @@ class FileService:
 
     async def list_files(
         self,
-        user_id: int | None = None,
+        user_id: UUID | None = None,
         skip: int = 0,
         limit: int = 100,
         include_deleted: bool = False,
@@ -89,7 +90,7 @@ class FileService:
         filename: str,
         size: int,
         bucket: str,
-        user_id: int,
+        user_id: UUID,
         content_type: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> File:
@@ -108,7 +109,7 @@ class FileService:
         await self.db.refresh(file)
         return file
 
-    async def delete(self, file_id: int) -> None:
+    async def delete(self, file_id: UUID) -> None:
         """Soft delete a file record by ID."""
         file = await self.get_by_id(file_id)
         file.deleted_at = datetime.now(UTC)
@@ -122,7 +123,7 @@ class FileService:
         file.deleted_at = datetime.now(UTC)
         await self.db.commit()
 
-    async def restore(self, file_id: int) -> File:
+    async def restore(self, file_id: UUID) -> File:
         """Restore a soft-deleted file."""
         file = await self.get_by_id(file_id, include_deleted=True)
         file.deleted_at = None
@@ -140,7 +141,7 @@ class FileService:
         await self.db.refresh(file)
         return file
 
-    async def hard_delete(self, file_id: int, is_super_admin: bool = False) -> None:
+    async def hard_delete(self, file_id: UUID, is_super_admin: bool = False) -> None:
         """Permanently delete a file record. Only allowed for super admins.
 
         Args:
@@ -180,7 +181,7 @@ class FileService:
 
     async def update(
         self,
-        file_id: int,
+        file_id: UUID,
         filename: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> File:
@@ -201,7 +202,7 @@ class FileService:
         return file
 
     async def delete_by_ids(
-        self, file_ids: list[int], user_id: int
+        self, file_ids: list[UUID], user_id: UUID
     ) -> tuple[int, int, list[str]]:
         """Delete multiple files by IDs. Returns (successful, failed, errors).
 
