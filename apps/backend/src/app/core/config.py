@@ -154,5 +154,9 @@ To get a token:
         "/metrics",
     ]
 
+    # GZIP Compression
+    gzip_enabled: bool = True
+    gzip_minimum_size: int = 1024  # Minimum response size to compress (bytes)
+
 
 settings = Settings()

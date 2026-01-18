@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from src.app.api import (
@@ -145,6 +146,10 @@ if settings.access_log_enabled:
         AccessLogMiddleware,
         skip_paths=settings.access_log_skip_paths,
     )
+
+# Add GZIP compression middleware
+if settings.gzip_enabled:
+    app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_minimum_size)
 
 # Health check routes (no prefix for /health, /health/live, /health/ready)
 app.include_router(health_router)
