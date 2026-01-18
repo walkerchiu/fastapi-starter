@@ -1,8 +1,3 @@
-export { useAuth } from './useAuth';
-export type { AuthUser, UseAuthReturn } from './useAuth';
-export { useRole } from './useRole';
-
-// REST API hooks
 export {
   useUsers,
   useUser,
@@ -10,13 +5,19 @@ export {
   useUpdateUser,
   useDeleteUser,
   userKeys,
+} from './use-users';
+
+export {
   useFiles,
   useFile,
   useUploadFile,
   useDeleteFile,
   fileKeys,
+} from './use-files';
+
+export {
   useMe,
   useUpdateProfile,
   useChangePassword,
   authKeys,
-} from './api';
+} from './use-auth';

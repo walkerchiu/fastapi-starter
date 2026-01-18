@@ -129,7 +129,13 @@ fastapi-nextjs-tailwindcss-starter/
 │       │   ├── lib/
 │       │   │   ├── api.ts          # API client wrapper
 │       │   │   └── auth.ts         # NextAuth configuration
-│       │   ├── hooks/              # Custom React hooks
+│       │   ├── hooks/
+│       │   │   ├── api/            # REST API hooks (TanStack Query)
+│       │   │   │   ├── use-users.ts  # User CRUD hooks
+│       │   │   │   ├── use-files.ts  # File upload hooks
+│       │   │   │   └── use-auth.ts   # Profile & password hooks
+│       │   │   ├── useAuth.ts      # Authentication state hook
+│       │   │   └── useRole.ts      # Role-based access hooks
 │       │   ├── i18n/               # Internationalization config
 │       │   └── graphql/            # GraphQL operations
 │       ├── messages/               # Translation files (en, zh-TW)
@@ -383,6 +389,58 @@ The frontend uses urql with GraphQL Codegen for type-safe queries:
 # Note: Requires the backend server to be running (pnpm dev:backend)
 pnpm --filter frontend codegen
 ```
+
+### Frontend REST API Integration
+
+The frontend uses TanStack Query with auto-generated API client for REST API calls:
+
+```typescript
+import { useUsers, useMe, useUpdateProfile } from '@/hooks';
+
+function UsersList() {
+  // Fetch users with automatic caching and background updates
+  const { data, isLoading, error } = useUsers({ limit: 10 });
+
+  // Fetch current user
+  const { data: me } = useMe();
+
+  // Mutations with cache invalidation
+  const updateProfile = useUpdateProfile();
+
+  const handleUpdate = async (name: string) => {
+    await updateProfile.mutateAsync({ name });
+    // Cache is automatically invalidated
+  };
+
+  if (isLoading) return <Spinner />;
+  if (error) return <Error message={error.message} />;
+
+  return (
+    <ul>
+      {data?.items.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Available REST API hooks:
+
+| Hook                | Description                      |
+| ------------------- | -------------------------------- |
+| `useUsers`          | Fetch paginated user list        |
+| `useUser`           | Fetch single user by ID          |
+| `useCreateUser`     | Create new user                  |
+| `useUpdateUser`     | Update existing user             |
+| `useDeleteUser`     | Delete user                      |
+| `useMe`             | Fetch current authenticated user |
+| `useUpdateProfile`  | Update current user's profile    |
+| `useChangePassword` | Change current user's password   |
+| `useFiles`          | Fetch paginated file list        |
+| `useFile`           | Fetch single file by ID          |
+| `useUploadFile`     | Upload new file                  |
+| `useDeleteFile`     | Delete file                      |
 
 ### Frontend Authentication
 
