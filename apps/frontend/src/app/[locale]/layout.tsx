@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { Navbar } from '@/components/nav/navbar';
 import { GraphQLProvider } from '@/components/providers/graphql-provider';
+import { QueryProvider } from '@/components/providers/query-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { routing } from '@/i18n/routing';
@@ -31,12 +32,14 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <SessionProvider>
-        <ThemeProvider>
-          <GraphQLProvider>
-            <Navbar />
-            <main>{children}</main>
-          </GraphQLProvider>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            <GraphQLProvider>
+              <Navbar />
+              <main>{children}</main>
+            </GraphQLProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </SessionProvider>
     </NextIntlClientProvider>
   );
