@@ -271,7 +271,12 @@ class TestGraphQLIDEIntegration:
         )
 
         assert response.status_code == 200
-        assert response.json() == {"data": {"__typename": "Query"}}
+        data = response.json()
+        assert data["data"] == {"__typename": "Query"}
+        # Response may include extensions (requestId, responseTime) from request tracing
+        if "extensions" in data:
+            assert "requestId" in data["extensions"]
+            assert "responseTime" in data["extensions"]
 
 
 class TestGraphQLIDEConfig:

@@ -34,6 +34,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Redis Cache** - Unified caching layer for session, rate limiting, and data caching
 - **Structured Logging** - structlog-based JSON logging with request tracing and environment-aware formatting
+- **Request Tracing** - X-Request-ID propagation with request_id in error responses and GraphQL extensions
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)

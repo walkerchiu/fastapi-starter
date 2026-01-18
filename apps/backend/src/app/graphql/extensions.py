@@ -1,4 +1,7 @@
-"""GraphQL security extensions for depth and complexity limiting."""
+"""GraphQL security extensions for depth, complexity limiting, and request tracing."""
+
+import time
+from typing import Any
 
 from graphql import (
     DocumentNode,
@@ -10,7 +13,9 @@ from graphql import (
 )
 from src.app.core.config import settings
 from src.app.graphql.errors import QueryComplexityError, QueryDepthError
+from src.app.middleware.request_id import get_request_id
 from strawberry.extensions import SchemaExtension
+from strawberry.types import ExecutionContext
 
 
 class DepthLimitExtension(SchemaExtension):
@@ -213,3 +218,35 @@ class QueryComplexityExtension(SchemaExtension):
                         )
 
         return complexity
+
+
+class RequestTracingExtension(SchemaExtension):
+    """Extension to add request tracing information to GraphQL response extensions.
+
+    Adds requestId and responseTime to the response extensions for tracing purposes.
+    """
+
+    def __init__(self, *, execution_context: ExecutionContext | None = None):
+        super().__init__(execution_context=execution_context)
+        self._start_time: float | None = None
+
+    def on_operation(self):
+        """Record start time before operation execution."""
+        self._start_time = time.time()
+        yield
+
+    def get_results(self) -> dict[str, Any]:
+        """Add tracing information to response extensions."""
+        results: dict[str, Any] = {}
+
+        # Add request ID from context
+        request_id = get_request_id()
+        if request_id:
+            results["requestId"] = request_id
+
+        # Add response time
+        if self._start_time is not None:
+            response_time_ms = int((time.time() - self._start_time) * 1000)
+            results["responseTime"] = response_time_ms
+
+        return results

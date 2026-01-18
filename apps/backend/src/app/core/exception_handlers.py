@@ -10,6 +10,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from src.app.core.error_codes import ErrorCode
+from src.app.middleware.request_id import get_request_id
 
 if TYPE_CHECKING:
     from src.app.services.exceptions import ServiceError
@@ -21,17 +22,17 @@ def _create_error_response(
     code: ErrorCode,
     errors: dict[str, Any] | None = None,
     headers: dict[str, str] | None = None,
+    request_id: str | None = None,
 ) -> JSONResponse:
     """Create a standardized error response."""
-    content = {
-        "success": False,
-        "error": {
-            "code": code.value,
-            "message": detail,
-        },
+    content: dict[str, Any] = {
+        "detail": detail,
+        "code": code.value,
     }
     if errors:
-        content["error"]["details"] = errors
+        content["errors"] = errors
+    if request_id:
+        content["request_id"] = request_id
 
     return JSONResponse(
         status_code=status_code,
@@ -77,6 +78,9 @@ async def service_exception_handler(
         UserNotFoundError,
     )
 
+    # Get request ID for tracing
+    request_id = get_request_id()
+
     # Authentication errors
     if isinstance(exc, InvalidCredentialsError):
         return _create_error_response(
@@ -84,6 +88,7 @@ async def service_exception_handler(
             detail="Invalid email or password.",
             code=ErrorCode.INVALID_CREDENTIALS,
             headers={"WWW-Authenticate": "Bearer"},
+            request_id=request_id,
         )
 
     if isinstance(exc, RefreshTokenInvalidError):
@@ -101,6 +106,7 @@ async def service_exception_handler(
             detail="Token is invalid or expired.",
             code=ErrorCode.INVALID_TOKEN,
             headers={"WWW-Authenticate": "Bearer"},
+            request_id=request_id,
         )
 
     if isinstance(exc, InvalidTokenTypeError):
@@ -109,6 +115,7 @@ async def service_exception_handler(
             detail="Invalid token type.",
             code=ErrorCode.INVALID_TOKEN,
             headers={"WWW-Authenticate": "Bearer"},
+            request_id=request_id,
         )
 
     if isinstance(exc, InactiveUserError):
@@ -116,6 +123,7 @@ async def service_exception_handler(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is disabled.",
             code=ErrorCode.INACTIVE_USER,
+            request_id=request_id,
         )
 
     # Email verification errors
@@ -227,6 +235,7 @@ async def service_exception_handler(
             detail="User not found.",
             code=ErrorCode.USER_NOT_FOUND,
             errors=errors,
+            request_id=request_id,
         )
 
     if isinstance(exc, EmailAlreadyExistsError):
@@ -235,11 +244,12 @@ async def service_exception_handler(
             detail="Email is already registered.",
             code=ErrorCode.EMAIL_ALREADY_EXISTS,
             errors={"field": "email"},
+            request_id=request_id,
         )
 
     # Permission errors
     if isinstance(exc, PermissionNotFoundError):
-        errors: dict[str, Any] = {"resource": "Permission"}
+        errors = {"resource": "Permission"}
         if exc.permission_id is not None:
             errors["id"] = exc.permission_id
         return _create_error_response(
@@ -247,6 +257,7 @@ async def service_exception_handler(
             detail="Permission not found.",
             code=ErrorCode.PERMISSION_NOT_FOUND,
             errors=errors,
+            request_id=request_id,
         )
 
     if isinstance(exc, PermissionCodeAlreadyExistsError):
@@ -255,6 +266,7 @@ async def service_exception_handler(
             detail="Permission code already exists.",
             code=ErrorCode.PERMISSION_CODE_ALREADY_EXISTS,
             errors={"field": "code"},
+            request_id=request_id,
         )
 
     # Role errors
@@ -267,6 +279,7 @@ async def service_exception_handler(
             detail="Role not found.",
             code=ErrorCode.ROLE_NOT_FOUND,
             errors=errors,
+            request_id=request_id,
         )
 
     if isinstance(exc, RoleCodeAlreadyExistsError):
@@ -275,6 +288,7 @@ async def service_exception_handler(
             detail="Role code already exists.",
             code=ErrorCode.ROLE_CODE_ALREADY_EXISTS,
             errors={"field": "code"},
+            request_id=request_id,
         )
 
     if isinstance(exc, SystemRoleModificationError):
@@ -282,6 +296,7 @@ async def service_exception_handler(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot modify system roles.",
             code=ErrorCode.SYSTEM_ROLE_MODIFICATION,
+            request_id=request_id,
         )
 
     # File/Storage errors
@@ -291,6 +306,7 @@ async def service_exception_handler(
             detail="File not found.",
             code=ErrorCode.FILE_NOT_FOUND,
             errors={"resource": "File"},
+            request_id=request_id,
         )
 
     if isinstance(exc, FileTooLargeError):
@@ -298,6 +314,7 @@ async def service_exception_handler(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail="File exceeds size limit.",
             code=ErrorCode.FILE_TOO_LARGE,
+            request_id=request_id,
         )
 
     if isinstance(exc, InvalidFileTypeError):
@@ -305,6 +322,7 @@ async def service_exception_handler(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="File type not permitted.",
             code=ErrorCode.INVALID_FILE_TYPE,
+            request_id=request_id,
         )
 
     if isinstance(exc, StorageConnectionError):
@@ -312,6 +330,7 @@ async def service_exception_handler(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Storage operation failed.",
             code=ErrorCode.STORAGE_ERROR,
+            request_id=request_id,
         )
 
     if isinstance(exc, StorageError):
@@ -319,6 +338,7 @@ async def service_exception_handler(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Storage operation failed.",
             code=ErrorCode.STORAGE_ERROR,
+            request_id=request_id,
         )
 
     # Generic service error fallback
@@ -326,6 +346,7 @@ async def service_exception_handler(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Internal server error.",
         code=ErrorCode.INTERNAL_SERVER_ERROR,
+        request_id=request_id,
     )
 
 
@@ -333,8 +354,10 @@ async def sqlalchemy_exception_handler(
     request: Request, exc: SQLAlchemyError
 ) -> JSONResponse:
     """Handle SQLAlchemy database errors."""
+    request_id = get_request_id()
     return _create_error_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Database operation failed.",
         code=ErrorCode.DATABASE_ERROR,
+        request_id=request_id,
     )

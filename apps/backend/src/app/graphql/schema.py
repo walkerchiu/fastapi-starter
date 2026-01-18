@@ -1,7 +1,11 @@
 """GraphQL schema definition."""
 
 import strawberry
-from src.app.graphql.extensions import DepthLimitExtension, QueryComplexityExtension
+from src.app.graphql.extensions import (
+    DepthLimitExtension,
+    QueryComplexityExtension,
+    RequestTracingExtension,
+)
 from src.app.graphql.resolvers import (
     AuthMutation,
     AuthQuery,
@@ -45,6 +49,7 @@ schema = strawberry.Schema(
     mutation=Mutation,
     subscription=Subscription,
     extensions=[
+        RequestTracingExtension,
         DepthLimitExtension,
         QueryComplexityExtension,
     ],
