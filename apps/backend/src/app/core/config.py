@@ -163,5 +163,9 @@ To get a token:
     hsts_enabled: bool = False  # Enable only after confirming HTTPS works
     hsts_max_age: int = 31536000  # 1 year in seconds
 
+    # Trusted Host Validation
+    trusted_host_enabled: bool = False  # Disabled by default for development
+    trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
+
 
 settings = Settings()

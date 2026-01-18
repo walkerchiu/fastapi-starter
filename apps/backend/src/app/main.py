@@ -34,6 +34,7 @@ from src.app.middleware import (
     RateLimitMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
+    TrustedHostMiddleware,
 )
 from src.app.services.exceptions import ServiceError
 from strawberry.fastapi import GraphQLRouter
@@ -158,6 +159,14 @@ if settings.security_headers_enabled:
         SecurityHeadersMiddleware,
         hsts_enabled=settings.hsts_enabled,
         hsts_max_age=settings.hsts_max_age,
+    )
+
+# Add trusted host validation middleware
+if settings.trusted_host_enabled:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.trusted_hosts,
+        allow_localhost=True,
     )
 
 # Health check routes (no prefix for /health, /health/live, /health/ready)
