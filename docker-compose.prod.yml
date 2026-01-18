@@ -73,6 +73,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+    stop_grace_period: 45s
     restart: unless-stopped
     networks:
       - app-network

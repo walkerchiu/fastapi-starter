@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.app.core.config import settings
 from src.app.core.deps import require_roles
 from src.app.core.redis import RedisPool
+from src.app.core.shutdown import shutdown_state
 from src.app.db import get_db
 from src.app.models import User
 from src.app.services.storage_service import storage_service
@@ -239,8 +240,17 @@ async def liveness() -> dict[str, str]:
 async def readiness(
     response: Response,
     db: DbSession,
-) -> ReadyResponse:
+) -> ReadyResponse | dict[str, str]:
     """Readiness probe - checks if the service can handle requests."""
+    # Check if application is shutting down
+    if shutdown_state.is_shutting_down:
+        response.status_code = 503
+        return {
+            "status": "not_ready",
+            "reason": "shutting_down",
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+
     checks: dict[str, ComponentHealth] = {}
 
     # Check database

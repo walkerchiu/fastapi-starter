@@ -20,6 +20,7 @@ from src.app.core.exception_handlers import (
 )
 from src.app.core.exceptions import APIException
 from src.app.core.logging import get_logger, setup_logging
+from src.app.core.shutdown import lifespan
 from src.app.graphql import (
     apollo_sandbox_handler,
     get_context,
@@ -87,6 +88,7 @@ app = FastAPI(
         "persistAuthorization": True,
         "filter": True,
     },
+    lifespan=lifespan,
 )
 
 
