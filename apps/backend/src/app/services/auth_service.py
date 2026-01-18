@@ -51,6 +51,15 @@ class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    @staticmethod
+    def _ensure_utc_aware(dt: datetime | None) -> datetime | None:
+        """Ensure datetime is UTC-aware for comparison."""
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=UTC)
+        return dt
+
     async def get_user_by_email(self, email: str) -> User | None:
         """Get a user by email."""
         result = await self.db.execute(select(User).where(User.email == email))
@@ -213,7 +222,7 @@ class AuthService:
                 "Password reset token has already been used"
             )
 
-        if reset_token.expires_at < datetime.now(UTC):
+        if self._ensure_utc_aware(reset_token.expires_at) < datetime.now(UTC):
             raise ExpiredResetTokenError("Password reset token has expired")
 
         # Get the user
@@ -296,10 +305,9 @@ class AuthService:
         if user.is_email_verified:
             raise EmailAlreadyVerifiedError("Email is already verified")
 
-        if (
+        if user.email_verification_expires_at and self._ensure_utc_aware(
             user.email_verification_expires_at
-            and user.email_verification_expires_at < datetime.now(UTC)
-        ):
+        ) < datetime.now(UTC):
             raise ExpiredVerificationTokenError("Email verification token has expired")
 
         # Mark email as verified

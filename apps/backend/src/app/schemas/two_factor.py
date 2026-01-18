@@ -84,3 +84,14 @@ class TwoFactorLoginResponse(BaseModel):
         default=True, description="Indicates 2FA is required"
     )
     user_id: UUID = Field(..., description="User ID for 2FA verification")
+
+
+class RegenerateBackupCodesRequest(BaseModel):
+    """Request schema for regenerating backup codes."""
+
+    password: str = Field(
+        ...,
+        min_length=1,
+        max_length=PASSWORD_MAX_LENGTH,
+        description="Current password for verification",
+    )

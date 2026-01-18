@@ -244,30 +244,36 @@ import { Component } from '@/components/Component';
 
 ### Root Level
 
-| Command                | Description                             |
-| ---------------------- | --------------------------------------- |
-| `pnpm dev`             | Start frontend in development mode      |
-| `pnpm dev:backend`     | Start backend in development mode       |
-| `pnpm dev:frontend`    | Start frontend in development mode      |
-| `pnpm build`           | Build frontend for production           |
-| `pnpm test`            | Run tests in all apps                   |
-| `pnpm test:backend`    | Run backend tests                       |
-| `pnpm test:frontend`   | Run frontend tests                      |
-| `pnpm test:cov`        | Run tests with coverage in all apps     |
-| `pnpm lint`            | Run ESLint across the workspace         |
-| `pnpm lint:fix`        | Fix ESLint issues automatically         |
-| `pnpm lint:backend`    | Run Ruff linter on backend              |
-| `pnpm format`          | Format code with Prettier and Ruff      |
-| `pnpm format:check`    | Check code formatting without modifying |
-| `pnpm generate:api`    | Generate TypeScript API client          |
-| `pnpm storybook`       | Start Storybook development server      |
-| `pnpm build-storybook` | Build Storybook for production          |
-| `pnpm db:upgrade`      | Run database migrations                 |
-| `pnpm db:downgrade`    | Revert last migration                   |
-| `pnpm db:revision`     | Generate a new migration                |
-| `pnpm db:history`      | Show migration history                  |
-| `pnpm db:current`      | Show current migration status           |
-| `pnpm db:seed`         | Seed default data (roles, permissions)  |
+| Command                  | Description                             |
+| ------------------------ | --------------------------------------- |
+| `pnpm dev`               | Start frontend in development mode      |
+| `pnpm dev:backend`       | Start backend in development mode       |
+| `pnpm dev:frontend`      | Start frontend in development mode      |
+| `pnpm build`             | Build frontend for production           |
+| `pnpm build:frontend`    | Build frontend for production (alias)   |
+| `pnpm test`              | Run tests in all apps                   |
+| `pnpm test:backend`      | Run backend tests                       |
+| `pnpm test:frontend`     | Run frontend tests                      |
+| `pnpm test:cov`          | Run tests with coverage in all apps     |
+| `pnpm test:cov:backend`  | Run backend tests with coverage         |
+| `pnpm test:cov:frontend` | Run frontend tests with coverage        |
+| `pnpm test:integration`  | Run API integration tests               |
+| `pnpm lint`              | Run ESLint across the workspace         |
+| `pnpm lint:fix`          | Fix ESLint issues automatically         |
+| `pnpm lint:backend`      | Run Ruff linter on backend              |
+| `pnpm lint:backend:fix`  | Fix Ruff linter issues automatically    |
+| `pnpm format`            | Format code with Prettier and Ruff      |
+| `pnpm format:check`      | Check code formatting without modifying |
+| `pnpm generate:api`      | Generate TypeScript API client          |
+| `pnpm storybook`         | Start Storybook development server      |
+| `pnpm build-storybook`   | Build Storybook for production          |
+| `pnpm db:upgrade`        | Run database migrations                 |
+| `pnpm db:downgrade`      | Revert last migration                   |
+| `pnpm db:revision`       | Generate a new migration                |
+| `pnpm db:history`        | Show migration history                  |
+| `pnpm db:current`        | Show current migration status           |
+| `pnpm db:seed`           | Seed default data (roles, permissions)  |
+| `pnpm db:status`         | Show database table status              |
 
 > **Note**: `pnpm generate:api` requires the backend server to be running (`pnpm dev:backend`).
 

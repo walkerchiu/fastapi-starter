@@ -4,7 +4,7 @@ import uuid
 from collections.abc import Callable
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,19 @@ from src.app.core.security import decode_token
 from src.app.db.session import get_db
 from src.app.models import Role, User
 
-security = HTTPBearer()
+
+class CustomHTTPBearer(HTTPBearer):
+    """Custom HTTPBearer that raises UnauthenticatedException instead of HTTPException."""
+
+    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
+        """Override to raise custom exception when not authenticated."""
+        try:
+            return await super().__call__(request)
+        except Exception:
+            raise UnauthenticatedException() from None
+
+
+security = CustomHTTPBearer()
 
 
 async def get_current_user(

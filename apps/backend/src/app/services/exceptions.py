@@ -57,6 +57,12 @@ class InvalidTokenTypeError(ServiceError):
     pass
 
 
+class RefreshTokenInvalidError(ServiceError):
+    """Raised when refresh token is invalid or expired."""
+
+    pass
+
+
 # Password reset errors
 class InvalidResetTokenError(ServiceError):
     """Raised when password reset token is invalid."""

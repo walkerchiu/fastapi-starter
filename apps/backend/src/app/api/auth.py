@@ -21,6 +21,7 @@ from src.app.schemas import (
     LoginRequest,
     LogoutResponse,
     RefreshTokenRequest,
+    RegenerateBackupCodesRequest,
     ResendVerificationRequest,
     ResendVerificationResponse,
     ResetPasswordRequest,
@@ -697,9 +698,10 @@ Store the new codes securely.
     },
 )
 async def regenerate_backup_codes(
+    request: RegenerateBackupCodesRequest,
     current_user: CurrentUser,
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> BackupCodesResponse:
     """Regenerate 2FA backup codes."""
-    backup_codes = await service.regenerate_backup_codes(current_user)
+    backup_codes = await service.regenerate_backup_codes(current_user, request.password)
     return BackupCodesResponse(backup_codes=backup_codes)
