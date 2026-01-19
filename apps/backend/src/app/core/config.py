@@ -157,6 +157,11 @@ To get a token:
     password_reset_expire_minutes: int = 60
     email_verification_expire_hours: int = 24
 
+    # API Key Authentication
+    api_key_enabled: bool = False
+    api_key_header: str = "X-API-Key"
+    api_keys: str = ""  # Format: "key1:name1,key2:name2"
+
     # 2FA
     two_factor_issuer_name: str = "FastAPI App"
     two_factor_totp_window: int = 1  # Number of 30-second windows for clock skew
