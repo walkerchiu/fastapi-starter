@@ -1,8 +1,11 @@
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import redis.asyncio as redis
 from src.app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class RedisPool:
@@ -12,12 +15,21 @@ class RedisPool:
     async def init_pool(cls) -> None:
         if cls._pool is None:
             cls._pool = redis.ConnectionPool(
-                host=settings.REDIS_HOST,
-                port=settings.REDIS_PORT,
-                password=settings.REDIS_PASSWORD or None,
-                db=settings.REDIS_DB,
-                max_connections=10,
+                host=settings.redis_host,
+                port=settings.redis_port,
+                password=settings.redis_password or None,
+                db=settings.redis_db,
+                max_connections=settings.redis_pool_size,
+                socket_timeout=settings.redis_read_timeout
+                / 1000,  # Convert ms to seconds
+                socket_connect_timeout=settings.redis_connection_timeout / 1000,
                 decode_responses=True,
+            )
+            logger.info(
+                "Redis connection pool configured: max_connections=%d, connect_timeout=%dms, read_timeout=%dms",
+                settings.redis_pool_size,
+                settings.redis_connection_timeout,
+                settings.redis_read_timeout,
             )
 
     @classmethod

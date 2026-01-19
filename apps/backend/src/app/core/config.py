@@ -78,11 +78,26 @@ To get a token:
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
     database_echo: bool = False
 
+    # Database Connection Pool
+    db_pool_max: int = 10
+    db_pool_min: int = 2
+    db_pool_idle_timeout: int = 300000  # 5 minutes in milliseconds
+    db_pool_max_lifetime: int = 3600000  # 1 hour in milliseconds
+    db_connection_timeout: int = 10000  # 10 seconds in milliseconds
+
     # Redis
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_password: str = ""
     redis_db: int = 0
+
+    # Redis Connection Pool
+    redis_pool_size: int = 10
+    redis_pool_min_idle: int = 2
+    redis_pool_idle_timeout: int = 300000  # 5 minutes in milliseconds
+    redis_connection_timeout: int = 5000  # 5 seconds in milliseconds
+    redis_read_timeout: int = 3000  # 3 seconds in milliseconds
+    redis_write_timeout: int = 3000  # 3 seconds in milliseconds
 
     # JWT Authentication
     jwt_secret_key: str = "your-secret-key-change-in-production"
