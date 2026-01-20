@@ -8,9 +8,22 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "dev:backend": "cd apps/backend && uv run uvicorn src.app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "test": "pnpm test:backend && pnpm test:frontend",
+    "test:backend": "cd apps/backend && uv run pytest --ignore=tests/integration",
+    "test:frontend": "pnpm --filter frontend test",
+    "test:cov": "pnpm test:cov:backend && pnpm test:cov:frontend",
+    "test:cov:backend": "cd apps/backend && uv run pytest --ignore=tests/integration --cov",
+    "test:cov:frontend": "pnpm --filter frontend test:cov",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
+    "lint:backend": "cd apps/backend && uv run ruff check .",
+    "lint:backend:fix": "cd apps/backend && uv run ruff check . --fix",
+    "format": "prettier --write . && cd apps/backend && uv run ruff format .",
     "format:check": "prettier --check .",
     "prepare": "husky"
   },
@@ -29,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",
+    "concurrently": "^9.2.1",
     "eslint": "9.39.1",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.4",
