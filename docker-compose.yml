@@ -1,4 +1,21 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-app}
+      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
@@ -56,6 +73,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
       seaweedfs:
@@ -104,6 +123,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   redis_data:
   seaweedfs_data:
   backend_data:

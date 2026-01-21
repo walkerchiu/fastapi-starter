@@ -1357,6 +1357,76 @@ E2E tests cover 20 scenarios including:
 - **API** (1 test): REST/GraphQL mode switching.
 - **Error Handling** (3 tests): Network errors, form validation, 404 pages.
 
+## Database Engine Selection
+
+The backend supports two database engines via Docker Compose profiles:
+
+| Engine      | Use Case                                      |
+| ----------- | --------------------------------------------- |
+| PostgreSQL  | General relational data (default)             |
+| TimescaleDB | Time-series data (IoT, metrics, logs, events) |
+
+### Starting with PostgreSQL
+
+```bash
+docker compose -f docker-compose.prod.yml --profile postgres up -d
+```
+
+### Starting with TimescaleDB
+
+```bash
+docker compose -f docker-compose.prod.yml --profile timescaledb up -d
+```
+
+### Environment Configuration
+
+Set the `DATABASE_ENGINE` environment variable to match your chosen engine:
+
+```bash
+# In apps/backend/.env
+DATABASE_ENGINE=postgres  # or timescaledb
+```
+
+### TimescaleDB Settings
+
+When using TimescaleDB, additional settings are available:
+
+| Variable                           | Default | Description                     |
+| ---------------------------------- | ------- | ------------------------------- |
+| `TIMESCALE_COMPRESSION_ENABLED`    | `true`  | Enable automatic compression    |
+| `TIMESCALE_COMPRESSION_AFTER_DAYS` | `7`     | Compress chunks older than days |
+| `TIMESCALE_RETENTION_DAYS`         | `0`     | Drop old data (0 = disabled)    |
+| `TIMESCALE_CHUNK_INTERVAL`         | `1 day` | Hypertable chunk interval       |
+
+### TimescaleDB Module (Optional)
+
+The backend includes an optional `timeseries` module for managing hypertables:
+
+```python
+# Use in your router or service
+from src.app.modules.timeseries import TimeseriesService, get_timeseries_service
+
+@router.post("/setup-hypertable")
+async def setup_hypertable(
+    service: TimeseriesService = Depends(get_timeseries_service),
+):
+    await service.create_hypertable("metrics")
+    await service.enable_compression("metrics")
+    await service.add_compression_policy("metrics")
+    return {"status": "ok"}
+```
+
+The module provides:
+
+- `TimeseriesService` for creating hypertables, compression policies, and retention policies
+- Example models: `Metric`, `DeviceReading`, `AuditLog`
+
+### Important Notes
+
+- Only use one engine at a time (do not run both profiles simultaneously)
+- Data cannot be migrated between engines directly
+- TimescaleDB requires the `DATABASE_ENGINE=timescaledb` setting to enable the extension
+
 ## Docker
 
 ### Using Docker Compose

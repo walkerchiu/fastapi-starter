@@ -77,6 +77,8 @@ To get a token:
     # Database
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
     database_echo: bool = False
+    # Database Engine: postgres | timescaledb
+    database_engine: Literal["postgres", "timescaledb"] = "postgres"
 
     # Database Connection Pool
     db_pool_max: int = 10
@@ -84,6 +86,12 @@ To get a token:
     db_pool_idle_timeout: int = 300000  # 5 minutes in milliseconds
     db_pool_max_lifetime: int = 3600000  # 1 hour in milliseconds
     db_connection_timeout: int = 10000  # 10 seconds in milliseconds
+
+    # TimescaleDB Settings (only effective when database_engine=timescaledb)
+    timescale_compression_enabled: bool = True
+    timescale_compression_after_days: int = 7
+    timescale_retention_days: int = 0  # 0 means no retention policy
+    timescale_chunk_interval: str = "1 day"
 
     # Redis
     redis_host: str = "localhost"

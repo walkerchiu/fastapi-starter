@@ -3,6 +3,7 @@
 import logging
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 from src.app.core.config import settings
@@ -11,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 # Determine if using SQLite (no connection pooling support)
 _is_sqlite = settings.database_url.startswith("sqlite")
+
+# Log database engine
+logger.info("Database engine: %s", "sqlite" if _is_sqlite else settings.database_engine)
 
 # Connection pool configuration
 # SQLite doesn't support connection pooling, so we use NullPool
@@ -53,3 +57,37 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
     """Dependency for getting async database sessions."""
     async with async_session_maker() as session:
         yield session
+
+
+async def verify_timescaledb_extension() -> bool:
+    """Verify TimescaleDB extension is installed.
+
+    Returns True if extension is installed, False otherwise.
+    Only checks when database_engine is set to timescaledb.
+    """
+    if _is_sqlite:
+        return False
+
+    if settings.database_engine != "timescaledb":
+        return False
+
+    try:
+        async with async_session_maker() as session:
+            result = await session.execute(
+                text(
+                    "SELECT extname, extversion FROM pg_extension WHERE extname = 'timescaledb'"
+                )
+            )
+            row = result.fetchone()
+            if row:
+                logger.info("TimescaleDB extension verified: version %s", row[1])
+                return True
+            else:
+                logger.warning(
+                    "DATABASE_ENGINE is set to timescaledb but TimescaleDB extension is not installed. "
+                    "Run the TimescaleDB migration or install the extension manually."
+                )
+                return False
+    except Exception as e:
+        logger.warning("Failed to verify TimescaleDB extension: %s", e)
+        return False

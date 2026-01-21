@@ -1,6 +1,9 @@
 services:
+  # PostgreSQL database service
+  # Use: docker compose -f docker-compose.prod.yml --profile postgres up -d
   postgres:
     image: postgres:16-alpine
+    profiles: ['postgres']
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
@@ -13,6 +16,31 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # TimescaleDB database service (PostgreSQL with time-series extensions)
+  # Use: docker compose -f docker-compose.prod.yml --profile timescaledb up -d
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    profiles: ['timescaledb']
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-app}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: >
+      postgres
+      -c shared_preload_libraries=timescaledb
+      -c timescaledb.telemetry_level=off
     restart: unless-stopped
     networks:
       - app-network
@@ -61,6 +89,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
+      timescaledb:
+        condition: service_healthy
+        required: false
     healthcheck:
       test:
         [
@@ -111,6 +143,7 @@ services:
 
 volumes:
   postgres-data:
+  timescaledb-data:
   backend-data:
 
 networks:
