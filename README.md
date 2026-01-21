@@ -51,6 +51,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 
 - [Next.js](https://nextjs.org/) 16 - React framework with Turbopack
 - [React](https://react.dev/) 19 - UI library
+- [NextAuth.js](https://next-auth.js.org/) v5 - Authentication
 - [TailwindCSS](https://tailwindcss.com/) 3 - Utility-first CSS framework
 - [urql](https://commerce.nearform.com/open-source/urql/) - GraphQL client
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen) - TypeScript types from schema
@@ -176,28 +177,28 @@ The applications will be available at:
 
 ### Root Level
 
-| Command                | Description                             |
-| ---------------------- | --------------------------------------- |
-| `pnpm dev`             | Start frontend in development mode      |
-| `pnpm dev:backend`     | Start backend in development mode       |
-| `pnpm dev:frontend`    | Start frontend in development mode      |
-| `pnpm build`           | Build frontend for production           |
-| `pnpm test`            | Run tests in all apps                   |
-| `pnpm test:backend`    | Run backend tests                       |
-| `pnpm test:frontend`   | Run frontend tests                      |
-| `pnpm test:cov`        | Run tests with coverage in all apps     |
-| `pnpm lint`            | Run ESLint across the workspace         |
-| `pnpm lint:fix`        | Fix ESLint issues automatically         |
-| `pnpm lint:backend`    | Run Ruff linter on backend              |
-| `pnpm format`          | Format code with Prettier and Ruff      |
-| `pnpm format:check`    | Check code formatting without modifying |
-| `pnpm generate:api`    | Generate TypeScript API client          |
-| `pnpm db:upgrade`      | Run database migrations                 |
-| `pnpm db:downgrade`    | Revert last migration                   |
-| `pnpm db:revision`     | Generate a new migration                |
-| `pnpm db:history`      | Show migration history                  |
-| `pnpm db:current`      | Show current migration status           |
-| `pnpm db:seed`         | Seed default data (roles, permissions)  |
+| Command              | Description                             |
+| -------------------- | --------------------------------------- |
+| `pnpm dev`           | Start frontend in development mode      |
+| `pnpm dev:backend`   | Start backend in development mode       |
+| `pnpm dev:frontend`  | Start frontend in development mode      |
+| `pnpm build`         | Build frontend for production           |
+| `pnpm test`          | Run tests in all apps                   |
+| `pnpm test:backend`  | Run backend tests                       |
+| `pnpm test:frontend` | Run frontend tests                      |
+| `pnpm test:cov`      | Run tests with coverage in all apps     |
+| `pnpm lint`          | Run ESLint across the workspace         |
+| `pnpm lint:fix`      | Fix ESLint issues automatically         |
+| `pnpm lint:backend`  | Run Ruff linter on backend              |
+| `pnpm format`        | Format code with Prettier and Ruff      |
+| `pnpm format:check`  | Check code formatting without modifying |
+| `pnpm generate:api`  | Generate TypeScript API client          |
+| `pnpm db:upgrade`    | Run database migrations                 |
+| `pnpm db:downgrade`  | Revert last migration                   |
+| `pnpm db:revision`   | Generate a new migration                |
+| `pnpm db:history`    | Show migration history                  |
+| `pnpm db:current`    | Show current migration status           |
+| `pnpm db:seed`       | Seed default data (roles, permissions)  |
 
 > **Note**: `pnpm generate:api` requires the backend server to be running (`pnpm dev:backend`).
 
@@ -334,78 +335,6 @@ The hook automatically handles:
 - Token refresh errors (auto-redirects to login)
 - Type-safe user data access
 
-### Frontend Role-Based Access Control
-
-The frontend provides components and hooks for role-based UI control:
-
-#### useRole Hook
-
-```typescript
-import { useRole } from '@/hooks';
-
-function MyComponent() {
-  const {
-    roles,              // User's roles array
-    hasRole,            // (roleCode: string) => boolean
-    hasAnyRole,         // (roleCodes: string[]) => boolean
-    hasAllRoles,        // (roleCodes: string[]) => boolean
-    isAdmin,            // Boolean - has 'ADMIN' or 'SUPER_ADMIN' role
-    isSuperAdmin,       // Boolean - has 'SUPER_ADMIN' role
-    hasPermission,      // (permissionCode: string) => boolean
-    hasResourcePermission, // (resource, action) => boolean
-    permissions,        // All permissions from all roles
-  } = useRole();
-
-  if (!isAdmin) return <AccessDenied />;
-  return <AdminPanel />;
-}
-```
-
-#### RequireRole Components
-
-```tsx
-import { RequireRole, RequireAdmin, RequirePermission } from '@/components/auth';
-
-// Render content only for users with specific roles
-<RequireRole roles={['admin', 'moderator']}>
-  <AdminActions />
-</RequireRole>
-
-// Require all specified roles (AND logic)
-<RequireRole roles={['admin', 'auditor']} requireAll>
-  <AuditPanel />
-</RequireRole>
-
-// Shortcut for admin-only content
-<RequireAdmin>
-  <AdminDashboard />
-</RequireAdmin>
-
-// Permission-based rendering
-<RequirePermission permission="users:delete">
-  <DeleteUserButton />
-</RequirePermission>
-
-// With fallback content
-<RequireAdmin fallback={<UpgradePrompt />}>
-  <PremiumFeature />
-</RequireAdmin>
-```
-
-#### Role-Protected Routes
-
-Routes can be protected by roles in the middleware:
-
-```typescript
-// In proxy.ts
-const roleProtectedRoutes = [
-  { path: '/admin', roles: ['admin', 'SUPER_ADMIN'] },
-  { path: '/super-admin', roles: ['SUPER_ADMIN'] },
-];
-```
-
-Unauthorized users are redirected to `/unauthorized` with the attempted path.
-
 ### Frontend (apps/frontend)
 
 | Command                             | Description             |
@@ -416,6 +345,31 @@ Unauthorized users are redirected to `/unauthorized` with the attempted path.
 | `pnpm --filter frontend test`       | Run tests               |
 | `pnpm --filter frontend test:watch` | Run tests in watch mode |
 | `pnpm --filter frontend test:cov`   | Run tests with coverage |
+
+### Token Lifecycle
+
+The application uses JWT-based authentication with automatic token refresh:
+
+| Token Type    | Expiration | Purpose                    |
+| ------------- | ---------- | -------------------------- |
+| Access Token  | 30 minutes | API request authentication |
+| Refresh Token | 7 days     | Obtain new access tokens   |
+
+**Automatic Refresh Flow:**
+
+1. User logs in → receives `access_token` + `refresh_token`
+2. Frontend stores tokens in NextAuth session
+3. Before access token expires (60 sec buffer), NextAuth automatically calls `/api/v1/auth/refresh`
+4. If refresh succeeds → new tokens are stored, user continues seamlessly
+5. If refresh fails → user is signed out and redirected to login
+
+### Automatic Token Refresh
+
+The application automatically refreshes access tokens before they expire:
+
+- **Refresh Window**: Tokens are refreshed 60 seconds before expiration
+- **Auto Sign-out**: If refresh fails, the user is automatically signed out
+- **GraphQL Integration**: The urql client detects auth errors and triggers re-authentication
 
 ## Role-Based Access Control (RBAC)
 

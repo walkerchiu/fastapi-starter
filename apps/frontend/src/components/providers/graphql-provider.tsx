@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Provider } from 'urql';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { createGraphQLClient } from '@/lib/graphql-client';
 
 interface GraphQLProviderProps {
@@ -11,6 +11,17 @@ interface GraphQLProviderProps {
 
 export function GraphQLProvider({ children }: GraphQLProviderProps) {
   const { data: session } = useSession();
+
+  // Auto sign-out when refresh token fails
+  useEffect(() => {
+    if (
+      session?.error === 'RefreshTokenError' ||
+      session?.error === 'RefreshTokenExpired' ||
+      session?.error === 'RefreshTokenMissing'
+    ) {
+      signOut({ callbackUrl: '/login' });
+    }
+  }, [session?.error]);
 
   const client = useMemo(() => {
     return createGraphQLClient(() => session?.accessToken ?? null);
