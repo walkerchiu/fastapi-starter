@@ -1,0 +1,277 @@
+# FastAPI Next.js TailwindCSS Starter
+
+A modern, production-ready monorepo starter template for full-stack applications. Built with FastAPI for the backend, Next.js for the frontend, and TailwindCSS for styling.
+
+![Python](https://img.shields.io/badge/Python-%3E%3D3.13-3776AB?logo=python&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933?logo=node.js&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-%3E%3D10.0.0-F69220?logo=pnpm&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+## Features
+
+- **Monorepo Architecture** - Organized with pnpm workspaces for scalable project structure
+- **Type Safety** - Full TypeScript support for frontend, Python type hints for backend
+- **Modern Backend** - FastAPI with async support and automatic API documentation
+- **Modern Frontend** - Next.js 16 with React 19 and Turbopack for fast development
+- **Utility-First CSS** - TailwindCSS 3 for rapid UI development
+- **Code Quality** - ESLint 9 (flat config), Prettier, and Ruff pre-configured
+- **Git Hooks** - Husky and lint-staged for automated code quality checks
+- **Testing Ready** - pytest for backend, Vitest with React Testing Library for frontend
+- **Developer Experience** - Hot reload, path aliases, and consistent tooling
+
+## Tech Stack
+
+### Backend
+
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [Uvicorn](https://www.uvicorn.org/) - ASGI server
+- [uv](https://github.com/astral-sh/uv) - Fast Python package manager
+- [Ruff](https://docs.astral.sh/ruff/) - Python linter and formatter
+- [pytest](https://docs.pytest.org/) - Testing framework
+
+### Frontend
+
+- [Next.js](https://nextjs.org/) 16 - React framework with Turbopack
+- [React](https://react.dev/) 19 - UI library
+- [TailwindCSS](https://tailwindcss.com/) 3 - Utility-first CSS framework
+- [Vitest](https://vitest.dev/) 4 - Testing framework
+- [React Testing Library](https://testing-library.com/react) - Component testing
+
+### Development Tools
+
+- [pnpm](https://pnpm.io/) - Fast, disk space efficient package manager
+- [ESLint](https://eslint.org/) 9 - Code linting with flat config
+- [Prettier](https://prettier.io/) 3 - Code formatting
+- [Husky](https://typicode.github.io/husky/) - Git hooks
+- [lint-staged](https://github.com/lint-staged/lint-staged) - Run linters on staged files
+
+## Project Structure
+
+```
+fastapi-nextjs-tailwindcss-starter/
+├── apps/
+│   ├── backend/                    # FastAPI backend application
+│   │   ├── src/
+│   │   │   └── app/
+│   │   │       ├── __init__.py
+│   │   │       └── main.py         # Application entry point
+│   │   ├── tests/
+│   │   │   ├── __init__.py
+│   │   │   └── test_main.py        # API tests
+│   │   ├── pyproject.toml          # Python project configuration
+│   │   └── .python-version         # Python version lock
+│   │
+│   └── frontend/                   # Next.js frontend application
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── layout.tsx      # Root layout
+│       │   │   ├── page.tsx        # Home page
+│       │   │   ├── page.test.tsx   # Page tests
+│       │   │   └── globals.css     # Global styles with Tailwind
+│       │   └── test/
+│       │       └── setup.ts        # Vitest setup
+│       ├── vitest.config.ts        # Vitest configuration
+│       ├── tailwind.config.ts      # TailwindCSS configuration
+│       └── tsconfig.json
+│
+├── .husky/                         # Git hooks
+│   └── pre-commit                  # Runs lint-staged
+│
+├── package.json                    # Root workspace configuration
+├── pnpm-workspace.yaml             # pnpm workspace definition
+├── tsconfig.base.json              # Base TypeScript configuration
+├── eslint.config.mjs               # ESLint flat configuration
+├── .prettierrc                     # Prettier configuration
+└── .editorconfig                   # Editor configuration
+```
+
+## Prerequisites
+
+- **Python** >= 3.13
+- **uv** - Python package manager ([install guide](https://docs.astral.sh/uv/getting-started/installation/))
+- **Node.js** >= 20.0.0
+- **pnpm** >= 10.0.0
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone git@github.com:walkerchiu/fastapi-nextjs-tailwindcss-starter.git
+cd fastapi-nextjs-tailwindcss-starter
+```
+
+### 2. Install dependencies
+
+```bash
+# Install frontend dependencies
+pnpm install
+
+# Install backend dependencies
+cd apps/backend && uv sync --all-groups && cd ../..
+```
+
+### 3. Start development servers
+
+```bash
+# Terminal 1: Start backend
+pnpm dev:backend
+
+# Terminal 2: Start frontend
+pnpm dev:frontend
+```
+
+The applications will be available at:
+
+- **Frontend**: <http://localhost:3000>
+- **Backend**: <http://localhost:8000>
+- **API Docs**: <http://localhost:8000/docs>
+
+## Available Scripts
+
+### Root Level
+
+| Command              | Description                             |
+| -------------------- | --------------------------------------- |
+| `pnpm dev`           | Start frontend in development mode      |
+| `pnpm dev:backend`   | Start backend in development mode       |
+| `pnpm dev:frontend`  | Start frontend in development mode      |
+| `pnpm build`         | Build frontend for production           |
+| `pnpm test`          | Run tests in all apps                   |
+| `pnpm test:backend`  | Run backend tests                       |
+| `pnpm test:frontend` | Run frontend tests                      |
+| `pnpm test:cov`      | Run tests with coverage in all apps     |
+| `pnpm lint`          | Run ESLint across the workspace         |
+| `pnpm lint:fix`      | Fix ESLint issues automatically         |
+| `pnpm lint:backend`  | Run Ruff linter on backend              |
+| `pnpm format`        | Format code with Prettier and Ruff      |
+| `pnpm format:check`  | Check code formatting without modifying |
+
+### Backend (apps/backend)
+
+| Command                | Description             |
+| ---------------------- | ----------------------- |
+| `uv run uvicorn ...`   | Start in watch mode     |
+| `uv run pytest`        | Run tests               |
+| `uv run pytest --cov`  | Run tests with coverage |
+| `uv run ruff check .`  | Lint code               |
+| `uv run ruff format .` | Format code             |
+
+### Frontend (apps/frontend)
+
+| Command                             | Description             |
+| ----------------------------------- | ----------------------- |
+| `pnpm --filter frontend dev`        | Start with Turbopack    |
+| `pnpm --filter frontend build`      | Build for production    |
+| `pnpm --filter frontend start`      | Run production build    |
+| `pnpm --filter frontend test`       | Run tests               |
+| `pnpm --filter frontend test:watch` | Run tests in watch mode |
+| `pnpm --filter frontend test:cov`   | Run tests with coverage |
+
+## Development Workflow
+
+### Code Quality
+
+This project enforces code quality through automated tooling:
+
+- **ESLint** - Catches code issues and enforces consistent patterns (TypeScript/JavaScript)
+- **Ruff** - Fast Python linter and formatter (replaces Black, Flake8, isort)
+- **Prettier** - Ensures consistent code formatting
+- **TypeScript** - Provides type safety for frontend
+
+### Git Hooks
+
+Pre-commit hooks automatically run on staged files:
+
+1. **ESLint** fixes issues in `.js`, `.mjs`, `.ts`, `.tsx` files
+2. **Prettier** formats all supported files
+3. **Ruff** formats and lints Python files
+
+### Commit Convention
+
+This project follows a structured commit message format.
+
+```text
+<Type>(<Scope>): <Subject>
+
+<Optional Body>
+
+<Optional Footer>
+```
+
+**Types**: `Build`, `Chore`, `CI`, `Deprecate`, `Docs`, `Feat`, `Fix`, `Perf`, `Refactor`, `Release`, `Test`, `Revert`, `Style`
+
+**Scopes**: `API`, `Config`, `Framework`, `Function`, `Git`, `Infra`, `Lang`, `Module`, `Project`, `Theme`, `Vendor`, `Views`
+
+**Example**:
+
+```text
+Feat(Module): Add user authentication module
+
+1. Implement JWT-based authentication.
+2. Add refresh token support.
+
+Reference:
+1. PJ-123.
+```
+
+## Testing
+
+### Backend (pytest)
+
+```bash
+cd apps/backend
+
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov
+
+# Run with verbose output
+uv run pytest -v
+```
+
+### Frontend (Vitest)
+
+```bash
+# Run all tests
+pnpm --filter frontend test
+
+# Run with coverage
+pnpm --filter frontend test:cov
+
+# Watch mode
+pnpm --filter frontend test:watch
+```
+
+## Configuration
+
+### TypeScript
+
+The project uses a layered TypeScript configuration:
+
+- `tsconfig.base.json` - Shared compiler options (ES2022, strict mode)
+- `apps/frontend/tsconfig.json` - Frontend-specific settings (ESNext, JSX)
+
+### Python
+
+The backend uses modern Python tooling:
+
+- `pyproject.toml` - Project configuration with Ruff and pytest settings
+- `.python-version` - Python version lock (3.13)
+
+### Path Aliases
+
+The frontend supports path aliases for cleaner imports:
+
+```typescript
+// Instead of
+import { Component } from '../../../components/Component';
+
+// Use
+import { Component } from '@/components/Component';
+```
