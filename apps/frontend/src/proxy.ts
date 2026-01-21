@@ -17,8 +17,8 @@ interface RoleProtectedRoute {
 }
 
 const roleProtectedRoutes: RoleProtectedRoute[] = [
-  { path: '/admin', roles: ['admin', 'super_admin'] },
-  { path: '/super-admin', roles: ['super_admin'] },
+  { path: '/admin', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { path: '/super-admin', roles: ['SUPER_ADMIN'] },
 ];
 
 // Validate pathname to prevent open redirect attacks

@@ -351,16 +351,77 @@ The hook automatically handles:
 - Token refresh errors (auto-redirects to login)
 - Type-safe user data access
 
-### Frontend (apps/frontend)
+### Frontend Role-Based Access Control
 
-| Command                             | Description             |
-| ----------------------------------- | ----------------------- |
-| `pnpm --filter frontend dev`        | Start with Turbopack    |
-| `pnpm --filter frontend build`      | Build for production    |
-| `pnpm --filter frontend start`      | Run production build    |
-| `pnpm --filter frontend test`       | Run tests               |
-| `pnpm --filter frontend test:watch` | Run tests in watch mode |
-| `pnpm --filter frontend test:cov`   | Run tests with coverage |
+The frontend provides components and hooks for role-based UI control:
+
+#### useRole Hook
+
+```typescript
+import { useRole } from '@/hooks';
+
+function MyComponent() {
+  const {
+    roles,              // User's roles array
+    hasRole,            // (roleCode: string) => boolean
+    hasAnyRole,         // (roleCodes: string[]) => boolean
+    hasAllRoles,        // (roleCodes: string[]) => boolean
+    isAdmin,            // Boolean - has 'admin' or 'super_admin' role
+    isSuperAdmin,       // Boolean - has 'super_admin' role
+    hasPermission,      // (permissionCode: string) => boolean
+    hasResourcePermission, // (resource, action) => boolean
+    permissions,        // All permissions from all roles
+  } = useRole();
+
+  if (!isAdmin) return <AccessDenied />;
+  return <AdminPanel />;
+}
+```
+
+#### RequireRole Components
+
+```tsx
+import { RequireRole, RequireAdmin, RequirePermission } from '@/components/auth';
+
+// Render content only for users with specific roles
+<RequireRole roles={['admin', 'moderator']}>
+  <AdminActions />
+</RequireRole>
+
+// Require all specified roles (AND logic)
+<RequireRole roles={['admin', 'auditor']} requireAll>
+  <AuditPanel />
+</RequireRole>
+
+// Shortcut for admin-only content
+<RequireAdmin>
+  <AdminDashboard />
+</RequireAdmin>
+
+// Permission-based rendering
+<RequirePermission permission="users:delete">
+  <DeleteUserButton />
+</RequirePermission>
+
+// With fallback content
+<RequireAdmin fallback={<UpgradePrompt />}>
+  <PremiumFeature />
+</RequireAdmin>
+```
+
+#### Role-Protected Routes
+
+Routes can be protected by roles in the middleware:
+
+```typescript
+// In proxy.ts
+const roleProtectedRoutes = [
+  { path: '/admin', roles: ['admin', 'super_admin'] },
+  { path: '/super-admin', roles: ['super_admin'] },
+];
+```
+
+Unauthorized users are redirected to `/unauthorized` with the attempted path.
 
 ### Token Lifecycle
 
