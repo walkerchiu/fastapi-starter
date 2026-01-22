@@ -28,6 +28,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
 - [Uvicorn](https://www.uvicorn.org/) - ASGI server
+- [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager
 - [Ruff](https://docs.astral.sh/ruff/) - Python linter and formatter
 - [pytest](https://docs.pytest.org/) - Testing framework
@@ -56,11 +57,14 @@ fastapi-nextjs-tailwindcss-starter/
 │   ├── backend/                    # FastAPI backend application
 │   │   ├── src/
 │   │   │   └── app/
+│   │   │       ├── core/
+│   │   │       │   └── config.py   # Application settings
 │   │   │       ├── __init__.py
 │   │   │       └── main.py         # Application entry point
 │   │   ├── tests/
 │   │   │   ├── __init__.py
 │   │   │   └── test_main.py        # API tests
+│   │   ├── .env.example            # Environment variables template
 │   │   ├── pyproject.toml          # Python project configuration
 │   │   └── .python-version         # Python version lock
 │   │
