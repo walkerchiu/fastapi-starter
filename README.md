@@ -38,6 +38,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [Next.js](https://nextjs.org/) 16 - React framework with Turbopack
 - [React](https://react.dev/) 19 - UI library
 - [TailwindCSS](https://tailwindcss.com/) 3 - Utility-first CSS framework
+- [Zod](https://zod.dev/) - TypeScript-first schema validation
 - [Vitest](https://vitest.dev/) 4 - Testing framework
 - [React Testing Library](https://testing-library.com/react) - Component testing
 
@@ -75,8 +76,11 @@ fastapi-nextjs-tailwindcss-starter/
 │       │   │   ├── page.tsx        # Home page
 │       │   │   ├── page.test.tsx   # Page tests
 │       │   │   └── globals.css     # Global styles with Tailwind
+│       │   ├── config/
+│       │   │   └── env.ts          # Environment validation
 │       │   └── test/
 │       │       └── setup.ts        # Vitest setup
+│       ├── .env.example            # Environment variables template
 │       ├── vitest.config.ts        # Vitest configuration
 │       ├── tailwind.config.ts      # TailwindCSS configuration
 │       └── tsconfig.json
