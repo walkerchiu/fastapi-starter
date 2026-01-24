@@ -13,6 +13,22 @@ export default defineConfig({
         inline: ['next-intl'],
       },
     },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html', 'json'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.stories.{ts,tsx}',
+        'src/test/**',
+      ],
+      thresholds: {
+        lines: 70,
+        branches: 65,
+        functions: 70,
+        statements: 70,
+      },
+    },
   },
   resolve: {
     alias: {
