@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from 'urql';
 
 import { useRouter } from '@/i18n/routing';
+import { useUsers, useMe } from '@/hooks';
 
 import {
   Badge,
@@ -27,22 +28,48 @@ import {
   type User,
 } from '@/graphql/generated/graphql';
 
+// REST API response types (until OpenAPI generates proper types)
+interface RestUserListResponse {
+  items: Array<{
+    id: string;
+    email: string;
+    name: string;
+    isActive: boolean;
+  }>;
+  total: number;
+  hasMore: boolean;
+}
+
+interface RestMeResponse {
+  id: string;
+  email: string;
+  name: string;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  isTwoFactorEnabled: boolean;
+}
+
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [apiType, setApiType] = useState<'graphql' | 'rest'>('graphql');
 
+  // GraphQL queries
   const [usersResult] = useQuery({
     query: UsersDocument,
     variables: { limit: 10 },
-    pause: status !== 'authenticated',
+    pause: status !== 'authenticated' || apiType !== 'graphql',
   });
 
   const [meResult] = useQuery({
     query: MeDocument,
-    pause: status !== 'authenticated',
+    pause: status !== 'authenticated' || apiType !== 'graphql',
   });
+
+  // REST API queries (TanStack Query)
+  const restUsersQuery = useUsers({ limit: 10 });
+  const restMeQuery = useMe();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -62,11 +89,25 @@ export default function DashboardPage() {
     return null;
   }
 
+  // Select data source based on API type
+  const restData = restUsersQuery.data as RestUserListResponse | undefined;
   const users: Pick<User, 'id' | 'email' | 'name' | 'isActive'>[] =
-    usersResult.data?.users.items ?? [];
-  const total = usersResult.data?.users.total ?? 0;
-  const loading = usersResult.fetching;
-  const error = usersResult.error?.message ?? null;
+    apiType === 'graphql'
+      ? (usersResult.data?.users.items ?? [])
+      : (restData?.items ?? []);
+  const total =
+    apiType === 'graphql'
+      ? (usersResult.data?.users.total ?? 0)
+      : (restData?.total ?? 0);
+  const loading =
+    apiType === 'graphql' ? usersResult.fetching : restUsersQuery.isLoading;
+  const error =
+    apiType === 'graphql'
+      ? (usersResult.error?.message ?? null)
+      : (restUsersQuery.error?.message ?? null);
+
+  const restMeData = restMeQuery.data as RestMeResponse | undefined;
+  const meData = apiType === 'graphql' ? meResult.data?.me : restMeData;
 
   const userName = session?.user?.name || session?.user?.email || '';
 
@@ -120,12 +161,12 @@ export default function DashboardPage() {
         <StatCard title={t('totalUsers')} value={total} />
         <StatCard
           title={t('yourEmail')}
-          value={meResult.data?.me?.email ?? session?.user?.email}
+          value={meData?.email ?? session?.user?.email}
           valueClassName="truncate text-lg font-medium text-gray-900 dark:text-gray-100"
         />
         <StatCard
           title={t('status')}
-          value={meResult.data?.me?.isActive ? t('active') : t('inactive')}
+          value={meData?.isActive ? t('active') : t('inactive')}
           valueClassName="text-lg font-medium text-green-600 dark:text-green-400"
         />
       </div>
