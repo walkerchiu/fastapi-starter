@@ -67,3 +67,4 @@ temp/
 *.sqlite3
 apps/backend/data/*
 !apps/backend/data/.gitkeep
+storybook-static/
