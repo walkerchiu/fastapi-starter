@@ -66,6 +66,20 @@ async def lifespan(app: Any) -> AsyncGenerator[None]:
     from src.app.core.redis import RedisPool
 
     await RedisPool.init_pool()
+
+    # Initialize RabbitMQ pool (if enabled)
+    if settings.rabbitmq_enabled:
+        from src.app.core.rabbitmq import RabbitMQPool
+
+        try:
+            await RabbitMQPool.init_pool()
+            logger.info("RabbitMQ connection pool initialized")
+        except Exception as e:
+            logger.warning(
+                "Failed to initialize RabbitMQ, continuing without it",
+                extra={"error": str(e)},
+            )
+
     logger.info("Application startup complete")
 
     yield
@@ -76,6 +90,16 @@ async def lifespan(app: Any) -> AsyncGenerator[None]:
     # Allow time for load balancer to detect unhealthy state
     logger.info("Waiting for connections to drain...")
     await asyncio.sleep(settings.shutdown_drain_delay)
+
+    # Close RabbitMQ connection (if enabled)
+    if settings.rabbitmq_enabled:
+        try:
+            from src.app.core.rabbitmq import RabbitMQPool
+
+            await RabbitMQPool.close_pool()
+            logger.info("RabbitMQ connection closed")
+        except Exception as e:
+            logger.warning("Failed to close RabbitMQ", extra={"error": str(e)})
 
     # Close Redis connection
     try:

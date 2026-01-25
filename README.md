@@ -33,6 +33,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **File Upload** - S3-compatible storage integration for file management
 - **API Security** - Rate limiting, query depth limiting, and complexity analysis
 - **Redis Cache** - Unified caching layer for session, rate limiting, and data caching
+- **RabbitMQ Message Queue** - Async task processing with dead letter queue and retry support
 - **Structured Logging** - structlog-based JSON logging with request tracing and environment-aware formatting
 - **Request Tracing** - X-Request-ID propagation with request_id in error responses and GraphQL extensions
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
@@ -58,6 +59,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager
 - [Ruff](https://docs.astral.sh/ruff/) - Python linter and formatter
 - [redis-py](https://github.com/redis/redis-py) - Redis client for caching
+- [aio-pika](https://aio-pika.readthedocs.io/) - Async RabbitMQ client for message queuing
 - [structlog](https://www.structlog.org/) - Structured JSON logger with request tracing
 - [pytest](https://docs.pytest.org/) - Testing framework
 
@@ -96,7 +98,17 @@ fastapi-nextjs-tailwindcss-starter/
 │   │   │   └── app/
 │   │   │       ├── core/
 │   │   │       │   ├── config.py   # Application settings
-│   │   │       │   └── redis.py    # Redis connection pool
+│   │   │       │   ├── redis.py    # Redis connection pool
+│   │   │       │   └── rabbitmq.py # RabbitMQ connection pool
+│   │   │       ├── messaging/      # Message queue integration
+│   │   │       │   ├── types.py    # Message type definitions
+│   │   │       │   ├── producer.py # Message publisher
+│   │   │       │   ├── consumer.py # Consumer base class
+│   │   │       │   └── handlers/   # Message handlers
+│   │   │       ├── workers/        # Background workers
+│   │   │       │   ├── email_worker.py  # Email queue consumer
+│   │   │       │   ├── file_worker.py   # File processing consumer
+│   │   │       │   └── event_worker.py  # Event queue consumer
 │   │   │       ├── __init__.py
 │   │   │       └── main.py         # Application entry point
 │   │   ├── tests/
@@ -749,6 +761,101 @@ The application includes an async email service for transactional emails:
 ### Development Mode
 
 In development (`DEBUG=true`), emails are logged to the console instead of being sent via SMTP.
+
+## RabbitMQ Message Queue
+
+The application includes an optional RabbitMQ integration for async task processing:
+
+### Configuration
+
+| Variable                        | Default            | Description                            |
+| ------------------------------- | ------------------ | -------------------------------------- |
+| `RABBITMQ_ENABLED`              | `false`            | Enable RabbitMQ integration            |
+| `RABBITMQ_HOST`                 | `localhost`        | RabbitMQ server host                   |
+| `RABBITMQ_PORT`                 | `5672`             | RabbitMQ server port                   |
+| `RABBITMQ_USER`                 | `guest`            | RabbitMQ username                      |
+| `RABBITMQ_PASSWORD`             | `guest`            | RabbitMQ password                      |
+| `RABBITMQ_VHOST`                | `/`                | RabbitMQ virtual host                  |
+| `RABBITMQ_POOL_SIZE`            | `10`               | Connection pool size                   |
+| `RABBITMQ_CONNECTION_TIMEOUT`   | `10000`            | Connection timeout in ms               |
+| `RABBITMQ_HEARTBEAT`            | `60`               | Heartbeat interval in seconds          |
+| `RABBITMQ_EXCHANGE_NAME`        | `starter_exchange` | Default exchange name                  |
+| `RABBITMQ_EXCHANGE_TYPE`        | `topic`            | Exchange type (topic, direct, fanout)  |
+| `RABBITMQ_DEAD_LETTER_EXCHANGE` | `starter_dlx`      | Dead letter exchange name              |
+| `RABBITMQ_MAX_RETRIES`          | `3`                | Max retry attempts for failed messages |
+| `RABBITMQ_RETRY_DELAY_BASE`     | `1000`             | Base retry delay in ms                 |
+| `RABBITMQ_RETRY_DELAY_MAX`      | `60000`            | Max retry delay in ms                  |
+
+### Queue Design
+
+| Queue         | Routing Key | Purpose             | DLQ         |
+| ------------- | ----------- | ------------------- | ----------- |
+| `email_queue` | `email.*`   | Email sending tasks | `email_dlq` |
+| `file_queue`  | `file.*`    | File processing     | `file_dlq`  |
+| `event_queue` | `event.*`   | Domain events       | `event_dlq` |
+
+### Starting Workers
+
+Workers run as separate processes to consume messages:
+
+```bash
+# Start email worker
+RABBITMQ_ENABLED=true python -m src.app.workers.email_worker
+
+# Start file processing worker
+RABBITMQ_ENABLED=true python -m src.app.workers.file_worker
+
+# Start event worker
+RABBITMQ_ENABLED=true python -m src.app.workers.event_worker
+```
+
+### Usage Example
+
+```python
+from src.app.messaging.producer import message_producer
+
+# Send password reset email via queue
+await message_producer.send_password_reset_email(
+    to_email="user@example.com",
+    reset_token="abc123",
+    user_name="John Doe",
+)
+
+# Send email verification
+await message_producer.send_email_verification(
+    to_email="user@example.com",
+    verification_token="xyz789",
+    user_name="John Doe",
+)
+
+# Publish domain event
+from src.app.messaging.types import UserRegisteredEvent
+
+event = UserRegisteredEvent(
+    user_id="123",
+    email="user@example.com",
+)
+await message_producer.publish_event(event)
+```
+
+### Error Handling
+
+- **Connection Retry**: Exponential backoff (0.5s → 5s) for connection failures
+- **Message Retry**: Up to 3 attempts with exponential delay (1s, 2s, 4s)
+- **Dead Letter Queue**: Failed messages are moved to DLQ after exhausting retries
+
+### Development with Docker
+
+```bash
+# Start RabbitMQ with management UI
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+# Access management UI at http://localhost:15672 (guest/guest)
+```
+
+### Fallback Mode
+
+When `RABBITMQ_ENABLED=false` (default), the email service sends emails directly via SMTP instead of queueing them. This ensures backward compatibility and simplifies development without RabbitMQ.
 
 ## Two-Factor Authentication (2FA)
 

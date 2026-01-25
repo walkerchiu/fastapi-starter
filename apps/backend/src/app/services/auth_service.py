@@ -189,12 +189,21 @@ class AuthService:
         self.db.add(reset_token)
         await self.db.commit()
 
-        # Send password reset email
-        await email_service.send_password_reset_email(
-            to_email=user.email,
-            reset_token=token,
-            user_name=user.name,
-        )
+        # Send password reset email (via RabbitMQ if enabled, otherwise direct)
+        if settings.rabbitmq_enabled:
+            from src.app.messaging.producer import message_producer
+
+            await message_producer.send_password_reset_email(
+                to_email=user.email,
+                reset_token=token,
+                user_name=user.name,
+            )
+        else:
+            await email_service.send_password_reset_email(
+                to_email=user.email,
+                reset_token=token,
+                user_name=user.name,
+            )
 
     async def reset_password(self, token: str, new_password: str) -> None:
         """
@@ -277,12 +286,21 @@ class AuthService:
         user.email_verification_expires_at = expires_at
         await self.db.commit()
 
-        # Send verification email with the original token
-        await email_service.send_email_verification(
-            to_email=user.email,
-            verification_token=token,
-            user_name=user.name,
-        )
+        # Send verification email (via RabbitMQ if enabled, otherwise direct)
+        if settings.rabbitmq_enabled:
+            from src.app.messaging.producer import message_producer
+
+            await message_producer.send_email_verification(
+                to_email=user.email,
+                verification_token=token,
+                user_name=user.name,
+            )
+        else:
+            await email_service.send_email_verification(
+                to_email=user.email,
+                verification_token=token,
+                user_name=user.name,
+            )
 
     async def verify_email(self, token: str) -> None:
         """

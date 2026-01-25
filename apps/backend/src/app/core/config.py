@@ -123,6 +123,23 @@ To get a token:
     rate_limit_graphql_requests: int = 50  # GraphQL endpoint
     rate_limit_graphql_window: int = 60
 
+    # RabbitMQ
+    rabbitmq_enabled: bool = False
+    rabbitmq_host: str = "localhost"
+    rabbitmq_port: int = 5672
+    rabbitmq_user: str = "guest"
+    rabbitmq_password: str = "guest"
+    rabbitmq_vhost: str = "/"
+    rabbitmq_pool_size: int = 10
+    rabbitmq_connection_timeout: int = 10000  # 10 seconds in milliseconds
+    rabbitmq_heartbeat: int = 60  # seconds
+    rabbitmq_exchange_name: str = "starter_exchange"
+    rabbitmq_exchange_type: str = "topic"
+    rabbitmq_dead_letter_exchange: str = "starter_dlx"
+    rabbitmq_max_retries: int = 3
+    rabbitmq_retry_delay_base: int = 1000  # 1 second in milliseconds
+    rabbitmq_retry_delay_max: int = 60000  # 60 seconds in milliseconds
+
     # GraphQL Security
     graphql_max_depth: int = 10  # Maximum query depth
     graphql_max_complexity: int = 100  # Maximum query complexity

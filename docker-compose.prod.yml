@@ -45,6 +45,26 @@ services:
     networks:
       - app-network
 
+  # RabbitMQ message queue service
+  # Use: docker compose -f docker-compose.prod.yml --profile rabbitmq up -d
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    profiles: ['rabbitmq']
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app-network
+
   nginx:
     image: nginx:alpine
     ports:
@@ -91,6 +111,9 @@ services:
         condition: service_healthy
         required: false
       timescaledb:
+        condition: service_healthy
+        required: false
+      rabbitmq:
         condition: service_healthy
         required: false
     healthcheck:
@@ -144,6 +167,7 @@ services:
 volumes:
   postgres-data:
   timescaledb-data:
+  rabbitmq-data:
   backend-data:
 
 networks:
