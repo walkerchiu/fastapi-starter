@@ -140,6 +140,9 @@ To get a token:
     rabbitmq_retry_delay_base: int = 1000  # 1 second in milliseconds
     rabbitmq_retry_delay_max: int = 60000  # 60 seconds in milliseconds
 
+    # Scheduler Worker
+    scheduler_check_interval_seconds: int = 60  # Interval between task checks
+
     # GraphQL Security
     graphql_max_depth: int = 10  # Maximum query depth
     graphql_max_complexity: int = 100  # Maximum query complexity

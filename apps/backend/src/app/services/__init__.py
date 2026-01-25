@@ -40,6 +40,7 @@ from src.app.services.exceptions import (
 from src.app.services.file_service import FileService
 from src.app.services.permission_service import PermissionService
 from src.app.services.role_service import RoleService
+from src.app.services.scheduled_task_service import ScheduledTaskService
 from src.app.services.storage_service import StorageService, storage_service
 from src.app.services.user_service import UserService
 
@@ -52,6 +53,7 @@ __all__ = [
     "FileService",
     "PermissionService",
     "RoleService",
+    "ScheduledTaskService",
     "StorageService",
     "UserService",
     # Service instances

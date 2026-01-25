@@ -12,6 +12,7 @@ from src.app.messaging.handlers.event_handler import (
     UserRegisteredEventHandler,
 )
 from src.app.messaging.handlers.file_handler import FileProcessingHandler
+from src.app.messaging.handlers.task_handler import ScheduledTaskHandler
 
 __all__ = [
     "EmailHandler",
@@ -22,4 +23,5 @@ __all__ = [
     "UserLoggedInEventHandler",
     "GenericEventHandler",
     "AuditLogHandler",
+    "ScheduledTaskHandler",
 ]

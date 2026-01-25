@@ -135,3 +135,22 @@ class AuditLogMessage(BaseMessage):
     actor_user_agent: str = ""
     changes: dict[str, Any] | None = None
     extra_data: dict[str, Any] | None = None
+
+
+# Scheduled Task Messages
+
+
+class ScheduledTaskMessage(BaseMessage):
+    """Scheduled task message for job execution."""
+
+    task_id: UUID
+    task_type: str
+    execution_id: UUID
+    context: dict[str, Any] = Field(default_factory=dict)
+    triggered_by: str = "scheduler"  # scheduler, manual, api
+
+    def __init__(self, **data: Any) -> None:
+        # Set priority to 6 (slightly higher than normal) for scheduled tasks
+        if "priority" not in data:
+            data["priority"] = MessagePriority.NORMAL
+        super().__init__(**data)

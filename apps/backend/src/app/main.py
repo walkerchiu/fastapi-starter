@@ -13,6 +13,7 @@ from src.app.api import (
     health_router,
     permissions_router,
     roles_router,
+    scheduled_tasks_router,
     users_router,
 )
 from src.app.core.config import settings
@@ -74,6 +75,10 @@ tags_metadata = [
     {
         "name": "audit",
         "description": "Audit log operations: query and retrieve audit logs.",
+    },
+    {
+        "name": "scheduled-tasks",
+        "description": "Scheduled task operations: manage and monitor scheduled tasks.",
     },
     {
         "name": "Admin",
@@ -188,6 +193,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(files_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(roles_router, prefix="/api/v1")
+app.include_router(scheduled_tasks_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 

@@ -789,11 +789,12 @@ The application includes an optional RabbitMQ integration for async task process
 
 ### Queue Design
 
-| Queue         | Routing Key | Purpose             | DLQ         |
-| ------------- | ----------- | ------------------- | ----------- |
-| `email_queue` | `email.*`   | Email sending tasks | `email_dlq` |
-| `file_queue`  | `file.*`    | File processing     | `file_dlq`  |
-| `event_queue` | `event.*`   | Domain events       | `event_dlq` |
+| Queue         | Routing Key    | Purpose             | DLQ         |
+| ------------- | -------------- | ------------------- | ----------- |
+| `email_queue` | `email.*`      | Email sending tasks | `email_dlq` |
+| `file_queue`  | `file.*`       | File processing     | `file_dlq`  |
+| `event_queue` | `event.*`      | Domain events       | `event_dlq` |
+| `task_queue`  | `task.execute` | Scheduled task exec | `task_dlq`  |
 
 ### Starting Workers
 
@@ -808,6 +809,12 @@ RABBITMQ_ENABLED=true python -m src.app.workers.file_worker
 
 # Start event worker
 RABBITMQ_ENABLED=true python -m src.app.workers.event_worker
+
+# Start scheduler worker (checks for due tasks)
+RABBITMQ_ENABLED=true python -m src.app.workers.scheduler_worker
+
+# Start task worker (executes scheduled tasks)
+RABBITMQ_ENABLED=true python -m src.app.workers.task_worker
 ```
 
 ### Usage Example
@@ -857,6 +864,87 @@ docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 ### Fallback Mode
 
 When `RABBITMQ_ENABLED=false` (default), the email service sends emails directly via SMTP instead of queueing them. This ensures backward compatibility and simplifies development without RabbitMQ.
+
+### Scheduled Tasks
+
+The application includes a scheduled tasks system for managing recurring or one-time tasks:
+
+#### Configuration
+
+| Variable                           | Default | Description                  |
+| ---------------------------------- | ------- | ---------------------------- |
+| `SCHEDULER_CHECK_INTERVAL_SECONDS` | `60`    | Interval between task checks |
+
+#### REST API Endpoints
+
+| Method | Endpoint                                  | Description                |
+| ------ | ----------------------------------------- | -------------------------- |
+| GET    | `/api/v1/scheduled-tasks/types`           | List available task types  |
+| GET    | `/api/v1/scheduled-tasks`                 | List scheduled tasks       |
+| POST   | `/api/v1/scheduled-tasks`                 | Create a scheduled task    |
+| GET    | `/api/v1/scheduled-tasks/{id}`            | Get task by ID             |
+| PATCH  | `/api/v1/scheduled-tasks/{id}`            | Update a task              |
+| DELETE | `/api/v1/scheduled-tasks/{id}`            | Delete a task              |
+| POST   | `/api/v1/scheduled-tasks/{id}/enable`     | Enable a task              |
+| POST   | `/api/v1/scheduled-tasks/{id}/disable`    | Disable a task             |
+| POST   | `/api/v1/scheduled-tasks/{id}/trigger`    | Manually trigger execution |
+| GET    | `/api/v1/scheduled-tasks/{id}/executions` | Get execution history      |
+
+#### Creating a Task
+
+```python
+# Via API
+POST /api/v1/scheduled-tasks
+{
+    "name": "Daily Cleanup",
+    "description": "Clean up expired tokens",
+    "task_type": "cleanup",
+    "cron_expression": "0 0 * * *",  # Daily at midnight
+    "timezone": "UTC",
+    "is_active": true,
+    "context": {"max_age_days": 30}
+}
+
+# One-time task
+POST /api/v1/scheduled-tasks
+{
+    "name": "One-time Report",
+    "task_type": "report",
+    "scheduled_at": "2024-12-31T23:59:59Z"
+}
+```
+
+#### Creating Custom Task Executors
+
+```python
+from src.app.tasks.base import TaskExecutor, TaskContext, TaskResult
+from src.app.tasks.registry import task_registry
+
+class MyCustomExecutor(TaskExecutor):
+    task_type = "my_custom_task"
+    name = "My Custom Task"
+    description = "Description of what this task does"
+    default_cron = "0 */6 * * *"  # Every 6 hours (optional)
+
+    async def execute(self, context: TaskContext) -> TaskResult:
+        # Your task logic here
+        return TaskResult(
+            success=True,
+            message="Task completed successfully",
+            data={"processed": 100}
+        )
+
+# Register the executor
+task_registry.register(MyCustomExecutor())
+```
+
+#### Built-in Task Types
+
+| Type           | Description           |
+| -------------- | --------------------- |
+| `cleanup`      | Clean up expired data |
+| `report`       | Generate reports      |
+| `notification` | Send notifications    |
 
 ## Two-Factor Authentication (2FA)
 

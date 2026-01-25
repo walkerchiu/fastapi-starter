@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from src.app.models.file import File
     from src.app.models.password_reset_token import PasswordResetToken
     from src.app.models.role import Role
+    from src.app.models.scheduled_task import ScheduledTask
 
 
 class User(Base):
@@ -66,5 +67,10 @@ class User(Base):
     audit_logs: Mapped[list["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="actor",
+        lazy="noload",
+    )
+    scheduled_tasks: Mapped[list["ScheduledTask"]] = relationship(
+        "ScheduledTask",
+        back_populates="created_by",
         lazy="noload",
     )

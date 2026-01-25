@@ -58,6 +58,15 @@ from src.app.schemas.role import (
     RoleReadWithPermissions,
     RoleUpdate,
 )
+from src.app.schemas.scheduled_task import (
+    ScheduledTaskCreate,
+    ScheduledTaskListResponse,
+    ScheduledTaskResponse,
+    ScheduledTaskUpdate,
+    TaskExecutionListResponse,
+    TaskExecutionResponse,
+    TaskTypeInfo,
+)
 from src.app.schemas.two_factor import (
     BackupCodesResponse,
     Disable2FARequest,
@@ -125,7 +134,14 @@ __all__ = [
     "RoleRead",
     "RoleReadWithPermissions",
     "RoleUpdate",
+    "ScheduledTaskCreate",
+    "ScheduledTaskListResponse",
+    "ScheduledTaskResponse",
+    "ScheduledTaskUpdate",
     "Setup2FAResponse",
+    "TaskExecutionListResponse",
+    "TaskExecutionResponse",
+    "TaskTypeInfo",
     "Token",
     "TokenPayload",
     "TwoFactorLoginResponse",

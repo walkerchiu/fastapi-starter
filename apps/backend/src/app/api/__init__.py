@@ -7,6 +7,7 @@ from src.app.api.files import router as files_router
 from src.app.api.health import router as health_router
 from src.app.api.permissions import router as permissions_router
 from src.app.api.roles import router as roles_router
+from src.app.api.scheduled_tasks import router as scheduled_tasks_router
 from src.app.api.users import router as users_router
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "health_router",
     "permissions_router",
     "roles_router",
+    "scheduled_tasks_router",
     "users_router",
 ]
