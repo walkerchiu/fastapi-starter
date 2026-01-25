@@ -123,15 +123,10 @@ export function useEnable2FA() {
 // Placeholder hook for verifying 2FA
 export function useVerify2FA() {
   return useMutation({
-    mutationFn: async (data: { user_id: string; code: string }) => {
+    mutationFn: async (data: { code: string }) => {
       console.warn('useVerify2FA: API not yet available');
       void data;
-      // Return mock token data matching expected page usage
-      return {
-        verified: true,
-        access_token: 'mock_access_token',
-        refresh_token: 'mock_refresh_token',
-      };
+      return { verified: true };
     },
   });
 }

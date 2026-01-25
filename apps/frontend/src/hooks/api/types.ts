@@ -1,6 +1,6 @@
 /**
  * Shared API types for admin pages.
- * These types match the backend entity structures (camelCase for frontend).
+ * These types match the backend entity structures.
  */
 
 /**
@@ -96,7 +96,6 @@ export type PermissionListParams = ListQueryParams;
 
 /**
  * File type matching the backend File entity.
- * Includes compatibility fields for UI components.
  */
 export interface File {
   id: string;
