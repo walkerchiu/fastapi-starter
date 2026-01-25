@@ -1,13 +1,17 @@
 """File service layer for database operations."""
 
+import logging
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.app.core.audit import log_audit_from_context
 from src.app.models import File
 from src.app.services.exceptions import FileNotFoundError, HardDeleteNotAllowedError
+
+logger = logging.getLogger(__name__)
 
 
 class FileService:
@@ -15,6 +19,27 @@ class FileService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def _log_audit(
+        self,
+        action: str,
+        entity_type: str,
+        entity_id: UUID | None = None,
+        changes: dict[str, Any] | None = None,
+        extra_metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Log an audit event with error handling."""
+        try:
+            await log_audit_from_context(
+                db=self.db,
+                action=action,
+                entity_type=entity_type,
+                entity_id=str(entity_id) if entity_id else None,
+                changes=changes,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
 
     async def get_by_id(self, file_id: UUID, include_deleted: bool = False) -> File:
         """Get a file by ID.
@@ -107,6 +132,19 @@ class FileService:
         self.db.add(file)
         await self.db.commit()
         await self.db.refresh(file)
+
+        await self._log_audit(
+            action="file.uploaded",
+            entity_type="File",
+            entity_id=file.id,
+            extra_metadata={
+                "filename": filename,
+                "size": size,
+                "content_type": content_type,
+                "user_id": str(user_id),
+            },
+        )
+
         return file
 
     async def delete(self, file_id: UUID) -> None:
@@ -114,6 +152,13 @@ class FileService:
         file = await self.get_by_id(file_id)
         file.deleted_at = datetime.now(UTC)
         await self.db.commit()
+
+        await self._log_audit(
+            action="file.deleted",
+            entity_type="File",
+            entity_id=file_id,
+            extra_metadata={"filename": file.filename, "soft_delete": True},
+        )
 
     async def delete_by_key(self, key: str) -> None:
         """Soft delete a file record by storage key."""
@@ -123,12 +168,27 @@ class FileService:
         file.deleted_at = datetime.now(UTC)
         await self.db.commit()
 
+        await self._log_audit(
+            action="file.deleted",
+            entity_type="File",
+            entity_id=file.id,
+            extra_metadata={"filename": file.filename, "key": key, "soft_delete": True},
+        )
+
     async def restore(self, file_id: UUID) -> File:
         """Restore a soft-deleted file."""
         file = await self.get_by_id(file_id, include_deleted=True)
         file.deleted_at = None
         await self.db.commit()
         await self.db.refresh(file)
+
+        await self._log_audit(
+            action="file.restored",
+            entity_type="File",
+            entity_id=file_id,
+            extra_metadata={"filename": file.filename},
+        )
+
         return file
 
     async def restore_by_key(self, key: str) -> File:
@@ -139,6 +199,14 @@ class FileService:
         file.deleted_at = None
         await self.db.commit()
         await self.db.refresh(file)
+
+        await self._log_audit(
+            action="file.restored",
+            entity_type="File",
+            entity_id=file.id,
+            extra_metadata={"filename": file.filename, "key": key},
+        )
+
         return file
 
     async def hard_delete(self, file_id: UUID, is_super_admin: bool = False) -> None:
@@ -156,8 +224,16 @@ class FileService:
                 "Hard delete is only allowed for super admins"
             )
         file = await self.get_by_id(file_id, include_deleted=True)
+        filename = file.filename
         await self.db.delete(file)
         await self.db.commit()
+
+        await self._log_audit(
+            action="file.force_deleted",
+            entity_type="File",
+            entity_id=file_id,
+            extra_metadata={"filename": filename, "hard_delete": True},
+        )
 
     async def hard_delete_by_key(self, key: str, is_super_admin: bool = False) -> None:
         """Permanently delete a file record by key. Only allowed for super admins.
@@ -176,8 +252,17 @@ class FileService:
         file = await self.get_by_key(key, include_deleted=True)
         if not file:
             raise FileNotFoundError(f"File with key {key} not found")
+        file_id = file.id
+        filename = file.filename
         await self.db.delete(file)
         await self.db.commit()
+
+        await self._log_audit(
+            action="file.force_deleted",
+            entity_type="File",
+            entity_id=file_id,
+            extra_metadata={"filename": filename, "key": key, "hard_delete": True},
+        )
 
     async def update(
         self,
@@ -193,12 +278,25 @@ class FileService:
             metadata: New metadata if provided.
         """
         file = await self.get_by_id(file_id)
+        before_filename = file.filename
+
         if filename is not None:
             file.filename = filename
         if metadata is not None:
             file.file_metadata = metadata
         await self.db.commit()
         await self.db.refresh(file)
+
+        await self._log_audit(
+            action="file.updated",
+            entity_type="File",
+            entity_id=file_id,
+            changes={
+                "before": {"filename": before_filename},
+                "after": {"filename": file.filename},
+            },
+        )
+
         return file
 
     async def delete_by_ids(

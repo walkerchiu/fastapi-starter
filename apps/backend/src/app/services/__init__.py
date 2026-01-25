@@ -1,3 +1,4 @@
+from src.app.services.audit_service import AuditLogNotFoundError, AuditService
 from src.app.services.auth_service import AuthService
 from src.app.services.cache import CacheService
 from src.app.services.email_service import EmailService, email_service
@@ -21,6 +22,7 @@ from src.app.services.exceptions import (
     InvalidVerificationTokenError,
     PermissionCodeAlreadyExistsError,
     PermissionNotFoundError,
+    RefreshTokenInvalidError,
     ResetTokenAlreadyUsedError,
     RoleCodeAlreadyExistsError,
     RoleNotFoundError,
@@ -43,6 +45,7 @@ from src.app.services.user_service import UserService
 
 __all__ = [
     # Services
+    "AuditService",
     "AuthService",
     "CacheService",
     "EmailService",
@@ -55,6 +58,7 @@ __all__ = [
     "email_service",
     "storage_service",
     # Exceptions
+    "AuditLogNotFoundError",
     "ServiceError",
     "UserNotFoundError",
     "EmailAlreadyExistsError",
@@ -62,6 +66,7 @@ __all__ = [
     "InactiveUserError",
     "InvalidTokenError",
     "InvalidTokenTypeError",
+    "RefreshTokenInvalidError",
     # Permission exceptions
     "PermissionNotFoundError",
     "PermissionCodeAlreadyExistsError",

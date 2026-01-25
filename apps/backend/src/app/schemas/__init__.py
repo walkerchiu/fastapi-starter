@@ -1,5 +1,11 @@
 """Pydantic schemas."""
 
+from src.app.schemas.audit_log import (
+    AuditLogCreate,
+    AuditLogFilter,
+    AuditLogRead,
+    PaginatedAuditLogs,
+)
 from src.app.schemas.auth import (
     LoginRequest,
     LogoutResponse,
@@ -58,6 +64,7 @@ from src.app.schemas.two_factor import (
     Disable2FAResponse,
     Enable2FARequest,
     Enable2FAResponse,
+    RegenerateBackupCodesRequest,
     Setup2FAResponse,
     TwoFactorLoginResponse,
     Verify2FARequest,
@@ -72,6 +79,9 @@ from src.app.schemas.user import (
 )
 
 __all__ = [
+    "AuditLogCreate",
+    "AuditLogFilter",
+    "AuditLogRead",
     "AssignPermissionsRequest",
     "AssignRolesRequest",
     "BackupCodesResponse",
@@ -98,6 +108,7 @@ __all__ = [
     "LoginRequest",
     "LogoutResponse",
     "MessageResponse",
+    "PaginatedAuditLogs",
     "PaginatedResponse",
     "PaginationParams",
     "PermissionCreate",
@@ -105,6 +116,7 @@ __all__ = [
     "PermissionUpdate",
     "PresignedUrlResponse",
     "RefreshTokenRequest",
+    "RegenerateBackupCodesRequest",
     "ResendVerificationRequest",
     "ResendVerificationResponse",
     "ResetPasswordRequest",

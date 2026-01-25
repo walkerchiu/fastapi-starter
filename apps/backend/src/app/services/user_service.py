@@ -1,11 +1,14 @@
 """User service layer for business logic."""
 
+import logging
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from src.app.core.audit import log_audit_from_context
 from src.app.models import Permission, Role, User
 from src.app.schemas import UserCreate, UserUpdate
 from src.app.services.exceptions import (
@@ -15,12 +18,35 @@ from src.app.services.exceptions import (
     UserNotFoundError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class UserService:
     """Service class for user operations."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def _log_audit(
+        self,
+        action: str,
+        entity_type: str,
+        entity_id: UUID | None = None,
+        changes: dict[str, Any] | None = None,
+        extra_metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Log an audit event with error handling."""
+        try:
+            await log_audit_from_context(
+                db=self.db,
+                action=action,
+                entity_type=entity_type,
+                entity_id=str(entity_id) if entity_id else None,
+                changes=changes,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
 
     async def get_by_id(
         self,
@@ -141,11 +167,20 @@ class UserService:
 
         await self.db.commit()
         await self.db.refresh(user, ["roles"])
+
+        await self._log_audit(
+            action="user.created",
+            entity_type="User",
+            entity_id=user.id,
+            extra_metadata={"email": user.email, "name": user.name},
+        )
+
         return user
 
     async def update(self, user_id: UUID, user_in: UserUpdate) -> User:
         """Update a user."""
         user = await self.get_by_id(user_id, include_roles=True)
+        before_data = {"email": user.email, "name": user.name}
 
         # Update basic fields
         update_data = user_in.model_dump(exclude_unset=True, exclude={"role_ids"})
@@ -159,6 +194,17 @@ class UserService:
 
         await self.db.commit()
         await self.db.refresh(user)
+
+        await self._log_audit(
+            action="user.updated",
+            entity_type="User",
+            entity_id=user_id,
+            changes={
+                "before": before_data,
+                "after": {"email": user.email, "name": user.name},
+            },
+        )
+
         return user
 
     async def delete(self, user_id: UUID) -> None:
@@ -167,12 +213,27 @@ class UserService:
         user.deleted_at = datetime.now(UTC)
         await self.db.commit()
 
+        await self._log_audit(
+            action="user.deleted",
+            entity_type="User",
+            entity_id=user_id,
+            extra_metadata={"email": user.email, "soft_delete": True},
+        )
+
     async def restore(self, user_id: UUID) -> User:
         """Restore a soft-deleted user."""
         user = await self.get_by_id(user_id, include_deleted=True)
         user.deleted_at = None
         await self.db.commit()
         await self.db.refresh(user)
+
+        await self._log_audit(
+            action="user.restored",
+            entity_type="User",
+            entity_id=user_id,
+            extra_metadata={"email": user.email},
+        )
+
         return user
 
     async def hard_delete(self, user_id: UUID, is_super_admin: bool = False) -> None:
@@ -190,8 +251,16 @@ class UserService:
                 "Hard delete is only allowed for super admins"
             )
         user = await self.get_by_id(user_id, include_deleted=True)
+        user_email = user.email
         await self.db.delete(user)
         await self.db.commit()
+
+        await self._log_audit(
+            action="user.force_deleted",
+            entity_type="User",
+            entity_id=user_id,
+            extra_metadata={"email": user_email, "hard_delete": True},
+        )
 
     async def assign_role(self, user_id: UUID, role_id: int) -> User:
         """Assign a role to a user."""
@@ -211,22 +280,41 @@ class UserService:
             await self.db.commit()
             await self.db.refresh(user, ["roles"])
 
+            await self._log_audit(
+                action="role.assigned",
+                entity_type="User",
+                entity_id=user_id,
+                extra_metadata={"role_id": role_id, "role_name": role.name},
+            )
+
         return user
 
     async def remove_role(self, user_id: UUID, role_id: int) -> User:
         """Remove a role from a user."""
         user = await self.get_by_id(user_id, include_roles=True)
 
+        # Find the role being removed
+        removed_role = next((r for r in user.roles if r.id == role_id), None)
+
         # Find and remove the role
         user.roles = [r for r in user.roles if r.id != role_id]
         await self.db.commit()
         await self.db.refresh(user, ["roles"])
+
+        if removed_role:
+            await self._log_audit(
+                action="role.removed",
+                entity_type="User",
+                entity_id=user_id,
+                extra_metadata={"role_id": role_id, "role_name": removed_role.name},
+            )
 
         return user
 
     async def replace_roles(self, user_id: UUID, role_ids: list[int]) -> User:
         """Replace all roles for a user."""
         user = await self.get_by_id(user_id, include_roles=True)
+        before_roles = [{"id": r.id, "name": r.name} for r in user.roles]
 
         # Get the new roles
         roles = await self._get_roles_by_ids(role_ids)
@@ -236,6 +324,16 @@ class UserService:
 
         await self.db.commit()
         await self.db.refresh(user, ["roles"])
+
+        await self._log_audit(
+            action="roles.replaced",
+            entity_type="User",
+            entity_id=user_id,
+            changes={
+                "before": before_roles,
+                "after": [{"id": r.id, "name": r.name} for r in roles],
+            },
+        )
 
         return user
 
@@ -248,12 +346,25 @@ class UserService:
 
         # Add only roles that are not already assigned
         existing_role_ids = {r.id for r in user.roles}
+        new_roles = []
         for role in roles_to_add:
             if role.id not in existing_role_ids:
                 user.roles.append(role)
+                new_roles.append(role)
 
         await self.db.commit()
         await self.db.refresh(user, ["roles"])
+
+        if new_roles:
+            await self._log_audit(
+                action="role.assigned",
+                entity_type="User",
+                entity_id=user_id,
+                extra_metadata={
+                    "role_ids": [r.id for r in new_roles],
+                    "role_names": [r.name for r in new_roles],
+                },
+            )
 
         return user
 
@@ -261,12 +372,26 @@ class UserService:
         """Remove multiple roles from a user (bulk operation)."""
         user = await self.get_by_id(user_id, include_roles=True)
 
-        # Remove roles that are in the list
+        # Find the roles being removed
         role_ids_set = set(role_ids)
+        removed_roles = [r for r in user.roles if r.id in role_ids_set]
+
+        # Remove roles that are in the list
         user.roles = [r for r in user.roles if r.id not in role_ids_set]
 
         await self.db.commit()
         await self.db.refresh(user, ["roles"])
+
+        if removed_roles:
+            await self._log_audit(
+                action="role.removed",
+                entity_type="User",
+                entity_id=user_id,
+                extra_metadata={
+                    "role_ids": [r.id for r in removed_roles],
+                    "role_names": [r.name for r in removed_roles],
+                },
+            )
 
         return user
 

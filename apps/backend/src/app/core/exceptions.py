@@ -235,6 +235,18 @@ class FileNotFoundException(APIException):
         )
 
 
+class AuditLogNotFoundException(APIException):
+    """Raised when audit log is not found."""
+
+    def __init__(self, detail: str = "Audit log not found."):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=detail,
+            code=ErrorCode.AUDIT_LOG_NOT_FOUND,
+            errors={"resource": "AuditLog"},
+        )
+
+
 class FileTooLargeException(APIException):
     """Raised when uploaded file exceeds size limit."""
 

@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from src.app.core.audit import get_audit_context
 from src.app.core.exceptions import (
     InactiveUserException,
     InsufficientPermissionsException,
@@ -62,6 +63,11 @@ async def get_current_user(
     if not user.is_active:
         raise InactiveUserException()
 
+    # Set actor_id in audit context for audit logging
+    audit_context = get_audit_context()
+    if audit_context:
+        audit_context.actor_id = user.id
+
     return user
 
 
@@ -95,6 +101,11 @@ async def get_current_user_with_roles(
 
     if not user.is_active:
         raise InactiveUserException()
+
+    # Set actor_id in audit context for audit logging
+    audit_context = get_audit_context()
+    if audit_context:
+        audit_context.actor_id = user.id
 
     return user
 

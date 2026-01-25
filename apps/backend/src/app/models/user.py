@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.app.db.base import Base
 
 if TYPE_CHECKING:
+    from src.app.models.audit_log import AuditLog
     from src.app.models.file import File
     from src.app.models.password_reset_token import PasswordResetToken
     from src.app.models.role import Role
@@ -61,4 +62,9 @@ class User(Base):
         "PasswordResetToken",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    audit_logs: Mapped[list["AuditLog"]] = relationship(
+        "AuditLog",
+        back_populates="actor",
+        lazy="noload",
     )

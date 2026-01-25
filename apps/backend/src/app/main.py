@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from src.app.api import (
     admin_router,
+    audit_logs_router,
     auth_router,
     files_router,
     health_router,
@@ -30,6 +31,7 @@ from src.app.graphql import (
 )
 from src.app.middleware import (
     AccessLogMiddleware,
+    AuditContextMiddleware,
     RateLimitConfig,
     RateLimitMiddleware,
     RequestIDMiddleware,
@@ -68,6 +70,10 @@ tags_metadata = [
     {
         "name": "files",
         "description": "File storage operations: upload, download, list, and delete files.",
+    },
+    {
+        "name": "audit",
+        "description": "Audit log operations: query and retrieve audit logs.",
     },
     {
         "name": "Admin",
@@ -143,6 +149,9 @@ app.add_middleware(
 # Add request ID middleware for request tracing
 app.add_middleware(RequestIDMiddleware)
 
+# Add audit context middleware (must be after RequestIDMiddleware)
+app.add_middleware(AuditContextMiddleware)
+
 # Add access log middleware for HTTP request logging
 if settings.access_log_enabled:
     app.add_middleware(
@@ -174,6 +183,7 @@ if settings.trusted_host_enabled:
 app.include_router(health_router)
 
 # REST API routes
+app.include_router(audit_logs_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(files_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")

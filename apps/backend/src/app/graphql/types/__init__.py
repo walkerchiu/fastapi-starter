@@ -1,5 +1,10 @@
 """GraphQL types."""
 
+from src.app.graphql.types.audit_log import (
+    AuditLogFilterInput,
+    AuditLogType,
+    PaginatedAuditLogs,
+)
 from src.app.graphql.types.auth import (
     AuthPayloadType,
     BackupCodesType,
@@ -70,6 +75,8 @@ from src.app.graphql.types.role import RoleType
 from src.app.graphql.types.user import Message, UserType, UserTypeWithRoles
 
 __all__ = [
+    "AuditLogFilterInput",
+    "AuditLogType",
     "AssignPermissionsInput",
     "AssignRolesInput",
     "AuthPayloadType",
@@ -97,6 +104,7 @@ __all__ = [
     "LoginInput",
     "LoginResultType",
     "Message",
+    "PaginatedAuditLogs",
     "PaginatedFiles",
     "PaginatedPermissions",
     "PaginatedRoles",

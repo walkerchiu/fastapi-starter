@@ -1,10 +1,13 @@
 """Role service layer for business logic."""
 
+import logging
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from src.app.core.audit import log_audit_from_context
 from src.app.models import Permission, Role
 from src.app.schemas.role import RoleCreate, RoleUpdate
 from src.app.services.exceptions import (
@@ -15,12 +18,35 @@ from src.app.services.exceptions import (
     SystemRoleModificationError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class RoleService:
     """Service class for role operations."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def _log_audit(
+        self,
+        action: str,
+        entity_type: str,
+        entity_id: int | None = None,
+        changes: dict[str, Any] | None = None,
+        extra_metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Log an audit event with error handling."""
+        try:
+            await log_audit_from_context(
+                db=self.db,
+                action=action,
+                entity_type=entity_type,
+                entity_id=str(entity_id) if entity_id else None,
+                changes=changes,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
 
     async def get_by_id(
         self,
@@ -161,11 +187,20 @@ class RoleService:
 
         await self.db.commit()
         await self.db.refresh(role, ["permissions"])
+
+        await self._log_audit(
+            action="role.created",
+            entity_type="Role",
+            entity_id=role.id,
+            extra_metadata={"code": role.code, "name": role.name},
+        )
+
         return role
 
     async def update(self, role_id: int, role_in: RoleUpdate) -> Role:
         """Update a role."""
         role = await self.get_by_id(role_id, include_permissions=True)
+        before_data = {"code": role.code, "name": role.name}
 
         update_data = role_in.model_dump(exclude_unset=True, exclude={"permission_ids"})
 
@@ -199,6 +234,17 @@ class RoleService:
 
         await self.db.commit()
         await self.db.refresh(role)
+
+        await self._log_audit(
+            action="role.updated",
+            entity_type="Role",
+            entity_id=role_id,
+            changes={
+                "before": before_data,
+                "after": {"code": role.code, "name": role.name},
+            },
+        )
+
         return role
 
     async def delete(self, role_id: int) -> None:
@@ -214,12 +260,27 @@ class RoleService:
         role.deleted_at = datetime.now(UTC)
         await self.db.commit()
 
+        await self._log_audit(
+            action="role.deleted",
+            entity_type="Role",
+            entity_id=role_id,
+            extra_metadata={"code": role.code, "soft_delete": True},
+        )
+
     async def restore(self, role_id: int) -> Role:
         """Restore a soft-deleted role."""
         role = await self.get_by_id(role_id, include_deleted=True)
         role.deleted_at = None
         await self.db.commit()
         await self.db.refresh(role)
+
+        await self._log_audit(
+            action="role.restored",
+            entity_type="Role",
+            entity_id=role_id,
+            extra_metadata={"code": role.code},
+        )
+
         return role
 
     async def hard_delete(self, role_id: int, is_super_admin: bool = False) -> None:
@@ -245,8 +306,16 @@ class RoleService:
                 f"Cannot delete system role '{role.code}'"
             )
 
+        role_code = role.code
         await self.db.delete(role)
         await self.db.commit()
+
+        await self._log_audit(
+            action="role.force_deleted",
+            entity_type="Role",
+            entity_id=role_id,
+            extra_metadata={"code": role_code, "hard_delete": True},
+        )
 
     async def add_permission(self, role_id: int, permission_id: int) -> Role:
         """Add a permission to a role."""
@@ -275,6 +344,16 @@ class RoleService:
             await self.db.commit()
             await self.db.refresh(role, ["permissions"])
 
+            await self._log_audit(
+                action="permission.granted",
+                entity_type="Role",
+                entity_id=role_id,
+                extra_metadata={
+                    "permission_id": permission_id,
+                    "permission_code": permission.code,
+                },
+            )
+
         return role
 
     async def remove_permission(self, role_id: int, permission_id: int) -> Role:
@@ -287,16 +366,33 @@ class RoleService:
                 f"Cannot modify permissions of system role '{role.code}'"
             )
 
+        # Find the permission being removed
+        removed_permission = next(
+            (p for p in role.permissions if p.id == permission_id), None
+        )
+
         # Find and remove the permission
         role.permissions = [p for p in role.permissions if p.id != permission_id]
         await self.db.commit()
         await self.db.refresh(role, ["permissions"])
+
+        if removed_permission:
+            await self._log_audit(
+                action="permission.revoked",
+                entity_type="Role",
+                entity_id=role_id,
+                extra_metadata={
+                    "permission_id": permission_id,
+                    "permission_code": removed_permission.code,
+                },
+            )
 
         return role
 
     async def assign_permissions(self, role_id: int, permission_ids: list[int]) -> Role:
         """Replace all permissions of a role with the given list."""
         role = await self.get_by_id(role_id, include_permissions=True)
+        before_permissions = [{"id": p.id, "code": p.code} for p in role.permissions]
 
         # Check if system role
         if role.is_system:
@@ -309,5 +405,15 @@ class RoleService:
 
         await self.db.commit()
         await self.db.refresh(role, ["permissions"])
+
+        await self._log_audit(
+            action="permissions.replaced",
+            entity_type="Role",
+            entity_id=role_id,
+            changes={
+                "before": before_permissions,
+                "after": [{"id": p.id, "code": p.code} for p in permissions],
+            },
+        )
 
         return role

@@ -1,5 +1,20 @@
 """Core module exports."""
 
+from src.app.core.audit import (
+    AuditContext,
+    AuditLogConfig,
+    audit_context_var,
+    audit_log,
+    clear_audit_context,
+    compute_changes,
+    get_audit_context,
+    get_client_ip,
+    get_user_agent,
+    log_audit_action,
+    log_audit_from_context,
+    model_to_dict,
+    set_audit_context,
+)
 from src.app.core.config import settings
 from src.app.core.error_codes import ErrorCode
 from src.app.core.exception_handlers import (
@@ -34,6 +49,20 @@ from src.app.core.validators import (
 )
 
 __all__ = [
+    # Audit
+    "AuditContext",
+    "AuditLogConfig",
+    "audit_context_var",
+    "audit_log",
+    "clear_audit_context",
+    "compute_changes",
+    "get_audit_context",
+    "get_client_ip",
+    "get_user_agent",
+    "log_audit_action",
+    "log_audit_from_context",
+    "model_to_dict",
+    "set_audit_context",
     # Error codes
     "ErrorCode",
     # Config

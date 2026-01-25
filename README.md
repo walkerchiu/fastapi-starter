@@ -36,6 +36,7 @@ A modern, production-ready monorepo starter template for full-stack applications
 - **RabbitMQ Message Queue** - Async task processing with dead letter queue and retry support
 - **Structured Logging** - structlog-based JSON logging with request tracing and environment-aware formatting
 - **Request Tracing** - X-Request-ID propagation with request_id in error responses and GraphQL extensions
+- **Audit Logging** - Comprehensive audit trail for user actions with before/after change tracking
 - **Utility-First CSS** - TailwindCSS 3 for rapid UI development
 - **Dark Mode** - Theme system with light/dark/system modes and persistent preference
 - **Internationalization** - Multi-language support with next-intl (English and Traditional Chinese)

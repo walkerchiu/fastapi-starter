@@ -7,6 +7,7 @@ from src.app.graphql.extensions import (
     RequestTracingExtension,
 )
 from src.app.graphql.resolvers import (
+    AuditLogQuery,
     AuthMutation,
     AuthQuery,
     FileMutation,
@@ -23,7 +24,15 @@ from src.app.graphql.subscriptions import Subscription
 
 
 @strawberry.type
-class Query(UserQuery, AuthQuery, FileQuery, PermissionQuery, RoleQuery, HealthQuery):
+class Query(
+    UserQuery,
+    AuthQuery,
+    FileQuery,
+    PermissionQuery,
+    RoleQuery,
+    HealthQuery,
+    AuditLogQuery,
+):
     """Root query type."""
 
     @strawberry.field

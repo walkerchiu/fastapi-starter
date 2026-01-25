@@ -19,6 +19,7 @@ from src.app.core import (
     get_password_hash,
     verify_password,
 )
+from src.app.core.audit import log_audit_from_context
 from src.app.core.config import settings
 from src.app.models import PasswordResetToken, User
 from src.app.schemas import Token, UserRegister
@@ -59,6 +60,28 @@ class AuthService:
         if dt.tzinfo is None:
             return dt.replace(tzinfo=UTC)
         return dt
+
+    async def _log_audit(
+        self,
+        action: str,
+        entity_type: str,
+        entity_id: UUID | None = None,
+        extra_metadata: dict | None = None,
+    ) -> None:
+        """Log an audit event with error handling."""
+        try:
+            await log_audit_from_context(
+                db=self.db,
+                action=action,
+                entity_type=entity_type,
+                entity_id=str(entity_id) if entity_id else None,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as e:
+            # Log error but don't fail the main operation
+            import logging
+
+            logging.error(f"Failed to create audit log: {e}")
 
     async def get_user_by_email(self, email: str) -> User | None:
         """Get a user by email."""
