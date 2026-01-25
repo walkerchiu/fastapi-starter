@@ -120,6 +120,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         default_limit: RateLimitConfig | None = None,
         route_limits: dict[str, RateLimitConfig] | None = None,
         exclude_paths: list[str] | None = None,
+        trust_proxy: bool = False,
     ):
         super().__init__(app)
         self.limiter = RateLimiter()
@@ -128,14 +129,20 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.exclude_paths = set(
             exclude_paths or ["/", "/health", "/docs", "/openapi.json"]
         )
+        self.trust_proxy = trust_proxy
 
     def _get_client_id(self, request: Request) -> str:
-        """Get client identifier from request."""
-        # Use X-Forwarded-For if behind proxy, otherwise use client host
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            # Take the first IP in the chain (original client)
-            return forwarded.split(",")[0].strip()
+        """Get client identifier from request.
+
+        Only trusts X-Forwarded-For when trust_proxy is explicitly enabled.
+        This prevents IP spoofing attacks when the server is directly exposed.
+        """
+        if self.trust_proxy:
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                # Take the first IP in the chain (original client)
+                return forwarded.split(",")[0].strip()
+
         return request.client.host if request.client else "unknown"
 
     def _get_rate_limit_config(self, path: str) -> RateLimitConfig | None:

@@ -129,6 +129,7 @@ if settings.rate_limit_enabled:
             ),
         },
         exclude_paths=["/", "/health", "/api/docs", "/api/openapi.json", "/api/redoc"],
+        trust_proxy=settings.rate_limit_trust_proxy,
     )
 
 app.add_middleware(

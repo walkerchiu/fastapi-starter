@@ -115,6 +115,7 @@ To get a token:
 
     # Rate Limiting
     rate_limit_enabled: bool = True
+    rate_limit_trust_proxy: bool = False  # Only trust X-Forwarded-For behind a proxy
     rate_limit_requests: int = 100  # Default requests per window
     rate_limit_window: int = 60  # Default window in seconds
     rate_limit_auth_requests: int = 20  # Auth endpoints (login, register)
