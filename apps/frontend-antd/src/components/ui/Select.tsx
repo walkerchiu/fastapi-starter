@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { Select as AntSelect } from 'antd';
 import type { RefSelectProps } from 'antd/es/select';
 
@@ -26,6 +26,8 @@ export interface SelectProps {
   id?: string;
   name?: string;
   fullWidth?: boolean;
+  style?: React.CSSProperties;
+  filterOption?: (input: string, option: SelectOption | undefined) => boolean;
 }
 
 const sizeMap: Record<SelectSize, 'small' | 'middle' | 'large'> = {
@@ -51,6 +53,8 @@ export const Select = forwardRef<RefSelectProps, SelectProps>(
       className,
       id,
       fullWidth = false,
+      style,
+      filterOption,
     },
     ref,
   ) => {
@@ -70,14 +74,15 @@ export const Select = forwardRef<RefSelectProps, SelectProps>(
         onSearch={onSearch}
         className={className}
         id={id}
-        style={fullWidth ? { width: '100%' } : undefined}
+        style={style ?? (fullWidth ? { width: '100%' } : undefined)}
         filterOption={
-          showSearch
+          filterOption ??
+          (showSearch
             ? (input, option) =>
                 (option?.label ?? '')
                   .toLowerCase()
                   .includes(input.toLowerCase())
-            : undefined
+            : undefined)
         }
       />
     );

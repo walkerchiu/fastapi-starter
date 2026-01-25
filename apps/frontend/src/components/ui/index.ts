@@ -100,3 +100,53 @@ export type {
   DropdownMenuSide,
   DropdownMenuTriggerProps,
 } from './DropdownMenu';
+
+export { Avatar } from './Avatar';
+export type { AvatarProps, AvatarSize } from './Avatar';
+
+export { AvatarGroup } from './AvatarGroup';
+export type { AvatarGroupProps } from './AvatarGroup';
+
+export { StatusBadge } from './StatusBadge';
+export type {
+  StatusBadgeProps,
+  StatusBadgeStatus,
+  StatusBadgeSize,
+} from './StatusBadge';
+
+export { Switch } from './Switch';
+export type { SwitchProps, SwitchSize } from './Switch';
+
+export { CopyButton } from './CopyButton';
+export type {
+  CopyButtonProps,
+  CopyButtonSize,
+  CopyButtonVariant,
+} from './CopyButton';
+
+export { Textarea } from './Textarea';
+export type { TextareaProps, TextareaResize } from './Textarea';
+
+export { Drawer } from './Drawer';
+export type { DrawerProps, DrawerPosition, DrawerSize } from './Drawer';
+
+export { Steps } from './Steps';
+export type {
+  StepsProps,
+  StepItem,
+  StepStatus,
+  StepsDirection,
+  StepsSize,
+} from './Steps';
+
+export { MultiSelect } from './MultiSelect';
+export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
+
+export { Combobox } from './Combobox';
+export type { ComboboxProps, ComboboxOption } from './Combobox';
+
+export { DatePicker } from './DatePicker';
+export type { DatePickerProps } from './DatePicker';
+
+export { DateRangePicker } from './DateRangePicker';
+export type { DateRangePickerProps, DateRange } from './DateRangePicker';

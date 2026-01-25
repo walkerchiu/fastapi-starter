@@ -68,7 +68,7 @@ describe('UI Components A11y Tests', () => {
     it('should have no violations with different variants', async () => {
       const { container } = render(
         <>
-          <Badge variant="neutral">Neutral</Badge>
+          <Badge variant="neutral">Default</Badge>
           <Badge variant="success">Success</Badge>
           <Badge variant="warning">Warning</Badge>
           <Badge variant="error">Error</Badge>
