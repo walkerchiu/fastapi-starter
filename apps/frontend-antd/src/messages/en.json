@@ -1,0 +1,226 @@
+{
+  "common": {
+    "or": "or",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "required": "Required"
+  },
+  "nav": {
+    "brand": "Starter",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Welcome to the Starter",
+    "subtitle": "A modern full-stack starter template with FastAPI, Next.js, and Ant Design",
+    "cta": {
+      "getStarted": "Get Started",
+      "signIn": "Sign In",
+      "dashboard": "Go to Dashboard"
+    },
+    "features": {
+      "fast": {
+        "title": "Fast & Scalable",
+        "description": "Built with FastAPI and Next.js for optimal performance"
+      },
+      "secure": {
+        "title": "Secure by Default",
+        "description": "Authentication, 2FA, and RBAC built-in"
+      },
+      "api": {
+        "title": "REST & GraphQL",
+        "description": "Both API styles supported out of the box"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "noAccount": "create a new account",
+      "forgotPassword": "Forgot password?",
+      "invalidCredentials": "Invalid email or password",
+      "genericError": "An error occurred. Please try again."
+    },
+    "register": {
+      "title": "Create your account",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "submitting": "Creating account...",
+      "hasAccount": "sign in to your account",
+      "passwordMismatch": "Passwords do not match",
+      "genericError": "An error occurred. Please try again."
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to reset your password",
+      "email": "Email",
+      "submit": "Send Reset Link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "successTitle": "Check your email",
+      "successMessage": "We've sent you an email with a link to reset your password.",
+      "genericError": "An error occurred. Please try again."
+    },
+    "resetPassword": {
+      "title": "Set new password",
+      "subtitle": "Enter your new password below",
+      "password": "New Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Reset Password",
+      "submitting": "Resetting...",
+      "backToLogin": "Back to login",
+      "invalidToken": "Invalid Reset Link",
+      "invalidTokenMessage": "This password reset link is invalid or has expired.",
+      "requestNewLink": "Request a new link",
+      "passwordMismatch": "Passwords do not match",
+      "genericError": "An error occurred. Please try again."
+    },
+    "verifyEmail": {
+      "verifying": "Verifying your email...",
+      "successTitle": "Email Verified",
+      "successMessage": "Your email has been verified. You can now log in.",
+      "errorTitle": "Verification Failed",
+      "errorMessage": "This verification link is invalid or has expired.",
+      "goToLogin": "Go to Login"
+    },
+    "twoFactor": {
+      "setup": {
+        "title": "Two-Factor Authentication Setup",
+        "description": "Enhance your account security by enabling two-factor authentication.",
+        "startSetup": "Start Setup",
+        "steps": {
+          "start": "Start",
+          "scan": "Scan QR",
+          "backup": "Backup Codes"
+        },
+        "manualEntry": "Manual entry code",
+        "verificationCode": "Verification Code",
+        "verify": "Verify",
+        "invalidCode": "Invalid verification code",
+        "backupCodesWarning": "Save Your Backup Codes",
+        "backupCodesDescription": "Store these codes safely. You can use them to access your account if you lose your authenticator device.",
+        "complete": "Complete Setup",
+        "genericError": "An error occurred. Please try again."
+      },
+      "verify": {
+        "title": "Two-Factor Verification",
+        "description": "Enter the 6-digit code from your authenticator app",
+        "code": "Verification Code",
+        "verify": "Verify",
+        "verifying": "Verifying...",
+        "backupCodeHint": "Lost your device? Use a backup code.",
+        "invalidSession": "Invalid Session",
+        "invalidSessionMessage": "Your session has expired. Please log in again.",
+        "backToLogin": "Back to Login",
+        "verificationFailed": "Verification failed. Please try again.",
+        "genericError": "An error occurred. Please try again."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back! Here's an overview of your account.",
+    "stats": {
+      "profile": "Profile",
+      "email": "Email",
+      "twoFactor": "2FA Status",
+      "files": "Files"
+    },
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "profile": {
+    "title": "Profile",
+    "sections": {
+      "info": "Profile Information",
+      "security": "Security"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "verified": "Email Verified",
+      "createdAt": "Member Since",
+      "twoFactor": "Two-Factor Authentication"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "actions": {
+      "editProfile": "Edit Profile",
+      "changePassword": "Change Password",
+      "enable2FA": "Enable 2FA",
+      "disable2FA": "Disable 2FA",
+      "regenerateBackupCodes": "Regenerate Backup Codes"
+    },
+    "modals": {
+      "editProfile": {
+        "title": "Edit Profile",
+        "name": "Name",
+        "email": "Email",
+        "cancel": "Cancel",
+        "save": "Save Changes",
+        "genericError": "Failed to update profile"
+      },
+      "changePassword": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "cancel": "Cancel",
+        "save": "Change Password",
+        "passwordMismatch": "Passwords do not match",
+        "genericError": "Failed to change password"
+      },
+      "disable2FA": {
+        "title": "Disable Two-Factor Authentication",
+        "warning": "Warning",
+        "warningMessage": "Disabling 2FA will make your account less secure.",
+        "code": "Verification Code",
+        "cancel": "Cancel",
+        "disable": "Disable 2FA",
+        "genericError": "Failed to disable 2FA"
+      },
+      "regenerateBackupCodes": {
+        "title": "Regenerate Backup Codes",
+        "warning": "Warning",
+        "warningMessage": "This will invalidate all existing backup codes.",
+        "code": "Verification Code",
+        "cancel": "Cancel",
+        "regenerate": "Regenerate",
+        "done": "Done",
+        "saveCodesWarning": "Save Your New Codes",
+        "saveCodesMessage": "Store these codes safely. Your old codes are now invalid.",
+        "genericError": "Failed to regenerate backup codes"
+      }
+    }
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "Unauthorized",
+      "message": "You do not have permission to access this page.",
+      "goHome": "Go Home"
+    }
+  }
+}
