@@ -1,6 +1,7 @@
 """Message producer for publishing messages to RabbitMQ."""
 
 import logging
+import uuid
 from typing import Any
 
 from aio_pika import DeliveryMode, Message
@@ -8,6 +9,7 @@ from src.app.core.config import settings
 from src.app.core.rabbitmq import RabbitMQPool, get_channel
 from src.app.messaging.exceptions import MessagePublishError, MessageSerializationError
 from src.app.messaging.types import (
+    AuditLogMessage,
     BaseMessage,
     DomainEvent,
     EmailMessage,
@@ -167,6 +169,42 @@ class MessageProducer:
         """
         routing_key = f"event.{event.event_type}"
         await self.publish(event, routing_key)
+
+    async def publish_audit_log(
+        self,
+        action: str,
+        entity_type: str,
+        entity_id: str | None = None,
+        actor_id: uuid.UUID | None = None,
+        actor_ip: str = "unknown",
+        actor_user_agent: str = "",
+        changes: dict[str, Any] | None = None,
+        extra_data: dict[str, Any] | None = None,
+    ) -> None:
+        """
+        Publish an audit log message via RabbitMQ.
+
+        Args:
+            action: Action type (e.g., "user.created", "role.updated")
+            entity_type: Entity type (e.g., "User", "Role")
+            entity_id: ID of the affected entity
+            actor_id: ID of the user performing the action
+            actor_ip: IP address of the actor
+            actor_user_agent: User agent string
+            changes: Dict with 'before' and 'after' state
+            extra_data: Additional metadata
+        """
+        message = AuditLogMessage(
+            action=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            actor_id=actor_id,
+            actor_ip=actor_ip,
+            actor_user_agent=actor_user_agent,
+            changes=changes,
+            extra_data=extra_data,
+        )
+        await self.publish(message, "audit.log")
 
 
 # Singleton instance

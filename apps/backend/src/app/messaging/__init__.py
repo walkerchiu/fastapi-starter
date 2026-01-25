@@ -9,6 +9,7 @@ from src.app.messaging.exceptions import (
 )
 from src.app.messaging.producer import message_producer
 from src.app.messaging.types import (
+    AuditLogMessage,
     BaseMessage,
     DomainEvent,
     EmailMessage,
@@ -31,6 +32,7 @@ __all__ = [
     "DomainEvent",
     "UserRegisteredEvent",
     "UserLoggedInEvent",
+    "AuditLogMessage",
     # Producer
     "message_producer",
     # Consumer

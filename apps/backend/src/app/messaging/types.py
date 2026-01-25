@@ -119,3 +119,19 @@ class UserLoggedInEvent(DomainEvent):
         if "aggregate_id" not in data and "user_id" in data:
             data["aggregate_id"] = data["user_id"]
         super().__init__(**data)
+
+
+# Audit Log Messages
+
+
+class AuditLogMessage(BaseMessage):
+    """Audit log message for async audit logging."""
+
+    action: str
+    entity_type: str
+    entity_id: str | None = None
+    actor_id: UUID | None = None
+    actor_ip: str = "unknown"
+    actor_user_agent: str = ""
+    changes: dict[str, Any] | None = None
+    extra_data: dict[str, Any] | None = None

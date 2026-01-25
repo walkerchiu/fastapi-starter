@@ -1,5 +1,6 @@
 """Audit logging utilities and decorators."""
 
+import logging
 import uuid
 from contextvars import ContextVar
 from dataclasses import dataclass, field
@@ -7,6 +8,9 @@ from functools import wraps
 from typing import Any, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Type variable for generic return type
 T = TypeVar("T")
@@ -155,7 +159,7 @@ def model_to_dict(model: Any, exclude: set[str] | None = None) -> dict[str, Any]
 
 
 async def log_audit_action(
-    db: AsyncSession,
+    db: AsyncSession | None,
     action: str,
     entity_type: str,
     entity_id: str | None = None,
@@ -166,13 +170,13 @@ async def log_audit_action(
     extra_data: dict[str, Any] | None = None,
 ) -> None:
     """
-    Log an audit action to the database.
+    Log an audit action.
 
-    This is a low-level function that directly creates an audit log entry.
-    For most cases, prefer using the audit_log decorator.
+    When RabbitMQ is enabled, publishes to the audit queue for async processing.
+    Otherwise, writes directly to the database (fallback/sync mode).
 
     Args:
-        db: Database session
+        db: Database session (optional when RabbitMQ is enabled)
         action: Action type (e.g., "user.created", "role.updated")
         entity_type: Entity type (e.g., "User", "Role")
         entity_id: ID of the affected entity
@@ -182,6 +186,41 @@ async def log_audit_action(
         changes: Dict with 'before' and 'after' state
         extra_data: Additional metadata
     """
+    # Try async via RabbitMQ first
+    if settings.rabbitmq_enabled:
+        try:
+            from src.app.messaging.producer import message_producer
+
+            await message_producer.publish_audit_log(
+                action=action,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                actor_id=actor_id,
+                actor_ip=actor_ip,
+                actor_user_agent=actor_user_agent,
+                changes=changes,
+                extra_data=extra_data,
+            )
+            logger.debug(
+                "Audit log published to queue: action=%s, entity_type=%s",
+                action,
+                entity_type,
+            )
+            return
+        except Exception as e:
+            logger.warning(
+                "Failed to publish audit log to queue, falling back to sync: %s",
+                str(e),
+            )
+            # Fall through to sync mode
+
+    # Fallback: Write directly to database
+    if db is None:
+        logger.error(
+            "Cannot log audit action: RabbitMQ disabled and no database session provided"
+        )
+        return
+
     # Import here to avoid circular imports
     from src.app.models.audit_log import AuditLog
 
