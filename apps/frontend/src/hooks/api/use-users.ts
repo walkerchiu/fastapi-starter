@@ -9,6 +9,12 @@ import {
   type CreateUserData,
   type UpdateUserData,
 } from '@repo/api-client';
+import {
+  transformUser,
+  transformPaginatedResponse,
+  type ApiUserResponse,
+  type ApiPaginatedResponse,
+} from './transforms';
 
 // Query key factory for users
 export const userKeys = {
@@ -29,7 +35,9 @@ export function useUsers(params?: ListUsersData['query']) {
       if (response.error) {
         throw new Error('Failed to fetch users');
       }
-      return response.data;
+      const apiResponse =
+        response.data as unknown as ApiPaginatedResponse<ApiUserResponse>;
+      return transformPaginatedResponse(apiResponse, transformUser);
     },
   });
 }
@@ -43,7 +51,7 @@ export function useUser(id: string) {
       if (response.error) {
         throw new Error('Failed to fetch user');
       }
-      return response.data;
+      return transformUser(response.data as ApiUserResponse);
     },
     enabled: !!id,
   });
@@ -59,7 +67,7 @@ export function useCreateUser() {
       if (response.error) {
         throw new Error('Failed to create user');
       }
-      return response.data;
+      return transformUser(response.data as ApiUserResponse);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
@@ -79,11 +87,14 @@ export function useUpdateUser() {
       id: string;
       data: UpdateUserData['body'];
     }) => {
-      const response = await updateUser({ path: { id }, body: data });
+      const response = await updateUser({
+        path: { id },
+        body: data,
+      });
       if (response.error) {
         throw new Error('Failed to update user');
       }
-      return response.data;
+      return transformUser(response.data as ApiUserResponse);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

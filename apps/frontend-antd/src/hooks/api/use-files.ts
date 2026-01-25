@@ -6,6 +6,13 @@ import {
   deleteFile,
   type ListFilesData,
 } from '@repo/api-client';
+import type { File } from './types';
+import {
+  transformFile,
+  transformPaginatedResponse,
+  type ApiFileResponse,
+  type ApiPaginatedResponse,
+} from './transforms';
 
 // Query key factory for files
 export const fileKeys = {
@@ -26,7 +33,9 @@ export function useFiles(params?: ListFilesData['query']) {
       if (response.error) {
         throw new Error('Failed to fetch files');
       }
-      return response.data;
+      const apiResponse =
+        response.data as ApiPaginatedResponse<ApiFileResponse>;
+      return transformPaginatedResponse(apiResponse, transformFile);
     },
   });
 }
@@ -40,7 +49,7 @@ export function useFile(id: string) {
       if (response.error) {
         throw new Error('Failed to fetch file');
       }
-      return response.data;
+      return transformFile(response.data as ApiFileResponse);
     },
     enabled: !!id,
   });
@@ -51,14 +60,14 @@ export function useUploadFile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (file: globalThis.File) => {
       const response = await uploadFile({
         body: { file },
       });
       if (response.error) {
         throw new Error('Failed to upload file');
       }
-      return response.data;
+      return transformFile(response.data as ApiFileResponse);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
@@ -80,6 +89,25 @@ export function useDeleteFile() {
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: fileKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
+    },
+  });
+}
+
+// Placeholder hook for file update (API not yet available)
+export function useUpdateFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (_params: {
+      id: string;
+      data: { filename?: string; description?: string };
+    }) => {
+      // Placeholder - API not yet available
+      console.warn('useUpdateFile: API not yet available');
+      return {} as File;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
     },
   });
