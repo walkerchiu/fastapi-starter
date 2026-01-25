@@ -85,6 +85,11 @@ fastapi-nextjs-tailwindcss-starter/
 │       ├── tailwind.config.ts      # TailwindCSS configuration
 │       └── tsconfig.json
 │
+├── packages/
+│   └── typescript-config/          # Shared TypeScript configuration
+│       ├── base.json               # Base compiler options
+│       └── nextjs.json             # Next.js specific settings
+│
 ├── .husky/                         # Git hooks
 │   └── pre-commit                  # Runs lint-staged
 │
@@ -260,10 +265,11 @@ pnpm --filter frontend test:watch
 
 ### TypeScript
 
-The project uses a layered TypeScript configuration:
+The project uses shared TypeScript configuration from `packages/typescript-config`:
 
-- `tsconfig.base.json` - Shared compiler options (ES2022, strict mode)
-- `apps/frontend/tsconfig.json` - Frontend-specific settings (ESNext, JSX)
+- `base.json` - Shared compiler options (ES2022, strict mode)
+- `nextjs.json` - Next.js specific settings (extends base)
+- `apps/frontend/tsconfig.json` - Extends `@repo/typescript-config/nextjs.json`
 
 ### Python
 
@@ -283,3 +289,11 @@ import { Component } from '../../../components/Component';
 // Use
 import { Component } from '@/components/Component';
 ```
+
+## Adding Shared Packages
+
+The `packages/` directory is ready for shared code:
+
+1. Create a new package in `packages/your-package`.
+2. Add a `package.json` with `"name": "@repo/your-package"`.
+3. Reference it in apps: `"@repo/your-package": "workspace:*"`.
