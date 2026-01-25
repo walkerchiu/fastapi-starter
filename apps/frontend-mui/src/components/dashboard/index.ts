@@ -65,3 +65,25 @@ export {
   type ActivityFeedProps,
   type ActivityItem,
 } from './ActivityFeed';
+
+// Dashboard Templates
+export {
+  // Admin (後台)
+  AdminDashboard,
+  type AdminDashboardProps,
+  type AdminDashboardUser,
+  defaultAdminMenuItems,
+  adminMenuIcons,
+  // Console (中台)
+  ConsoleDashboard,
+  type ConsoleDashboardProps,
+  type ConsoleDashboardUser,
+  defaultConsoleMenuItems,
+  consoleMenuIcons,
+  // Member (前台)
+  MemberDashboard,
+  type MemberDashboardProps,
+  type MemberDashboardUser,
+  defaultMemberMenuItems,
+  memberMenuIcons,
+} from './templates';
