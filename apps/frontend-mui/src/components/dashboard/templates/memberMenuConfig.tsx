@@ -4,6 +4,9 @@ import SecurityIcon from '@mui/icons-material/Security';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HistoryIcon from '@mui/icons-material/History';
 import DevicesIcon from '@mui/icons-material/Devices';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { type SidebarNavItem } from '../DashboardSidebar';
 
 export const defaultMemberMenuItems: SidebarNavItem[] = [
@@ -12,6 +15,24 @@ export const defaultMemberMenuItems: SidebarNavItem[] = [
     label: 'Overview',
     icon: <HomeIcon />,
     href: '/member',
+  },
+  {
+    key: 'shopping-group',
+    label: 'Shopping',
+    items: [
+      {
+        key: 'orders',
+        label: 'Orders',
+        icon: <ReceiptLongIcon />,
+        href: '/member/orders',
+      },
+      {
+        key: 'favorites',
+        label: 'Favorites',
+        icon: <FavoriteIcon />,
+        href: '/member/favorites',
+      },
+    ],
   },
   {
     key: 'account-group',
@@ -35,6 +56,12 @@ export const defaultMemberMenuItems: SidebarNavItem[] = [
         icon: <NotificationsIcon />,
         href: '/member/notifications',
         badge: 3,
+      },
+      {
+        key: 'settings',
+        label: 'Settings',
+        icon: <SettingsIcon />,
+        href: '/member/settings',
       },
     ],
   },
@@ -65,4 +92,7 @@ export const memberMenuIcons = {
   NotificationsIcon,
   HistoryIcon,
   DevicesIcon,
+  ReceiptLongIcon,
+  FavoriteIcon,
+  SettingsIcon,
 };

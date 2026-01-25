@@ -6,14 +6,19 @@ import {
   UserOutlined,
   SafetyOutlined,
   HistoryOutlined,
+  ShoppingOutlined,
+  HeartOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 
 import { PageHeader, PageContent, PageSection } from '@/components/dashboard';
+import { useRouter } from '@/i18n/routing';
 
 const { Text } = Typography;
 
 export default function MemberDashboardPage() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   const accountInfo = [
     { label: 'Account Status', value: 'Active', color: '#52c41a' },
@@ -27,18 +32,48 @@ export default function MemberDashboardPage() {
       description: 'Update your personal information',
       href: '/member/profile',
       icon: <UserOutlined />,
+      color: '#52c41a',
+      bgColor: '#f6ffed',
     },
     {
       title: 'Security Settings',
       description: 'Manage passwords and 2FA',
       href: '/member/security',
       icon: <SafetyOutlined />,
+      color: '#faad14',
+      bgColor: '#fffbe6',
     },
     {
       title: 'Activity Log',
       description: 'View your recent activities',
       href: '/member/activity',
       icon: <HistoryOutlined />,
+      color: '#1890ff',
+      bgColor: '#e6f7ff',
+    },
+    {
+      title: 'My Orders',
+      description: 'Track and manage your orders',
+      href: '/member/orders',
+      icon: <ShoppingOutlined />,
+      color: '#722ed1',
+      bgColor: '#f9f0ff',
+    },
+    {
+      title: 'Favorites',
+      description: 'View your saved items',
+      href: '/member/favorites',
+      icon: <HeartOutlined />,
+      color: '#eb2f96',
+      bgColor: '#fff0f6',
+    },
+    {
+      title: 'Settings',
+      description: 'Customize your preferences',
+      href: '/member/settings',
+      icon: <SettingOutlined />,
+      color: '#13c2c2',
+      bgColor: '#e6fffb',
     },
   ];
 
@@ -78,8 +113,12 @@ export default function MemberDashboardPage() {
         <PageSection title="Quick Actions">
           <Row gutter={[16, 16]}>
             {quickActions.map((action) => (
-              <Col xs={24} sm={8} key={action.title}>
-                <Card hoverable style={{ cursor: 'pointer' }}>
+              <Col xs={24} sm={12} md={8} key={action.title}>
+                <Card
+                  hoverable
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => router.push(action.href)}
+                >
                   <div
                     style={{
                       display: 'flex',
@@ -89,7 +128,10 @@ export default function MemberDashboardPage() {
                   >
                     <Avatar
                       size={48}
-                      style={{ backgroundColor: '#f6ffed', color: '#52c41a' }}
+                      style={{
+                        backgroundColor: action.bgColor,
+                        color: action.color,
+                      }}
                       icon={action.icon}
                     />
                     <div>

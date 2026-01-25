@@ -22,6 +22,9 @@ export default function MemberLayout({
     if (pathname.includes('/member/notifications')) return 'notifications';
     if (pathname.includes('/member/activity')) return 'activity';
     if (pathname.includes('/member/sessions')) return 'sessions';
+    if (pathname.includes('/member/orders')) return 'orders';
+    if (pathname.includes('/member/favorites')) return 'favorites';
+    if (pathname.includes('/member/settings')) return 'settings';
     return 'overview';
   };
 

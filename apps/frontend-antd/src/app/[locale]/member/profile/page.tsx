@@ -73,7 +73,8 @@ export default function ProfilePage() {
                 <Avatar
                   size={96}
                   src={
-                    (session?.user as { image?: string })?.image || undefined
+                    (session?.user as { image?: string } | undefined)?.image ||
+                    undefined
                   }
                   style={{
                     backgroundColor: '#f6ffed',
@@ -81,7 +82,8 @@ export default function ProfilePage() {
                     marginBottom: 16,
                   }}
                   icon={
-                    !(session?.user as { image?: string })?.image ? (
+                    !(session?.user as { image?: string } | undefined)
+                      ?.image ? (
                       <UserOutlined style={{ fontSize: 48 }} />
                     ) : undefined
                   }

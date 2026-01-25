@@ -5,6 +5,9 @@ import {
   BellOutlined,
   HistoryOutlined,
   DesktopOutlined,
+  ShoppingOutlined,
+  HeartOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { type SidebarNavItem } from '../DashboardSidebar';
 
@@ -41,6 +44,24 @@ export const defaultMemberMenuItems: SidebarNavItem[] = [
     ],
   },
   {
+    key: 'shopping-group',
+    label: 'Shopping',
+    items: [
+      {
+        key: 'orders',
+        label: 'My Orders',
+        icon: <ShoppingOutlined />,
+        href: '/member/orders',
+      },
+      {
+        key: 'favorites',
+        label: 'Favorites',
+        icon: <HeartOutlined />,
+        href: '/member/favorites',
+      },
+    ],
+  },
+  {
     key: 'activity-group',
     label: 'Activity',
     items: [
@@ -58,6 +79,12 @@ export const defaultMemberMenuItems: SidebarNavItem[] = [
       },
     ],
   },
+  {
+    key: 'settings',
+    label: 'Settings',
+    icon: <SettingOutlined />,
+    href: '/member/settings',
+  },
 ];
 
 export const memberMenuIcons = {
@@ -67,4 +94,7 @@ export const memberMenuIcons = {
   BellOutlined,
   HistoryOutlined,
   DesktopOutlined,
+  ShoppingOutlined,
+  HeartOutlined,
+  SettingOutlined,
 };
