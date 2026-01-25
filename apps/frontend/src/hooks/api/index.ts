@@ -221,3 +221,22 @@ export {
   type NotificationQueryParams,
   type NotificationPreferences,
 } from './use-notifications';
+
+export {
+  useScheduledTasks,
+  useScheduledTask,
+  useTaskTypes,
+  useTaskExecutions,
+  useCreateScheduledTask,
+  useUpdateScheduledTask,
+  useDeleteScheduledTask,
+  useEnableScheduledTask,
+  useDisableScheduledTask,
+  useTriggerScheduledTask,
+  scheduledTaskKeys,
+  type ScheduledTask,
+  type TaskExecution,
+  type TaskTypeInfo,
+  type ScheduledTaskListResponse,
+  type TaskExecutionListResponse,
+} from './use-scheduled-tasks';

@@ -64,7 +64,10 @@ export function FormField({
         </p>
       )}
       {hint && !error && (
-        <p id={hintId} className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        <p
+          id={hintId}
+          className="mt-2 text-sm text-gray-500 dark:text-gray-400"
+        >
           {hint}
         </p>
       )}
