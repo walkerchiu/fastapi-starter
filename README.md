@@ -86,6 +86,9 @@ fastapi-nextjs-tailwindcss-starter/
 │       └── tsconfig.json
 │
 ├── packages/
+│   ├── eslint-config/              # Shared ESLint configuration
+│   │   ├── base.mjs                # Base rules for Node.js
+│   │   └── next.mjs                # Next.js specific rules
 │   └── typescript-config/          # Shared TypeScript configuration
 │       ├── base.json               # Base compiler options
 │       └── nextjs.json             # Next.js specific settings
